@@ -18,8 +18,8 @@ final class ClipboardStore {
     // MARK: Constants
 
     private enum Keys {
-        static let items    = "com.zeyadamer.distill.clipboardItems"
-        static let maxItems = "com.zeyadamer.distill.maxItems"
+        static let items    = "com.zeyadamer.hotstash.clipboardItems"
+        static let maxItems = "com.zeyadamer.hotstash.maxItems"
     }
 
     /// Default upper limit — can be overridden via UserDefaults.

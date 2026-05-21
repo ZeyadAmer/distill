@@ -31,7 +31,7 @@ final class MenuBarManager: NSObject {
         guard let button = statusItem.button else { return }
 
         let config = NSImage.SymbolConfiguration(pointSize: 16, weight: .regular)
-        if let image = NSImage(systemSymbolName: "doc.on.clipboard", accessibilityDescription: "Distill") {
+        if let image = NSImage(systemSymbolName: "doc.on.clipboard", accessibilityDescription: "Hotstash") {
             image.isTemplate = true
             let configured = image.withSymbolConfiguration(config) ?? image
             configured.isTemplate = true
@@ -64,8 +64,8 @@ final class MenuBarManager: NSObject {
         let menu = NSMenu()
 
         let openItem = NSMenuItem(
-            title: "Open Distill",
-            action: #selector(openDistill),
+            title: "Open Hotstash",
+            action: #selector(openHotstash),
             keyEquivalent: ""
         )
         openItem.target = self
@@ -85,7 +85,7 @@ final class MenuBarManager: NSObject {
         menu.addItem(.separator())
 
         let quitItem = NSMenuItem(
-            title: "Quit Distill",
+            title: "Quit Hotstash",
             action: #selector(quitApp),
             keyEquivalent: ""
         )
@@ -103,7 +103,7 @@ final class MenuBarManager: NSObject {
 
     // MARK: - Menu actions
 
-    @objc private func openDistill() {
+    @objc private func openHotstash() {
         ClipboardPanel.shared.show()
     }
 
@@ -146,7 +146,7 @@ final class MenuBarManager: NSObject {
             guard
                 let baseSymbol = NSImage(
                     systemSymbolName: "doc.on.clipboard",
-                    accessibilityDescription: "Distill"
+                    accessibilityDescription: "Hotstash"
                 )
             else { return }
 
@@ -184,7 +184,7 @@ final class MenuBarManager: NSObject {
             let config = NSImage.SymbolConfiguration(pointSize: 16, weight: .regular)
             if let image = NSImage(
                 systemSymbolName: "doc.on.clipboard",
-                accessibilityDescription: "Distill"
+                accessibilityDescription: "Hotstash"
             ) {
                 let configured = image.withSymbolConfiguration(config) ?? image
                 configured.isTemplate = true

@@ -18,7 +18,7 @@ final class OnboardingWindowController: NSWindowController {
             backing: .buffered,
             defer: false
         )
-        window.title = "Welcome to Distill"
+        window.title = "Welcome to Hotstash"
         window.isReleasedWhenClosed = false
         window.isMovableByWindowBackground = true
 
@@ -98,7 +98,7 @@ private struct StepWelcomeView: View {
                 .foregroundStyle(.accent)
 
             VStack(spacing: 8) {
-                Text("Welcome to Distill")
+                Text("Welcome to Hotstash")
                     .font(.largeTitle)
                     .fontWeight(.bold)
 
@@ -144,7 +144,7 @@ private struct StepAccessibilityView: View {
                     .font(.largeTitle)
                     .fontWeight(.bold)
 
-                Text("Distill needs accessibility access to automatically paste your selected item into the active app.")
+                Text("Hotstash needs accessibility access to automatically paste your selected item into the active app.")
                     .font(.body)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
@@ -201,7 +201,7 @@ private struct StepReadyView: View {
                     .font(.largeTitle)
                     .fontWeight(.bold)
 
-                Text("Press ⌘⇧V anywhere to open Distill and paste from your clipboard history.")
+                Text("Press ⌘⇧V anywhere to open Hotstash and paste from your clipboard history.")
                     .font(.body)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)

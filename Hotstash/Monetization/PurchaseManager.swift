@@ -3,7 +3,7 @@ import StoreKit
 
 // MARK: - PurchaseManager
 
-/// Manages StoreKit 2 purchase and entitlement state for the Distill Pro product.
+/// Manages StoreKit 2 purchase and entitlement state for the Hotstash Pro product.
 ///
 /// StoreKit is the authoritative source of truth.  UserDefaults is used only
 /// as a local cache to avoid flickering on cold-launch before the async
@@ -17,15 +17,15 @@ final class PurchaseManager: ObservableObject {
 
     // MARK: Constants
 
-    let productID = "com.zeyadamer.distill.pro"
+    let productID = "com.zeyadamer.hotstash.pro"
 
     private enum Keys {
-        static let isPurchasedCache = "com.zeyadamer.distill.isPurchasedCache"
+        static let isPurchasedCache = "com.zeyadamer.hotstash.isPurchasedCache"
     }
 
     // MARK: Published state
 
-    @Published var isPurchased: Bool = UserDefaults.standard.bool(forKey: "com.zeyadamer.distill.isPurchasedCache")
+    @Published var isPurchased: Bool = UserDefaults.standard.bool(forKey: "com.zeyadamer.hotstash.isPurchasedCache")
     @Published var isLoading: Bool = false
 
     // MARK: Init

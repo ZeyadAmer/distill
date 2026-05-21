@@ -23,7 +23,7 @@ final class SettingsWindowController: NSWindowController {
             backing: .buffered,
             defer: false
         )
-        window.title = "Distill Settings"
+        window.title = "Hotstash Settings"
         window.isReleasedWhenClosed = false
 
         let hostingView = NSHostingView(rootView: SettingsRootView())

@@ -141,7 +141,7 @@ final class ClipboardPanelVC: NSViewController {
         label.textColor = .labelColor
         label.translatesAutoresizingMaskIntoConstraints = false
 
-        let buyButton = NSButton(title: "Unlock Distill", target: self, action: #selector(handleBuy))
+        let buyButton = NSButton(title: "Unlock Hotstash", target: self, action: #selector(handleBuy))
         buyButton.bezelStyle   = .inline
         buyButton.isBordered   = false
         buyButton.font         = .systemFont(ofSize: 11.5, weight: .semibold)
@@ -510,7 +510,7 @@ final class ClipboardPanelVC: NSViewController {
             text = item.content
         }
         ClipboardStore.shared.recordUse(id: item.id)
-        PasteEngine.distilledPaste(text)
+        PasteEngine.hotstashedPaste(text)
     }
 
     // MARK: - Keyboard navigation

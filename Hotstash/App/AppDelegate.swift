@@ -34,7 +34,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(handleHotkeyNotification),
-            name: .distillHotkeyPressed,
+            name: .hotstashHotkeyPressed,
             object: nil
         )
 
@@ -85,7 +85,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             { (_, _, _) -> OSStatus in
                 // Post the notification on the main thread.
                 DispatchQueue.main.async {
-                    NotificationCenter.default.post(name: .distillHotkeyPressed, object: nil)
+                    NotificationCenter.default.post(name: .hotstashHotkeyPressed, object: nil)
                 }
                 return noErr
             },
@@ -100,7 +100,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
 
-        let hotKeyID = EventHotKeyID(signature: fourCharCode("DSTL"), id: 1)
+        let hotKeyID = EventHotKeyID(signature: fourCharCode("HOTS"), id: 1)
         let keyCode = UInt32(kVK_ANSI_V)
         let modifiers = UInt32(cmdKey | shiftKey)
 

@@ -41,7 +41,7 @@ struct ClipboardItem: Identifiable, Equatable, Codable {
     /// Whether the item is pinned to the top of the history list.
     var isPinned: Bool
 
-    /// Number of times the item has been pasted from the Distill panel.
+    /// Number of times the item has been pasted from the Hotstash panel.
     var useCount: Int
 
     // MARK: Designated initialiser

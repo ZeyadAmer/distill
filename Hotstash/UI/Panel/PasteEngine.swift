@@ -8,7 +8,7 @@ import Foundation
 /// frontmost application receives a paste event.
 ///
 /// Callers should ensure `ClipboardMonitor.shared.isAppWriting` is not already
-/// set when they call `distilledPaste(_:)`.
+/// set when they call `hotstashedPaste(_:)`.
 enum PasteEngine {
 
     // MARK: - Public API
@@ -18,7 +18,7 @@ enum PasteEngine {
     /// window time to regain focus.
     ///
     /// - Parameter text: The string to paste into the frontmost application.
-    static func distilledPaste(_ text: String) {
+    static func hotstashedPaste(_ text: String) {
         // 1. Tell the monitor to ignore the write we are about to make.
         ClipboardMonitor.shared.isAppWriting = true
 

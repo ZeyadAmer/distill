@@ -27,7 +27,7 @@ struct AboutSettingsView: View {
                         .foregroundStyle(.accent)
                         .padding(.top, 24)
 
-                    Text("Distill")
+                    Text("Hotstash")
                         .font(.largeTitle)
                         .fontWeight(.bold)
 
@@ -54,7 +54,7 @@ struct AboutSettingsView: View {
                         Button {
                             Task { await purchaseManager.purchase() }
                         } label: {
-                            Label("Purchase Distill — $9.99", systemImage: "cart")
+                            Label("Purchase Hotstash — $9.99", systemImage: "cart")
                                 .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(.borderedProminent)
@@ -93,7 +93,7 @@ struct AboutSettingsView: View {
 
                     Link(
                         "Contact Support",
-                        destination: URL(string: "mailto:support@distill.app")!
+                        destination: URL(string: "mailto:support@hotstash.app")!
                     )
                     .font(.caption)
                 }

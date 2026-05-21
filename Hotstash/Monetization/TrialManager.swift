@@ -17,7 +17,7 @@ final class TrialManager {
     // MARK: Constants
 
     private enum Keys {
-        static let firstLaunchDate = "com.zeyadamer.distill.firstLaunchDate"
+        static let firstLaunchDate = "com.zeyadamer.hotstash.firstLaunchDate"
     }
 
     private static let trialDurationDays = 14

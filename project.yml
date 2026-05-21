@@ -1,4 +1,4 @@
-name: Distill
+name: Hotstash
 
 options:
   bundleIdPrefix: com.zeyadamer
@@ -15,36 +15,36 @@ settings:
     ENABLE_HARDENED_RUNTIME: YES
 
 targets:
-  Distill:
+  Hotstash:
     type: application
     platform: macOS
     deploymentTarget: "13.0"
 
     sources:
-      - path: Distill/App
+      - path: Hotstash/App
         group: App
-      - path: Distill/Clipboard
+      - path: Hotstash/Clipboard
         group: Clipboard
-      - path: Distill/Transforms
+      - path: Hotstash/Transforms
         group: Transforms
-      - path: Distill/UI
+      - path: Hotstash/UI
         group: UI
-      - path: Distill/Monetization
+      - path: Hotstash/Monetization
         group: Monetization
 
     resources:
-      - path: Distill/Resources/Assets.xcassets
-      - path: Distill/Resources/Info.plist
+      - path: Hotstash/Resources/Assets.xcassets
+      - path: Hotstash/Resources/Info.plist
         buildPhase: none
 
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.zeyadamer.distill
-        PRODUCT_NAME: Distill
+        PRODUCT_BUNDLE_IDENTIFIER: com.zeyadamer.hotstash
+        PRODUCT_NAME: Hotstash
         SWIFT_VERSION: "5.9"
         MACOSX_DEPLOYMENT_TARGET: "13.0"
-        INFOPLIST_FILE: Distill/Resources/Info.plist
-        CODE_SIGN_ENTITLEMENTS: Distill/Resources/Distill.entitlements
+        INFOPLIST_FILE: Hotstash/Resources/Info.plist
+        CODE_SIGN_ENTITLEMENTS: Hotstash/Resources/Hotstash.entitlements
         DEVELOPMENT_TEAM: 4PMSUCCX7P
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
@@ -52,8 +52,6 @@ targets:
         ENABLE_HARDENED_RUNTIME: YES
         CODE_SIGN_STYLE: Automatic
         SWIFT_STRICT_CONCURRENCY: minimal
-        GCC_PREPROCESSOR_DEFINITIONS:
-          - "$(inherited)"
         LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/../Frameworks"
         COMBINE_HIDPI_IMAGES: YES
         ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES: YES
@@ -77,16 +75,16 @@ targets:
       - sdk: CoreGraphics.framework
 
     entitlements:
-      path: Distill/Resources/Distill.entitlements
+      path: Hotstash/Resources/Hotstash.entitlements
       properties:
         com.apple.security.app-sandbox: true
         com.apple.security.automation.apple-events: true
 
 schemes:
-  Distill:
+  Hotstash:
     build:
       targets:
-        Distill: all
+        Hotstash: all
     run:
       config: Debug
     archive:

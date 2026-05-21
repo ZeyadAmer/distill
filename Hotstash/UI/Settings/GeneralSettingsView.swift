@@ -37,7 +37,7 @@ struct GeneralSettingsView: View {
             // MARK: Keyboard shortcut
 
             Section {
-                LabeledContent("Open Distill") {
+                LabeledContent("Open Hotstash") {
                     Text("⌘⇧V")
                         .font(.system(.body, design: .monospaced))
                         .foregroundStyle(.secondary)
@@ -97,7 +97,7 @@ struct GeneralSettingsView: View {
             } header: {
                 Text("Permissions")
             } footer: {
-                Text("Distill needs accessibility access to simulate paste when you select a clipboard item.")
+                Text("Hotstash needs accessibility access to simulate paste when you select a clipboard item.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

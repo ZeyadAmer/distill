@@ -1,4 +1,4 @@
-# Distill — App Store Submission Guide
+# Hotstash — App Store Submission Guide
 
 ## What's Built
 
@@ -29,34 +29,34 @@ App Store requires **Apple Distribution** cert.
 1. Go to [appstoreconnect.apple.com](https://appstoreconnect.apple.com)
 2. My Apps → **+** → New App
    - Platform: **macOS**
-   - Name: **Distill**
-   - Bundle ID: `com.zeyadamer.distill`
-   - SKU: `distill-001`
+   - Name: **Hotstash**
+   - Bundle ID: `com.zeyadamer.hotstash`
+   - SKU: `hotstash-001`
 3. Fill in metadata (copy from plan):
    - Subtitle: `Clipboard history + transforms`
    - Category: Productivity / Developer Tools
-   - Description: (from distill-plan.md section 8.3)
-   - Keywords: `distill,clipboard,paste,transform,productivity,developer,JSON,formatter,history,menubar`
+   - Description: (from hotstash-plan.md section 8.3)
+   - Keywords: `hotstash,clipboard,paste,transform,productivity,developer,JSON,formatter,history,menubar`
 4. Privacy: **Data Not Collected** ✓, No Tracking ✓
 
 ## Step 4 — Create IAP Product
 
-In App Store Connect → Distill → In-App Purchases:
+In App Store Connect → Hotstash → In-App Purchases:
 1. **+** → Non-Consumable
-2. Reference Name: `Distill Pro`
-3. Product ID: `com.zeyadamer.distill.pro`
+2. Reference Name: `Hotstash Pro`
+3. Product ID: `com.zeyadamer.hotstash.pro`
 4. Price: **$9.99 / Tier 9** (≈ 499 EGP)
-5. Display name: `Distill Pro`
-6. Description: `Unlock full Distill — unlimited history and all transforms.`
+5. Display name: `Hotstash Pro`
+6. Description: `Unlock full Hotstash — unlimited history and all transforms.`
 7. Submit for review with the app
 
 ## Step 5 — Open and Build in Xcode
 
 ```bash
-open /Users/zeyadamer/workspace/personal/distill/Distill.xcodeproj
+open /Users/zeyadamer/workspace/personal/hotstash/Hotstash.xcodeproj
 ```
 
-1. Select the `Distill` target
+1. Select the `Hotstash` target
 2. Signing & Capabilities → set Team to **Zeyad Amer (4PMSUCCX7P)**
 3. Code Signing: Automatic ✓ (Xcode manages provisioning)
 4. Build: **Product → Build** (⌘B) — fix any errors
@@ -64,18 +64,18 @@ open /Users/zeyadamer/workspace/personal/distill/Distill.xcodeproj
 ## Step 6 — App Icon
 
 The icon PNG files are generated from the concept in `image.png`.
-They are at: `Distill/Resources/Assets.xcassets/AppIcon.appiconset/`
+They are at: `Hotstash/Resources/Assets.xcassets/AppIcon.appiconset/`
 
 For App Store, the 1024×1024 image must have **no alpha channel**:
 ```bash
 sips -s format png --out /tmp/AppIcon-1024-noalpha.png \
-  Distill/Resources/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png
+  Hotstash/Resources/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png
 ```
 Then replace `AppIcon-512@2x.png` with the no-alpha version if validation fails.
 
 ## Step 7 — Archive for App Store
 
-1. In Xcode, select scheme **Distill** and destination **Any Mac**
+1. In Xcode, select scheme **Hotstash** and destination **Any Mac**
 2. **Product → Archive** (takes 1–3 min)
 3. Organizer opens → select the archive → **Distribute App**
 4. Choose **App Store Connect**
@@ -85,7 +85,7 @@ Then replace `AppIcon-512@2x.png` with the no-alpha version if validation fails.
 
 ## Step 8 — Submit for Review
 
-1. In App Store Connect → Distill → prepare a submission
+1. In App Store Connect → Hotstash → prepare a submission
 2. Select the uploaded build
 3. Fill export compliance: **No encryption** → No
 4. Add screenshots:
@@ -107,11 +107,11 @@ Then replace `AppIcon-512@2x.png` with the no-alpha version if validation fails.
 
 | Setting | Value |
 |---------|-------|
-| Bundle ID | `com.zeyadamer.distill` |
+| Bundle ID | `com.zeyadamer.hotstash` |
 | Team | Zeyad Amer (4PMSUCCX7P) |
 | Min macOS | 13.0 Ventura |
 | Deployment | Mac App Store |
-| IAP Product | `com.zeyadamer.distill.pro` |
+| IAP Product | `com.zeyadamer.hotstash.pro` |
 | Price | $9.99 |
 | Sandbox | Enabled |
 
