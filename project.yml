@@ -21,21 +21,12 @@ targets:
     deploymentTarget: "13.0"
 
     sources:
-      - path: Hotstash/App
-        group: App
-      - path: Hotstash/Clipboard
-        group: Clipboard
-      - path: Hotstash/Transforms
-        group: Transforms
-      - path: Hotstash/UI
-        group: UI
-      - path: Hotstash/Monetization
-        group: Monetization
+      - path: Hotstash
+        excludes:
+          - Resources/**
 
     resources:
       - path: Hotstash/Resources/Assets.xcassets
-      - path: Hotstash/Resources/Info.plist
-        buildPhase: none
 
     settings:
       base:
