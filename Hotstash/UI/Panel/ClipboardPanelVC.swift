@@ -516,7 +516,7 @@ final class ClipboardPanelVC: NSViewController {
     // MARK: - Action handlers
 
     @objc private func handleClose() {
-        ClipboardPanel.shared.hide()
+        ClipboardPanel.shared.dismiss()
     }
 
     @objc private func handlePaste() {

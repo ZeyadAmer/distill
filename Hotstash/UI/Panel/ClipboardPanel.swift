@@ -76,23 +76,22 @@ final class ClipboardPanel: NSPanel {
     // MARK: - Event Monitors
 
     private func installEventMonitors() {
-        // Global left-click in another app → dismiss.
+        // Global left-click in another app → dismiss both panels.
         outsideClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: .leftMouseDown) { [weak self] _ in
-            self?.hide()
+            self?.dismiss()
         }
 
-        // Local Escape key → dismiss.
+        // Local Escape key → dismiss both panels.
         localKeyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             if event.keyCode == 53 { // kVK_Escape = 53
-                self?.hide()
+                self?.dismiss()
                 return nil
             }
             return event
         }
 
-        // Panel loses key status (click in same-app window, menu bar, etc.) → dismiss.
-        // Delay slightly so transient popovers (transform picker) can steal/return key
-        // without triggering a dismiss. Never dismiss when multi-paste panel is open.
+        // Panel loses key status → dismiss only if multi-paste is also not visible.
+        // If multi-paste is open, the user is interacting with it; don't close anything.
         NotificationCenter.default.addObserver(
             forName: NSWindow.didResignKeyNotification,
             object: self,
@@ -147,9 +146,9 @@ final class ClipboardPanel: NSPanel {
         contentVC.panelWillShow()
     }
 
-    /// Fades out the panel, then moves it off screen.
+    /// Hides only this panel. Multi-paste panel is unaffected.
+    /// Called automatically after paste, or when toggling via menubar icon.
     func hide() {
-        MultiPastePanel.shared.hide()
         NSAnimationContext.runAnimationGroup({ ctx in
             ctx.duration = 0.14
             ctx.timingFunction = CAMediaTimingFunction(name: .easeIn)
@@ -157,6 +156,13 @@ final class ClipboardPanel: NSPanel {
         }, completionHandler: { [weak self] in
             self?.orderOut(nil)
         })
+    }
+
+    /// Hides both this panel and the multi-paste panel.
+    /// Called when the user explicitly dismisses (outside click, Escape, X button).
+    func dismiss() {
+        MultiPastePanel.shared.hide()
+        hide()
     }
 
     // MARK: - Positioning
