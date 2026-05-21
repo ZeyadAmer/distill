@@ -41,6 +41,7 @@ final class TransformRegistry {
         Base64DecodeTransform(),
         URLEncodeTransform(),
         URLDecodeTransform(),
+        JWTDecodeTransform(),
 
         // Code
         RuffFormatTransform(),

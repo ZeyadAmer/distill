@@ -76,3 +76,49 @@ struct URLDecodeTransform: Transform {
         input.removingPercentEncoding ?? input
     }
 }
+
+// MARK: - JWTDecodeTransform
+
+struct JWTDecodeTransform: Transform {
+    let id       = "jwt_decode"
+    let name     = "Decode JWT"
+    let icon     = "person.badge.key"
+    let category = TransformCategory.encoding
+
+    let applicableTo: [ContentType] = []
+
+    func apply(to input: String) -> String {
+        let token = input.trimmingCharacters(in: .whitespacesAndNewlines)
+        let parts = token.components(separatedBy: ".")
+        guard parts.count == 3 else { return input }
+
+        guard
+            let header  = decodeSegment(parts[0]),
+            let payload = decodeSegment(parts[1])
+        else { return input }
+
+        let combined: [String: Any] = ["header": header, "payload": payload]
+        guard
+            let data   = try? JSONSerialization.data(withJSONObject: combined, options: [.prettyPrinted, .sortedKeys]),
+            let result = String(data: data, encoding: .utf8)
+        else { return input }
+
+        return result
+    }
+
+    // base64url → standard base64 with padding → decoded JSON object
+    private func decodeSegment(_ segment: String) -> Any? {
+        var base64 = segment
+            .replacingOccurrences(of: "-", with: "+")
+            .replacingOccurrences(of: "_", with: "/")
+        let remainder = base64.count % 4
+        if remainder != 0 { base64 += String(repeating: "=", count: 4 - remainder) }
+
+        guard
+            let data   = Data(base64Encoded: base64),
+            let object = try? JSONSerialization.jsonObject(with: data)
+        else { return nil }
+
+        return object
+    }
+}

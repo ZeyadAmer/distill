@@ -77,8 +77,9 @@ final class ClipboardPanel: NSPanel {
 
     private func installEventMonitors() {
         // Global left-click in another app → dismiss both panels.
+        // Dispatch to main: global monitors may fire on a background thread.
         outsideClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: .leftMouseDown) { [weak self] _ in
-            self?.dismiss()
+            DispatchQueue.main.async { self?.dismiss() }
         }
 
         // Local Escape key → dismiss both panels.
@@ -90,8 +91,8 @@ final class ClipboardPanel: NSPanel {
             return event
         }
 
-        // Panel loses key status → dismiss only if multi-paste is also not visible.
-        // If multi-paste is open, the user is interacting with it; don't close anything.
+        // Panel loses key status → close clipboard only if multi-paste is not visible.
+        // When multi-paste is open it legitimately holds key; we must not close clipboard.
         NotificationCenter.default.addObserver(
             forName: NSWindow.didResignKeyNotification,
             object: self,
@@ -121,7 +122,7 @@ final class ClipboardPanel: NSPanel {
     /// Toggles the panel: hides it when visible, shows it based on the user's position preference.
     func toggle() {
         if isVisible {
-            hide()
+            dismiss()
         } else {
             show()
         }

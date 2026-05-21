@@ -394,6 +394,7 @@ final class ClipboardPanelVC: NSViewController {
         clearAllButton.action  = #selector(handleClearAll)
 
         tableView.target       = self
+        tableView.action       = #selector(handleSingleClick)
         tableView.doubleAction = #selector(handleDoubleClick)
 
         searchField.delegate   = self
@@ -554,7 +555,17 @@ final class ClipboardPanelVC: NSViewController {
     }
 
     @objc private func handleMultiPaste() {
-        MultiPastePanel.shared.show()
+        if MultiPastePanel.shared.isVisible {
+            MultiPastePanel.shared.hide()
+        } else {
+            MultiPastePanel.shared.show()
+        }
+    }
+
+    @objc private func handleSingleClick() {
+        guard tableView.clickedRow >= 0,
+              case .item = rows[tableView.clickedRow] else { return }
+        MultiPastePanel.shared.hide()
     }
 
     @objc private func handleDoubleClick() {

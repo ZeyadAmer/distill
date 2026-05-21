@@ -29,7 +29,7 @@ enum PasteEngine {
         pasteboard.setString(text, forType: .string)
 
         // 3. Dismiss the panel immediately so focus can return to the caller's app.
-        ClipboardPanel.shared.hide()
+        ClipboardPanel.shared.dismiss()
 
         // 4. Wait long enough for the panel dismiss animation to finish and for
         //    the target application's window to become key again, then post CMD+V.
@@ -54,7 +54,7 @@ enum PasteEngine {
             pasteboard.writeObjects([image])
         }
 
-        ClipboardPanel.shared.hide()
+        ClipboardPanel.shared.dismiss()
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
             postCmdV()
