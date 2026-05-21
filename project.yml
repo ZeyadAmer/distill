@@ -1,0 +1,93 @@
+name: Distill
+
+options:
+  bundleIdPrefix: com.zeyadamer
+  deploymentTarget:
+    macOS: "13.0"
+  createIntermediateGroups: true
+  xcodeVersion: "16.0"
+  groupSortPosition: top
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    MACOSX_DEPLOYMENT_TARGET: "13.0"
+    ENABLE_HARDENED_RUNTIME: YES
+
+targets:
+  Distill:
+    type: application
+    platform: macOS
+    deploymentTarget: "13.0"
+
+    sources:
+      - path: Distill/App
+        group: App
+      - path: Distill/Clipboard
+        group: Clipboard
+      - path: Distill/Transforms
+        group: Transforms
+      - path: Distill/UI
+        group: UI
+      - path: Distill/Monetization
+        group: Monetization
+
+    resources:
+      - path: Distill/Resources/Assets.xcassets
+      - path: Distill/Resources/Info.plist
+        buildPhase: none
+
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.zeyadamer.distill
+        PRODUCT_NAME: Distill
+        SWIFT_VERSION: "5.9"
+        MACOSX_DEPLOYMENT_TARGET: "13.0"
+        INFOPLIST_FILE: Distill/Resources/Info.plist
+        CODE_SIGN_ENTITLEMENTS: Distill/Resources/Distill.entitlements
+        DEVELOPMENT_TEAM: 4PMSUCCX7P
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        ENABLE_APP_SANDBOX: YES
+        ENABLE_HARDENED_RUNTIME: YES
+        CODE_SIGN_STYLE: Automatic
+        SWIFT_STRICT_CONCURRENCY: minimal
+        GCC_PREPROCESSOR_DEFINITIONS:
+          - "$(inherited)"
+        LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/../Frameworks"
+        COMBINE_HIDPI_IMAGES: YES
+        ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES: YES
+      configs:
+        Debug:
+          SWIFT_OPTIMIZATION_LEVEL: "-Onone"
+          DEBUG_INFORMATION_FORMAT: dwarf
+          ONLY_ACTIVE_ARCH: YES
+        Release:
+          SWIFT_OPTIMIZATION_LEVEL: "-O"
+          DEBUG_INFORMATION_FORMAT: "dwarf-with-dsym"
+          VALIDATE_PRODUCT: YES
+          ONLY_ACTIVE_ARCH: NO
+
+    dependencies:
+      - sdk: AppKit.framework
+      - sdk: Foundation.framework
+      - sdk: Carbon.framework
+      - sdk: ServiceManagement.framework
+      - sdk: StoreKit.framework
+      - sdk: CoreGraphics.framework
+
+    entitlements:
+      path: Distill/Resources/Distill.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
+        com.apple.security.automation.apple-events: true
+
+schemes:
+  Distill:
+    build:
+      targets:
+        Distill: all
+    run:
+      config: Debug
+    archive:
+      config: Release

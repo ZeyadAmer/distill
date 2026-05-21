@@ -1,0 +1,654 @@
+import AppKit
+
+// MARK: - Row kind
+
+/// Discriminates between section-header rows and item rows in the table.
+private enum RowKind {
+    case sectionHeader(String)
+    case item(ClipboardItem)
+}
+
+// MARK: - ClipboardPanelVC
+
+/// The root view controller for the clipboard history panel.
+///
+/// Visual structure (top → bottom):
+/// ```
+/// ┌──────────────────────────────────────────────────┐
+/// │  🔍 Search…                                  [✕] │  ← search row
+/// ├──────────────────────────────────────────────────┤
+/// │  NSScrollView > NSTableView                       │  ← item list
+/// ├──────────────────────────────────────────────────┤
+/// │  [Paste]  [Transform ▾]  [Pin]  [⌫]              │  ← toolbar
+/// │  (Trial banner when trial is expired)             │
+/// └──────────────────────────────────────────────────┘
+/// ```
+@MainActor
+final class ClipboardPanelVC: NSViewController {
+
+    // MARK: - Constants
+
+    private enum Layout {
+        static let searchRowHeight:   CGFloat = 44
+        static let toolbarRowHeight:  CGFloat = 44
+        static let trialBannerHeight: CGFloat = 36
+        static let horizontalPadding: CGFloat = 12
+    }
+
+    // MARK: - Subviews — Search row
+
+    private let searchField: NSSearchField = {
+        let sf = NSSearchField()
+        sf.placeholderString = "Search clipboard history…"
+        sf.bezelStyle = .roundedBezel
+        sf.translatesAutoresizingMaskIntoConstraints = false
+        return sf
+    }()
+
+    private let closeButton: NSButton = {
+        let btn = NSButton()
+        btn.title          = ""
+        btn.bezelStyle     = .circular
+        btn.isBordered     = false
+        let cfg            = NSImage.SymbolConfiguration(pointSize: 13, weight: .medium)
+        btn.image          = NSImage(systemSymbolName: "xmark", accessibilityDescription: "Close")?
+            .withSymbolConfiguration(cfg)
+        btn.contentTintColor = .secondaryLabelColor
+        btn.translatesAutoresizingMaskIntoConstraints = false
+        return btn
+    }()
+
+    // MARK: - Subviews — Table
+
+    private lazy var scrollView: NSScrollView = {
+        let sv = NSScrollView()
+        sv.hasVerticalScroller   = true
+        sv.autohidesScrollers    = true
+        sv.hasHorizontalScroller = false
+        sv.drawsBackground       = false
+        sv.translatesAutoresizingMaskIntoConstraints = false
+        return sv
+    }()
+
+    private lazy var tableView: NSTableView = {
+        let tv = NSTableView()
+        tv.headerView    = nil
+        tv.backgroundColor = .clear
+        tv.intercellSpacing = NSSize(width: 0, height: 0)
+        tv.selectionHighlightStyle = .none  // We draw our own.
+        tv.focusRingType = .none
+        tv.rowHeight = ClipboardItemCell.rowHeight
+
+        let col = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("main"))
+        col.isEditable = false
+        tv.addTableColumn(col)
+
+        tv.translatesAutoresizingMaskIntoConstraints = false
+        return tv
+    }()
+
+    // MARK: - Subviews — Toolbar
+
+    private let pasteButton: NSButton = {
+        let btn = NSButton(title: "Paste", target: nil, action: nil)
+        btn.bezelStyle       = .rounded
+        btn.keyEquivalent    = "\r"
+        btn.translatesAutoresizingMaskIntoConstraints = false
+        return btn
+    }()
+
+    private let transformButton: NSButton = {
+        let btn = NSButton(title: "Transform ▾", target: nil, action: nil)
+        btn.bezelStyle = .rounded
+        btn.translatesAutoresizingMaskIntoConstraints = false
+        return btn
+    }()
+
+    private let pinButton: NSButton = {
+        let btn = NSButton(title: "", target: nil, action: nil)
+        btn.bezelStyle   = .circular
+        btn.isBordered   = false
+        let cfg          = NSImage.SymbolConfiguration(pointSize: 14, weight: .regular)
+        btn.image        = NSImage(systemSymbolName: "pin", accessibilityDescription: "Pin")?
+            .withSymbolConfiguration(cfg)
+        btn.contentTintColor = .secondaryLabelColor
+        btn.translatesAutoresizingMaskIntoConstraints = false
+        return btn
+    }()
+
+    private let deleteButton: NSButton = {
+        let btn = NSButton(title: "", target: nil, action: nil)
+        btn.bezelStyle   = .circular
+        btn.isBordered   = false
+        let cfg          = NSImage.SymbolConfiguration(pointSize: 14, weight: .regular)
+        btn.image        = NSImage(systemSymbolName: "delete.left", accessibilityDescription: "Delete")?
+            .withSymbolConfiguration(cfg)
+        btn.contentTintColor = .secondaryLabelColor
+        btn.translatesAutoresizingMaskIntoConstraints = false
+        return btn
+    }()
+
+    // MARK: - Subviews — Trial banner
+
+    private lazy var trialBanner: NSView = {
+        let container = NSView()
+        container.wantsLayer = true
+        container.layer?.backgroundColor = NSColor.systemOrange.withAlphaComponent(0.15).cgColor
+        container.translatesAutoresizingMaskIntoConstraints = false
+
+        let label = NSTextField(labelWithString: "Trial expired — ")
+        label.font      = .systemFont(ofSize: 11.5, weight: .medium)
+        label.textColor = .labelColor
+        label.translatesAutoresizingMaskIntoConstraints = false
+
+        let buyButton = NSButton(title: "Unlock Distill", target: self, action: #selector(handleBuy))
+        buyButton.bezelStyle   = .inline
+        buyButton.isBordered   = false
+        buyButton.font         = .systemFont(ofSize: 11.5, weight: .semibold)
+        buyButton.contentTintColor = .controlAccentColor
+        buyButton.translatesAutoresizingMaskIntoConstraints = false
+
+        container.addSubview(label)
+        container.addSubview(buyButton)
+
+        NSLayoutConstraint.activate([
+            label.centerYAnchor.constraint(equalTo: container.centerYAnchor),
+            label.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 12),
+            buyButton.centerYAnchor.constraint(equalTo: container.centerYAnchor),
+            buyButton.leadingAnchor.constraint(equalTo: label.trailingAnchor, constant: 2),
+        ])
+
+        return container
+    }()
+
+    private var trialBannerHeightConstraint: NSLayoutConstraint?
+
+    // MARK: - Data
+
+    /// Flat list of rows that the table renders — a mix of section headers and items.
+    private var rows: [RowKind] = []
+
+    /// The full store list filtered by the current search query (or the full list when empty).
+    private var filteredItems: [ClipboardItem] = []
+
+    /// The transform popover; created lazily and reused across openings.
+    private lazy var transformPopover = TransformPickerPopover()
+
+    // MARK: - Derived selection
+
+    private var selectedItem: ClipboardItem? {
+        let row = tableView.selectedRow
+        guard row >= 0, row < rows.count else { return nil }
+        if case .item(let item) = rows[row] { return item }
+        return nil
+    }
+
+    // MARK: - View lifecycle
+
+    override func loadView() {
+        view = NSView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+    }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        buildLayout()
+        wireTargetActions()
+        registerTableClasses()
+        subscribeToNotifications()
+        reload()
+    }
+
+    // MARK: - Public interface (called by ClipboardPanel)
+
+    /// Called just before the panel becomes visible so the view can reset state.
+    func panelWillShow() {
+        searchField.stringValue = ""
+        applySearch(query: "")
+        selectFirstItem()
+        searchField.becomeFirstResponder()
+    }
+
+    // MARK: - Layout Construction
+
+    private func buildLayout() {
+        // ── Search row ────────────────────────────────────────────────────────
+        let searchRow = NSView()
+        searchRow.translatesAutoresizingMaskIntoConstraints = false
+        searchRow.heightAnchor.constraint(equalToConstant: Layout.searchRowHeight).isActive = true
+
+        searchRow.addSubview(searchField)
+        searchRow.addSubview(closeButton)
+
+        NSLayoutConstraint.activate([
+            searchField.leadingAnchor.constraint(equalTo: searchRow.leadingAnchor, constant: Layout.horizontalPadding),
+            searchField.centerYAnchor.constraint(equalTo: searchRow.centerYAnchor),
+            searchField.trailingAnchor.constraint(equalTo: closeButton.leadingAnchor, constant: -6),
+
+            closeButton.trailingAnchor.constraint(equalTo: searchRow.trailingAnchor, constant: -Layout.horizontalPadding),
+            closeButton.centerYAnchor.constraint(equalTo: searchRow.centerYAnchor),
+            closeButton.widthAnchor.constraint(equalToConstant: 22),
+            closeButton.heightAnchor.constraint(equalToConstant: 22),
+        ])
+
+        // ── Scroll + table ────────────────────────────────────────────────────
+        tableView.delegate   = self
+        tableView.dataSource = self
+        scrollView.documentView = tableView
+
+        // ── Toolbar row ───────────────────────────────────────────────────────
+        let toolbarRow = NSView()
+        toolbarRow.translatesAutoresizingMaskIntoConstraints = false
+        toolbarRow.heightAnchor.constraint(equalToConstant: Layout.toolbarRowHeight).isActive = true
+
+        let toolbarStack = NSStackView(views: [pasteButton, transformButton])
+        toolbarStack.spacing     = 6
+        toolbarStack.orientation = .horizontal
+        toolbarStack.translatesAutoresizingMaskIntoConstraints = false
+
+        let rightStack = NSStackView(views: [pinButton, deleteButton])
+        rightStack.spacing     = 4
+        rightStack.orientation = .horizontal
+        rightStack.translatesAutoresizingMaskIntoConstraints = false
+
+        toolbarRow.addSubview(toolbarStack)
+        toolbarRow.addSubview(rightStack)
+
+        NSLayoutConstraint.activate([
+            toolbarStack.leadingAnchor.constraint(equalTo: toolbarRow.leadingAnchor, constant: Layout.horizontalPadding),
+            toolbarStack.centerYAnchor.constraint(equalTo: toolbarRow.centerYAnchor),
+
+            rightStack.trailingAnchor.constraint(equalTo: toolbarRow.trailingAnchor, constant: -Layout.horizontalPadding),
+            rightStack.centerYAnchor.constraint(equalTo: toolbarRow.centerYAnchor),
+        ])
+
+        // ── Trial banner ──────────────────────────────────────────────────────
+        let bannerHeight: CGFloat = TrialManager.shared.isRestricted ? Layout.trialBannerHeight : 0
+        trialBanner.heightAnchor.constraint(equalToConstant: bannerHeight).isActive = true
+        trialBannerHeightConstraint = trialBanner.constraints.first(where: { $0.firstAttribute == .height })
+
+        // ── Top-level separator ───────────────────────────────────────────────
+        let searchSep = separatorView()
+        let toolbarSep = separatorView()
+
+        // ── Outer stack ───────────────────────────────────────────────────────
+        let outerStack = NSStackView(views: [
+            searchRow,
+            searchSep,
+            scrollView,
+            toolbarSep,
+            toolbarRow,
+            trialBanner,
+        ])
+        outerStack.orientation  = .vertical
+        outerStack.spacing      = 0
+        outerStack.distribution = .fill
+        outerStack.alignment    = .leading
+        outerStack.translatesAutoresizingMaskIntoConstraints = false
+
+        view.addSubview(outerStack)
+
+        NSLayoutConstraint.activate([
+            outerStack.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            outerStack.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            outerStack.topAnchor.constraint(equalTo: view.topAnchor),
+            outerStack.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+
+            // Search and toolbar rows fill width.
+            searchRow.widthAnchor.constraint(equalTo: outerStack.widthAnchor),
+            toolbarRow.widthAnchor.constraint(equalTo: outerStack.widthAnchor),
+            trialBanner.widthAnchor.constraint(equalTo: outerStack.widthAnchor),
+            searchSep.widthAnchor.constraint(equalTo: outerStack.widthAnchor),
+            toolbarSep.widthAnchor.constraint(equalTo: outerStack.widthAnchor),
+
+            // Table column fills the scroll view's clip view.
+            tableView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
+        ])
+    }
+
+    // MARK: - Wire Target/Actions
+
+    private func wireTargetActions() {
+        closeButton.target     = self
+        closeButton.action     = #selector(handleClose)
+
+        pasteButton.target     = self
+        pasteButton.action     = #selector(handlePaste)
+
+        transformButton.target = self
+        transformButton.action = #selector(handleTransformButtonTapped(_:))
+
+        pinButton.target       = self
+        pinButton.action       = #selector(handlePin)
+
+        deleteButton.target    = self
+        deleteButton.action    = #selector(handleDelete)
+
+        searchField.delegate   = self
+    }
+
+    // MARK: - Table registration
+
+    private func registerTableClasses() {
+        tableView.register(
+            ClipboardItemCell.self,
+            forIdentifier: ClipboardItemCell.reuseIdentifier
+        )
+    }
+
+    // MARK: - Notifications
+
+    private func subscribeToNotifications() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleClipboardUpdate),
+            name: .clipboardDidUpdate,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handlePurchaseStateChanged),
+            name: .purchaseStateChanged,
+            object: nil
+        )
+    }
+
+    @objc private func handleClipboardUpdate() {
+        reload()
+    }
+
+    @objc private func handlePurchaseStateChanged() {
+        updateTrialBanner()
+    }
+
+    // MARK: - Data Reload
+
+    /// Rebuilds `filteredItems` from the store (or from the current search query)
+    /// and reloads the table.
+    private func reload() {
+        let query = searchField.stringValue
+        applySearch(query: query)
+    }
+
+    /// Filters items by `query` and rebuilds the `rows` array.
+    private func applySearch(query: String) {
+        let store = ClipboardStore.shared
+
+        if query.trimmingCharacters(in: .whitespaces).isEmpty {
+            filteredItems = store.items
+        } else {
+            filteredItems = store.search(query: query)
+        }
+
+        rebuildRows()
+        tableView.reloadData()
+        updateToolbarState()
+    }
+
+    /// Converts `filteredItems` into a flat `[RowKind]` with section headers.
+    private func rebuildRows() {
+        var newRows: [RowKind] = []
+
+        let pinned = filteredItems.filter { $0.isPinned }
+        let recent = filteredItems.filter { !$0.isPinned }
+
+        if !pinned.isEmpty {
+            newRows.append(.sectionHeader("PINNED"))
+            newRows.append(contentsOf: pinned.map { .item($0) })
+        }
+
+        if !recent.isEmpty {
+            newRows.append(.sectionHeader("RECENT"))
+            newRows.append(contentsOf: recent.map { .item($0) })
+        }
+
+        rows = newRows
+    }
+
+    // MARK: - Selection
+
+    private func selectFirstItem() {
+        let firstItemRow = rows.firstIndex(where: {
+            if case .item = $0 { return true }
+            return false
+        })
+        if let row = firstItemRow {
+            tableView.selectRowIndexes(IndexSet(integer: row), byExtendingSelection: false)
+            tableView.scrollRowToVisible(row)
+        } else {
+            tableView.deselectAll(nil)
+        }
+        updateToolbarState()
+    }
+
+    // MARK: - Toolbar state
+
+    private func updateToolbarState() {
+        let hasSelection = selectedItem != nil
+        let isRestricted = TrialManager.shared.isRestricted
+        pasteButton.isEnabled     = hasSelection && !isRestricted
+        transformButton.isEnabled = hasSelection && !isRestricted
+        pinButton.isEnabled       = hasSelection
+        deleteButton.isEnabled    = hasSelection
+
+        // Update the pin button icon depending on item state.
+        if let item = selectedItem {
+            let symbolName = item.isPinned ? "pin.slash" : "pin"
+            let cfg = NSImage.SymbolConfiguration(pointSize: 14, weight: .regular)
+            pinButton.image = NSImage(systemSymbolName: symbolName, accessibilityDescription: item.isPinned ? "Unpin" : "Pin")?
+                .withSymbolConfiguration(cfg)
+        }
+    }
+
+    private func updateTrialBanner() {
+        let isRestricted = TrialManager.shared.isRestricted
+        let targetHeight: CGFloat = isRestricted ? Layout.trialBannerHeight : 0
+
+        NSAnimationContext.runAnimationGroup { ctx in
+            ctx.duration = 0.2
+            trialBannerHeightConstraint?.animator().constant = targetHeight
+        }
+        updateToolbarState()
+    }
+
+    // MARK: - Action handlers
+
+    @objc private func handleClose() {
+        ClipboardPanel.shared.hide()
+    }
+
+    @objc private func handlePaste() {
+        pasteSelected()
+    }
+
+    @objc private func handleTransformButtonTapped(_ sender: NSButton) {
+        guard let item = selectedItem else { return }
+        transformPopover.sourceItem = item
+        transformPopover.onSelect = { [weak self] transform in
+            self?.pasteSelected(with: transform)
+        }
+        transformPopover.show(
+            relativeTo: sender.bounds,
+            of: sender,
+            preferredEdge: .maxY
+        )
+    }
+
+    @objc private func handlePin() {
+        guard let item = selectedItem else { return }
+        let store = ClipboardStore.shared
+        if item.isPinned {
+            store.unpin(id: item.id)
+        } else {
+            store.pin(id: item.id)
+        }
+        reload()
+    }
+
+    @objc private func handleDelete() {
+        guard let item = selectedItem else { return }
+        ClipboardStore.shared.remove(id: item.id)
+        reload()
+    }
+
+    @objc private func handleBuy() {
+        // Kick off the StoreKit purchase flow.
+        Task {
+            await PurchaseManager.shared.purchase()
+        }
+    }
+
+    // MARK: - Paste
+
+    /// Pastes the selected item, optionally applying a transform first.
+    func pasteSelected(with transform: (any Transform)? = nil) {
+        guard let item = selectedItem else { return }
+        let text: String
+        if let transform {
+            text = transform.apply(to: item.content)
+        } else {
+            text = item.content
+        }
+        ClipboardStore.shared.recordUse(id: item.id)
+        PasteEngine.distilledPaste(text)
+    }
+
+    // MARK: - Keyboard navigation
+
+    override func keyDown(with event: NSEvent) {
+        switch event.keyCode {
+        case 125: // Down arrow
+            moveSelection(by: +1)
+        case 126: // Up arrow
+            moveSelection(by: -1)
+        default:
+            super.keyDown(with: event)
+        }
+    }
+
+    private func moveSelection(by delta: Int) {
+        let current = tableView.selectedRow
+        var candidate = current + delta
+
+        // Skip section-header rows.
+        while candidate >= 0 && candidate < rows.count {
+            if case .item = rows[candidate] { break }
+            candidate += delta
+        }
+
+        guard candidate >= 0 && candidate < rows.count else { return }
+        tableView.selectRowIndexes(IndexSet(integer: candidate), byExtendingSelection: false)
+        tableView.scrollRowToVisible(candidate)
+        updateToolbarState()
+    }
+
+    // MARK: - Helpers
+
+    private func separatorView() -> NSView {
+        let box = NSBox()
+        box.boxType   = .separator
+        box.translatesAutoresizingMaskIntoConstraints = false
+        box.heightAnchor.constraint(equalToConstant: 1).isActive = true
+        return box
+    }
+}
+
+// MARK: - NSTableViewDataSource
+
+extension ClipboardPanelVC: NSTableViewDataSource {
+
+    func numberOfRows(in tableView: NSTableView) -> Int {
+        rows.count
+    }
+}
+
+// MARK: - NSTableViewDelegate
+
+extension ClipboardPanelVC: NSTableViewDelegate {
+
+    func tableView(_ tableView: NSTableView, heightOfRow row: Int) -> CGFloat {
+        switch rows[row] {
+        case .sectionHeader:
+            return 24
+        case .item:
+            return ClipboardItemCell.rowHeight
+        }
+    }
+
+    func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
+        switch rows[row] {
+        case .sectionHeader(let title):
+            return makeSectionHeaderView(title: title, for: tableView)
+        case .item(let item):
+            return makeItemCell(for: item, row: row, in: tableView)
+        }
+    }
+
+    func tableView(_ tableView: NSTableView, rowViewForRow row: Int) -> NSTableRowView? {
+        let rv = NSTableRowView()
+        rv.isEmphasized = false
+        return rv
+    }
+
+    func tableViewSelectionDidChange(_ notification: Notification) {
+        guard let tv = notification.object as? NSTableView else { return }
+
+        // If the user selects a header row, skip forward to the next item row.
+        let selectedRow = tv.selectedRow
+        if selectedRow >= 0, case .sectionHeader = rows[selectedRow] {
+            moveSelection(by: +1)
+            return
+        }
+
+        // Reload visible rows to update selection highlighting.
+        let visibleRange = tv.rows(in: tv.visibleRect)
+        let indexSet = IndexSet(integersIn: visibleRange.location ..< (visibleRange.location + visibleRange.length))
+        tv.reloadData(forRowIndexes: indexSet, columnIndexes: IndexSet(integer: 0))
+
+        updateToolbarState()
+    }
+
+    // MARK: - Cell factories
+
+    private func makeSectionHeaderView(title: String, for tableView: NSTableView) -> NSView {
+        let identifier = NSUserInterfaceItemIdentifier("SectionHeader")
+        if let reused = tableView.makeView(withIdentifier: identifier, owner: nil) as? NSTextField {
+            reused.stringValue = title
+            return reused
+        }
+        let label = NSTextField(labelWithString: title)
+        label.identifier = identifier
+        label.font       = .systemFont(ofSize: 10, weight: .semibold)
+        label.textColor  = .tertiaryLabelColor
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.setContentHuggingPriority(.defaultLow, for: .horizontal)
+
+        let container = NSView()
+        container.addSubview(label)
+        NSLayoutConstraint.activate([
+            label.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 12),
+            label.centerYAnchor.constraint(equalTo: container.centerYAnchor),
+            label.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -12),
+        ])
+        return container
+    }
+
+    private func makeItemCell(for item: ClipboardItem, row: Int, in tableView: NSTableView) -> ClipboardItemCell {
+        let cell = (tableView.makeView(withIdentifier: ClipboardItemCell.reuseIdentifier, owner: nil) as? ClipboardItemCell)
+            ?? ClipboardItemCell()
+        cell.identifier = ClipboardItemCell.reuseIdentifier
+        let isSelected = tableView.selectedRow == row
+        cell.configure(with: item, isSelected: isSelected)
+        return cell
+    }
+}
+
+// MARK: - NSSearchFieldDelegate
+
+extension ClipboardPanelVC: NSSearchFieldDelegate {
+
+    func controlTextDidChange(_ obj: Notification) {
+        guard let sf = obj.object as? NSSearchField else { return }
+        applySearch(query: sf.stringValue)
+    }
+}
