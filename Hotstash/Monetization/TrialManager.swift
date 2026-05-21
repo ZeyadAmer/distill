@@ -7,6 +7,7 @@ import Foundation
 /// `firstLaunchDate` is written to UserDefaults once on the first call to `start()`.
 /// StoreKit purchase state is the authoritative unlock signal; trial state is
 /// secondary — a fallback when the user has not yet purchased.
+@MainActor
 final class TrialManager {
 
     // MARK: Singleton
@@ -20,7 +21,7 @@ final class TrialManager {
         static let firstLaunchDate = "com.zeyadamer.hotstash.firstLaunchDate"
     }
 
-    private static let trialDurationDays = 14
+    private static let trialDurationDays = 30
 
     // MARK: - Public API
 

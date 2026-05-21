@@ -23,10 +23,8 @@ targets:
     sources:
       - path: Hotstash
         excludes:
-          - Resources/**
-
-    resources:
-      - path: Hotstash/Resources/Assets.xcassets
+          - Resources/Info.plist
+          - Resources/Hotstash.entitlements
 
     settings:
       base:

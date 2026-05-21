@@ -95,7 +95,7 @@ private struct StepWelcomeView: View {
 
             Image(systemName: "doc.on.clipboard.fill")
                 .font(.system(size: 64))
-                .foregroundStyle(.accent)
+                .foregroundStyle(Color.accentColor)
 
             VStack(spacing: 8) {
                 Text("Welcome to Hotstash")
@@ -137,7 +137,7 @@ private struct StepAccessibilityView: View {
 
             Image(systemName: "accessibility")
                 .font(.system(size: 64))
-                .foregroundStyle(.accent)
+                .foregroundStyle(Color.accentColor)
 
             VStack(spacing: 8) {
                 Text("Grant Accessibility Access")

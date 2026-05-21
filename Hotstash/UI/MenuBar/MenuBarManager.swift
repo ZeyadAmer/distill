@@ -25,22 +25,66 @@ final class MenuBarManager: NSObject {
         updateBadge()
     }
 
+    // MARK: - Public accessors
+
+    /// The status bar button, needed for positioning the panel below the icon.
+    var statusItemButton: NSStatusBarButton? { statusItem.button }
+
     // MARK: - Button configuration
 
     private func configureButton() {
         guard let button = statusItem.button else { return }
-
-        let config = NSImage.SymbolConfiguration(pointSize: 16, weight: .regular)
-        if let image = NSImage(systemSymbolName: "doc.on.clipboard", accessibilityDescription: "Hotstash") {
-            image.isTemplate = true
-            let configured = image.withSymbolConfiguration(config) ?? image
-            configured.isTemplate = true
-            button.image = configured
-        }
-
+        button.image = makeFlameClipboardImage(warningDot: false)
         button.action = #selector(handleButtonClick(_:))
         button.sendAction(on: [.leftMouseUp, .rightMouseUp])
         button.target = self
+    }
+
+    // MARK: - Icon drawing
+
+    /// Builds a clipboard + flame composite image for the status bar.
+    /// When `warningDot` is true, adds a small red dot to indicate an expired trial.
+    private func makeFlameClipboardImage(warningDot: Bool) -> NSImage {
+        let totalSize = NSSize(width: 22, height: 18)
+        let composite = NSImage(size: totalSize)
+
+        composite.lockFocus()
+
+        // Clipboard — palette color bakes white directly into the symbol rendering
+        let clipConfig = NSImage.SymbolConfiguration(pointSize: 14, weight: .regular)
+            .applying(NSImage.SymbolConfiguration(paletteColors: [.white]))
+        if let clip = NSImage(systemSymbolName: "doc.on.clipboard",
+                              accessibilityDescription: "Hotstash")?
+            .withSymbolConfiguration(clipConfig) {
+            let cw = clip.size.width
+            let ch = clip.size.height
+            clip.draw(in: NSRect(x: 1, y: (totalSize.height - ch) / 2, width: cw, height: ch))
+        }
+
+        // Flame badge (bottom-right, always orange)
+        let flameConfig = NSImage.SymbolConfiguration(pointSize: 7.5, weight: .bold)
+            .applying(NSImage.SymbolConfiguration(paletteColors: [.systemOrange]))
+        if let flame = NSImage(systemSymbolName: "flame.fill",
+                               accessibilityDescription: nil)?
+            .withSymbolConfiguration(flameConfig) {
+            let fw = flame.size.width
+            let fh = flame.size.height
+            flame.draw(in: NSRect(x: totalSize.width - fw - 0.5, y: 0, width: fw, height: fh))
+        }
+
+        // Optional red warning dot (top-right corner)
+        if warningDot {
+            let dotDiameter: CGFloat = 5
+            NSColor.systemRed.setFill()
+            let dotRect = NSRect(x: totalSize.width - dotDiameter - 0.5,
+                                 y: totalSize.height - dotDiameter - 0.5,
+                                 width: dotDiameter, height: dotDiameter)
+            NSBezierPath(ovalIn: dotRect).fill()
+        }
+
+        composite.unlockFocus()
+        composite.isTemplate = false
+        return composite
     }
 
     // MARK: - Click handling
@@ -132,64 +176,10 @@ final class MenuBarManager: NSObject {
 
     // MARK: - Badge drawing
 
-    /// Redraws the status item button to add or remove the trial-expired warning dot.
     private func updateBadge() {
-        let shouldShowBadge = TrialManager.shared.isRestricted && !PurchaseManager.shared.isPurchased
-        guard shouldShowBadge != trialExpiredBadgeVisible else { return }
-        trialExpiredBadgeVisible = shouldShowBadge
-
-        guard let button = statusItem.button else { return }
-
-        if shouldShowBadge {
-            // Composite the base icon with an orange warning dot.
-            let config = NSImage.SymbolConfiguration(pointSize: 16, weight: .regular)
-            guard
-                let baseSymbol = NSImage(
-                    systemSymbolName: "doc.on.clipboard",
-                    accessibilityDescription: "Hotstash"
-                )
-            else { return }
-
-            let base = baseSymbol.withSymbolConfiguration(config) ?? baseSymbol
-            let size = NSSize(width: 22, height: 18)
-            let composite = NSImage(size: size)
-
-            composite.lockFocus()
-
-            // Draw the clipboard icon in the horizontal/vertical center.
-            let iconRect = NSRect(
-                x: (size.width - base.size.width) / 2,
-                y: (size.height - base.size.height) / 2,
-                width: base.size.width,
-                height: base.size.height
-            )
-            base.draw(in: iconRect)
-
-            // Draw the orange dot in the top-right corner.
-            let dotDiameter: CGFloat = 6
-            let dotRect = NSRect(
-                x: size.width - dotDiameter - 1,
-                y: size.height - dotDiameter - 1,
-                width: dotDiameter,
-                height: dotDiameter
-            )
-            NSColor.systemOrange.setFill()
-            NSBezierPath(ovalIn: dotRect).fill()
-
-            composite.unlockFocus()
-            composite.isTemplate = false
-            button.image = composite
-        } else {
-            // Restore the plain template icon.
-            let config = NSImage.SymbolConfiguration(pointSize: 16, weight: .regular)
-            if let image = NSImage(
-                systemSymbolName: "doc.on.clipboard",
-                accessibilityDescription: "Hotstash"
-            ) {
-                let configured = image.withSymbolConfiguration(config) ?? image
-                configured.isTemplate = true
-                button.image = configured
-            }
-        }
+        let showDot = TrialManager.shared.isRestricted && !PurchaseManager.shared.isPurchased
+        guard showDot != trialExpiredBadgeVisible else { return }
+        trialExpiredBadgeVisible = showDot
+        statusItem.button?.image = makeFlameClipboardImage(warningDot: showDot)
     }
 }

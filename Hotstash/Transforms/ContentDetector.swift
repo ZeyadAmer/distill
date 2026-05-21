@@ -7,6 +7,7 @@ enum ContentType: String, Codable, CaseIterable {
     case url
     case code
     case list
+    case image
     case plainText
 }
 

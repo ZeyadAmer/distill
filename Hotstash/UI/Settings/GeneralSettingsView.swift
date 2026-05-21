@@ -12,8 +12,10 @@ struct GeneralSettingsView: View {
         let stored = UserDefaults.standard.integer(forKey: "historyLimit")
         return stored > 0 ? stored : 200
     }()
+    @State private var hotkeyCode:      UInt32 = HotkeyManager.shared.keyCode
+    @State private var hotkeyModifiers: UInt32 = HotkeyManager.shared.modifiers
+    @State private var panelPosition: PanelPosition = PanelPosition.current
     @State private var showingClearConfirmation = false
-    @State private var showingAccessibilityAlert = false
 
     // MARK: - Supported history limits
 
@@ -27,7 +29,7 @@ struct GeneralSettingsView: View {
 
             Section {
                 Toggle("Launch at login", isOn: $launchAtLogin)
-                    .onChange(of: launchAtLogin) { _, newValue in
+                    .onChange(of: launchAtLogin) { newValue in
                         LaunchAtLoginManager.setEnabled(newValue)
                     }
             } header: {
@@ -38,16 +40,29 @@ struct GeneralSettingsView: View {
 
             Section {
                 LabeledContent("Open Hotstash") {
-                    Text("⌘⇧V")
-                        .font(.system(.body, design: .monospaced))
-                        .foregroundStyle(.secondary)
+                    HotkeyRecorderView(keyCode: $hotkeyCode, modifiers: $hotkeyModifiers)
                 }
             } header: {
                 Text("Keyboard Shortcut")
             } footer: {
-                Text("The shortcut is fixed in version 1.0 and cannot be changed.")
+                Text("Click the shortcut field, then press your desired key combination.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+            }
+
+            // MARK: Panel position
+
+            Section {
+                Picker("Show panel", selection: $panelPosition) {
+                    Text("Near cursor").tag(PanelPosition.cursor)
+                    Text("Below menu bar icon").tag(PanelPosition.menuBar)
+                }
+                .pickerStyle(.radioGroup)
+                .onChange(of: panelPosition) { newValue in
+                    PanelPosition.save(newValue)
+                }
+            } header: {
+                Text("Panel Position")
             }
 
             // MARK: History
@@ -59,13 +74,13 @@ struct GeneralSettingsView: View {
                     }
                 }
                 .pickerStyle(.menu)
-                .onChange(of: historyLimit) { _, newValue in
+                .onChange(of: historyLimit) { newValue in
                     UserDefaults.standard.set(newValue, forKey: "historyLimit")
                     Task { @MainActor in
                         ClipboardStore.shared.maxItems = newValue
                     }
                 }
-
+                
                 Button("Clear History\u{2026}") {
                     showingClearConfirmation = true
                 }

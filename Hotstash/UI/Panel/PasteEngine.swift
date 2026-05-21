@@ -9,6 +9,7 @@ import Foundation
 ///
 /// Callers should ensure `ClipboardMonitor.shared.isAppWriting` is not already
 /// set when they call `hotstashedPaste(_:)`.
+@MainActor
 enum PasteEngine {
 
     // MARK: - Public API
@@ -37,6 +38,26 @@ enum PasteEngine {
 
             // 5. Clear the app-writing flag shortly after the keystroke so the
             //    monitor doesn't capture the content we just pasted.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                ClipboardMonitor.shared.isAppWriting = false
+            }
+        }
+    }
+
+    /// Puts image `data` on the pasteboard and fires CMD+V.
+    static func hotstashedPasteImage(_ data: Data) {
+        ClipboardMonitor.shared.isAppWriting = true
+
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        if let image = NSImage(data: data) {
+            pasteboard.writeObjects([image])
+        }
+
+        ClipboardPanel.shared.hide()
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            postCmdV()
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                 ClipboardMonitor.shared.isAppWriting = false
             }

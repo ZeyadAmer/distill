@@ -99,6 +99,17 @@ final class ClipboardStore {
         persist()
     }
 
+    /// Moves an existing item to the front of the unpinned list without creating a duplicate.
+    func moveToTop(id: UUID) {
+        guard let index = items.firstIndex(where: { $0.id == id }) else { return }
+        guard !items[index].isPinned else { return }
+        let item = items.remove(at: index)
+        // Insert after any pinned items so it sits at the top of the recent section.
+        let insertAt = items.firstIndex(where: { !$0.isPinned }) ?? items.endIndex
+        items.insert(item, at: insertAt)
+        persist()
+    }
+
     /// Increments the use count for the item, recording that it was pasted.
     func recordUse(id: UUID) {
         guard let index = items.firstIndex(where: { $0.id == id }) else { return }

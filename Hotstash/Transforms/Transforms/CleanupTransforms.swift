@@ -89,7 +89,7 @@ struct StripHTMLTransform: Transform {
         // Numeric decimal entities: &#NNN;
         if let numericRegex = try? NSRegularExpression(pattern: "&#(\\d+);", options: []) {
             let nsResult = NSMutableString(string: result)
-            let fullRange = NSRange(nsResult.string.startIndex..., in: nsResult as String)
+            let fullRange = NSRange(location: 0, length: nsResult.length)
             let matches = numericRegex.matches(in: nsResult as String, options: [], range: fullRange)
 
             // Process in reverse so replacement offsets stay valid.

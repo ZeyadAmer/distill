@@ -5,12 +5,6 @@ import Carbon
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
 
-    // Retain the registered hotkey reference for the lifetime of the app.
-    private var hotKeyRef: EventHotKeyRef?
-
-    // Retain the event handler reference so it is never released early.
-    private var eventHandlerRef: EventHandlerRef?
-
     // Retain the onboarding window controller while it is visible.
     private var onboardingWindowController: OnboardingWindowController?
 
@@ -27,14 +21,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         _ = MenuBarManager.shared
         _ = ClipboardPanel.shared
 
-        // Register the global hotkey (CMD+Shift+V).
-        registerHotkey()
+        // Register the global hotkey (reads user preference, defaults to CMD+Shift+V).
+        Task { @MainActor in HotkeyManager.shared.start() }
 
-        // Subscribe to the hotkey notification posted from the Carbon callback.
+        // Subscribe to hotkey notifications posted from the Carbon callback.
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(handleHotkeyNotification),
             name: .hotstashHotkeyPressed,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleMultiPasteNotification),
+            name: .hotstashMultiPastePressed,
             object: nil
         )
 
@@ -54,7 +54,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     // MARK: - Hotkey handling
 
     @objc private func handleHotkeyNotification() {
-        ClipboardPanel.shared.toggle()
+        Task { @MainActor in
+            ClipboardPanel.shared.toggle()
+        }
+    }
+
+    @objc private func handleMultiPasteNotification() {
+        Task { @MainActor in
+            MultiPastePanel.shared.show()
+        }
     }
 
     // MARK: - Onboarding
@@ -70,49 +78,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.activate(ignoringOtherApps: true)
     }
 
-    // MARK: - Carbon hotkey registration
-
-    private func registerHotkey() {
-        var eventType = EventTypeSpec(
-            eventClass: OSType(kEventClassKeyboard),
-            eventKind: UInt32(kEventHotKeyPressed)
-        )
-
-        // Install a C-compatible event handler block on the application event target.
-        // The block captures no state from AppDelegate to remain ABI-safe.
-        let status = InstallEventHandler(
-            GetApplicationEventTarget(),
-            { (_, _, _) -> OSStatus in
-                // Post the notification on the main thread.
-                DispatchQueue.main.async {
-                    NotificationCenter.default.post(name: .hotstashHotkeyPressed, object: nil)
-                }
-                return noErr
-            },
-            1,
-            &eventType,
-            nil,
-            &eventHandlerRef
-        )
-
-        guard status == noErr else {
-            // Hotkey registration failed silently — the app still works but CMD+Shift+V won't fire.
-            return
-        }
-
-        let hotKeyID = EventHotKeyID(signature: fourCharCode("HOTS"), id: 1)
-        let keyCode = UInt32(kVK_ANSI_V)
-        let modifiers = UInt32(cmdKey | shiftKey)
-
-        RegisterEventHotKey(
-            keyCode,
-            modifiers,
-            hotKeyID,
-            GetApplicationEventTarget(),
-            0,
-            &hotKeyRef
-        )
-    }
 }
 
 // MARK: - Helpers

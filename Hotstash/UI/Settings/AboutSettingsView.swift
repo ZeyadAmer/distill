@@ -24,7 +24,7 @@ struct AboutSettingsView: View {
                 VStack(spacing: 6) {
                     Image(systemName: "doc.on.clipboard.fill")
                         .font(.system(size: 52))
-                        .foregroundStyle(.accent)
+                        .foregroundStyle(Color.accentColor)
                         .padding(.top, 24)
 
                     Text("Hotstash")

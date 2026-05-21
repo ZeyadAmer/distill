@@ -9,4 +9,7 @@ extension Notification.Name {
 
     /// Posted when the purchase or trial state changes (unlocked, trial expired, etc.).
     static let purchaseStateChanged = Notification.Name("com.zeyadamer.hotstash.purchaseStateChanged")
+
+    /// Posted when the CMD+Shift+L multi-paste hotkey is pressed.
+    static let hotstashMultiPastePressed = Notification.Name("com.zeyadamer.hotstash.multiPastePressed")
 }

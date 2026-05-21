@@ -12,6 +12,7 @@ extension ContentType {
         case .url:       return "URL"
         case .code:      return "Code"
         case .list:      return "List"
+        case .image:     return "Image"
         case .plainText: return "Text"
         }
     }
@@ -24,6 +25,7 @@ extension ContentType {
         case .url:       return NSColor.systemBlue
         case .code:      return NSColor.systemPurple
         case .list:      return NSColor.systemGreen
+        case .image:     return NSColor.systemTeal
         case .plainText: return NSColor.secondaryLabelColor
         }
     }
@@ -44,6 +46,9 @@ struct ClipboardItem: Identifiable, Equatable, Codable {
     /// Number of times the item has been pasted from the Hotstash panel.
     var useCount: Int
 
+    /// JPEG thumbnail data for image items (nil for text items).
+    var imageData: Data?
+
     // MARK: Designated initialiser
 
     init(
@@ -52,7 +57,8 @@ struct ClipboardItem: Identifiable, Equatable, Codable {
         contentType: ContentType,
         timestamp: Date = Date(),
         isPinned: Bool = false,
-        useCount: Int = 0
+        useCount: Int = 0,
+        imageData: Data? = nil
     ) {
         self.id = id
         self.content = content
@@ -60,6 +66,7 @@ struct ClipboardItem: Identifiable, Equatable, Codable {
         self.timestamp = timestamp
         self.isPinned = isPinned
         self.useCount = useCount
+        self.imageData = imageData
     }
 
     // MARK: Equatable

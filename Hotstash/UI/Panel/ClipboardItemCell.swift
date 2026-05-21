@@ -19,6 +19,7 @@ final class ClipboardItemCell: NSTableCellView {
     // MARK: Row height
 
     static let rowHeight: CGFloat = 64
+    static let imageRowHeight: CGFloat = 80
 
     // MARK: - Subviews
 
@@ -35,6 +36,17 @@ final class ClipboardItemCell: NSTableCellView {
         tf.lineBreakMode        = .byTruncatingTail
         tf.translatesAutoresizingMaskIntoConstraints = false
         return tf
+    }()
+
+    private let imagePreview: NSImageView = {
+        let iv = NSImageView()
+        iv.imageScaling         = .scaleProportionallyUpOrDown
+        iv.wantsLayer           = true
+        iv.layer?.cornerRadius  = 4
+        iv.layer?.masksToBounds = true
+        iv.isHidden             = true
+        iv.translatesAutoresizingMaskIntoConstraints = false
+        return iv
     }()
 
     private let timestampLabel: NSTextField = {
@@ -92,6 +104,7 @@ final class ClipboardItemCell: NSTableCellView {
         addSubview(selectionBackground)
         addSubview(typeIconView)
         addSubview(previewLabel)
+        addSubview(imagePreview)
         addSubview(timestampLabel)
         badgeBackground.addSubview(badgeLabel)
         addSubview(badgeBackground)
@@ -119,6 +132,12 @@ final class ClipboardItemCell: NSTableCellView {
             previewLabel.trailingAnchor.constraint(equalTo: timestampLabel.leadingAnchor, constant: -8),
             previewLabel.topAnchor.constraint(equalTo: topAnchor, constant: 10),
 
+            // Image preview — same position as preview label, shown for image items.
+            imagePreview.leadingAnchor.constraint(equalTo: typeIconView.trailingAnchor, constant: 10),
+            imagePreview.trailingAnchor.constraint(equalTo: timestampLabel.leadingAnchor, constant: -8),
+            imagePreview.topAnchor.constraint(equalTo: topAnchor, constant: 6),
+            imagePreview.bottomAnchor.constraint(equalTo: badgeBackground.topAnchor, constant: -4),
+
             // Badge — below preview, left-aligned.
             badgeBackground.leadingAnchor.constraint(equalTo: previewLabel.leadingAnchor),
             badgeBackground.topAnchor.constraint(equalTo: previewLabel.bottomAnchor, constant: 4),
@@ -135,20 +154,27 @@ final class ClipboardItemCell: NSTableCellView {
     // MARK: - Configuration
 
     /// Populates the cell with the given clipboard item.
-    /// - Parameters:
-    ///   - item:       The clipboard item to display.
-    ///   - isSelected: Whether the row is currently selected.
-    func configure(with item: ClipboardItem, isSelected: Bool) {
+    func configure(with item: ClipboardItem, isSelected: Bool, isHovered: Bool = false) {
         configurePreview(for: item)
         configureTypeIcon(for: item.contentType)
         configureBadge(for: item.contentType)
         configureTimestamp(item.timestamp)
-        configureSelection(isSelected)
+        configureSelection(isSelected, isHovered: isHovered)
     }
 
     // MARK: - Private configuration helpers
 
     private func configurePreview(for item: ClipboardItem) {
+        if item.contentType == .image, let data = item.imageData {
+            previewLabel.isHidden  = true
+            imagePreview.isHidden  = false
+            imagePreview.image     = NSImage(data: data)
+            return
+        }
+
+        previewLabel.isHidden  = false
+        imagePreview.isHidden  = true
+
         let maxChars = 120
         let raw = item.content
         let truncated = raw.count > maxChars
@@ -160,8 +186,8 @@ final class ClipboardItemCell: NSTableCellView {
             ? .monospacedSystemFont(ofSize: 11.5, weight: .regular)
             : .systemFont(ofSize: 12.5, weight: .regular)
 
-        previewLabel.font      = font
-        previewLabel.textColor = .labelColor
+        previewLabel.font        = font
+        previewLabel.textColor   = .labelColor
         previewLabel.stringValue = truncated
     }
 
@@ -172,6 +198,7 @@ final class ClipboardItemCell: NSTableCellView {
         case .url:       symbolName = "link"
         case .code:      symbolName = "chevron.left.forwardslash.chevron.right"
         case .list:      symbolName = "list.bullet"
+        case .image:     symbolName = "photo"
         case .plainText: symbolName = "doc.text"
         }
 
@@ -202,11 +229,19 @@ final class ClipboardItemCell: NSTableCellView {
         timestampLabel.stringValue = Self.relativeTimestamp(from: date)
     }
 
-    private func configureSelection(_ isSelected: Bool) {
-        selectionBackground.isHidden = !isSelected
-        selectionBackground.layer?.backgroundColor = isSelected
-            ? NSColor.controlAccentColor.withAlphaComponent(0.15).cgColor
-            : .none
+    private func configureSelection(_ isSelected: Bool, isHovered: Bool) {
+        if isSelected {
+            selectionBackground.isHidden = false
+            selectionBackground.layer?.backgroundColor =
+                NSColor.controlAccentColor.withAlphaComponent(0.18).cgColor
+        } else if isHovered {
+            selectionBackground.isHidden = false
+            selectionBackground.layer?.backgroundColor =
+                NSColor.labelColor.withAlphaComponent(0.07).cgColor
+        } else {
+            selectionBackground.isHidden = true
+            selectionBackground.layer?.backgroundColor = nil
+        }
     }
 
     // MARK: - Relative timestamp

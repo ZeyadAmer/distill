@@ -42,6 +42,9 @@ final class TransformRegistry {
         URLEncodeTransform(),
         URLDecodeTransform(),
 
+        // Code
+        RuffFormatTransform(),
+
         // Cleanup
         ExtractURLsTransform(),
         StripHTMLTransform(),
@@ -54,16 +57,34 @@ final class TransformRegistry {
         WrapInBracketsTransform(),
     ]
 
+    // MARK: Custom-Ordered Transforms
+
+    /// All transforms in the user's custom order (falls back to default order).
+    var orderedAll: [any Transform] {
+        let customOrder = UserDefaults.standard.stringArray(forKey: "transformOrder") ?? []
+        guard !customOrder.isEmpty else { return all }
+        let byID = all.reduce(into: [String: any Transform]()) { $0[$1.id] = $1 }
+        var result: [any Transform] = customOrder.compactMap { byID[$0] }
+        // Append any transforms added after the order was last saved.
+        let knownIDs = Set(customOrder)
+        result += all.filter { !knownIDs.contains($0.id) }
+        return result
+    }
+
+    /// Saves a new global order (array of transform IDs) to UserDefaults.
+    func saveOrder(_ ids: [String]) {
+        UserDefaults.standard.set(ids, forKey: "transformOrder")
+    }
+
     // MARK: Enabled Transforms
 
-    /// Returns only the transforms that the user has not disabled in Settings.
-    /// Falls through to `all` when the user has no disabled transforms.
+    /// Returns only the transforms that the user has not disabled, in the user's order.
     var enabled: [any Transform] {
         let disabledIDs = Set(
             UserDefaults.standard.stringArray(forKey: "disabledTransformIDs") ?? []
         )
-        guard !disabledIDs.isEmpty else { return all }
-        return all.filter { !disabledIDs.contains($0.id) }
+        guard !disabledIDs.isEmpty else { return orderedAll }
+        return orderedAll.filter { !disabledIDs.contains($0.id) }
     }
 
     // MARK: Suggested Transforms
@@ -99,6 +120,8 @@ final class TransformRegistry {
                 TrimWhitespaceTransform().id,
                 RemoveBlankLinesTransform().id,
             ]
+        case .image:
+            suggestedIDs = []
         case .plainText:
             suggestedIDs = [
                 TrimWhitespaceTransform().id,
@@ -120,10 +143,8 @@ final class TransformRegistry {
 
     // MARK: Filtered by Category
 
-    /// Returns all transforms (enabled or not) belonging to the given category,
-    /// preserving the order they appear in `all`.
-    /// Used by Settings to show all transforms regardless of enabled state.
+    /// Returns all transforms belonging to the given category in the user's custom order.
     func transforms(in category: TransformCategory) -> [any Transform] {
-        all.filter { $0.category == category }
+        orderedAll.filter { $0.category == category }
     }
 }

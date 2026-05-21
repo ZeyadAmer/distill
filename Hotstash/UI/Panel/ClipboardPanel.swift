@@ -76,7 +76,7 @@ final class ClipboardPanel: NSPanel {
     // MARK: - Event Monitors
 
     private func installEventMonitors() {
-        // Global left-click outside the panel → dismiss.
+        // Global left-click in another app → dismiss.
         outsideClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: .leftMouseDown) { [weak self] _ in
             self?.hide()
         }
@@ -85,9 +85,23 @@ final class ClipboardPanel: NSPanel {
         localKeyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             if event.keyCode == 53 { // kVK_Escape = 53
                 self?.hide()
-                return nil // consume the event
+                return nil
             }
             return event
+        }
+
+        // Panel loses key status (click in same-app window, menu bar, etc.) → dismiss.
+        // Delay slightly so transient popovers (transform picker) can steal/return key
+        // without triggering a dismiss.
+        NotificationCenter.default.addObserver(
+            forName: NSWindow.didResignKeyNotification,
+            object: self,
+            queue: .main
+        ) { [weak self] _ in
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+                guard let self, self.isVisible, !self.isKeyWindow else { return }
+                self.hide()
+            }
         }
     }
 
@@ -104,7 +118,7 @@ final class ClipboardPanel: NSPanel {
 
     // MARK: - Show / Hide
 
-    /// Toggles the panel: hides it when visible, shows it near the cursor otherwise.
+    /// Toggles the panel: hides it when visible, shows it based on the user's position preference.
     func toggle() {
         if isVisible {
             hide()
@@ -113,9 +127,12 @@ final class ClipboardPanel: NSPanel {
         }
     }
 
-    /// Positions the panel near the mouse cursor, then fades it in.
+    /// Positions and fades in the panel according to the stored position preference.
     func show() {
-        positionNearCursor()
+        switch PanelPosition.current {
+        case .cursor:  positionNearCursor()
+        case .menuBar: positionNearMenuBar()
+        }
         alphaValue = 0
         makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
@@ -141,6 +158,33 @@ final class ClipboardPanel: NSPanel {
     }
 
     // MARK: - Positioning
+
+    private func positionNearMenuBar() {
+        guard
+            let button = MenuBarManager.shared.statusItemButton,
+            let buttonWindow = button.window
+        else {
+            positionNearCursor()
+            return
+        }
+
+        let localBounds = button.convert(button.bounds, to: nil)
+        let screenRect  = buttonWindow.convertToScreen(localBounds)
+
+        let screen  = NSScreen.screens.first(where: { $0.frame.contains(screenRect.origin) })
+                      ?? NSScreen.main ?? NSScreen.screens[0]
+        let visible = screen.visibleFrame
+        let w = Self.panelWidth
+        let h = Self.panelHeight
+
+        var x = screenRect.midX - w / 2
+        let y = screenRect.minY - h - 6
+
+        if x + w > visible.maxX { x = visible.maxX - w - 8 }
+        if x < visible.minX     { x = visible.minX + 8 }
+
+        setFrame(NSRect(x: x, y: y, width: w, height: h), display: false)
+    }
 
     /// Computes a frame for the panel that sits close to — but not under — the
     /// current mouse cursor, clamping to the visible area of the active screen.
@@ -176,4 +220,20 @@ final class ClipboardPanel: NSPanel {
 
     /// Allow the panel to become key so keyboard navigation works.
     override var canBecomeKey: Bool { true }
+}
+
+// MARK: - PanelPosition
+
+enum PanelPosition: String {
+    case cursor  = "cursor"
+    case menuBar = "menubar"
+
+    static var current: PanelPosition {
+        let raw = UserDefaults.standard.string(forKey: "panelPosition") ?? "cursor"
+        return PanelPosition(rawValue: raw) ?? .cursor
+    }
+
+    static func save(_ position: PanelPosition) {
+        UserDefaults.standard.set(position.rawValue, forKey: "panelPosition")
+    }
 }

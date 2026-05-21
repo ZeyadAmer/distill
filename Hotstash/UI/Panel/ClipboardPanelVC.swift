@@ -104,6 +104,19 @@ final class ClipboardPanelVC: NSViewController {
         return btn
     }()
 
+    private let multiPasteButton: NSButton = {
+        let btn = NSButton(title: "", target: nil, action: nil)
+        btn.bezelStyle    = .circular
+        btn.isBordered    = false
+        let cfg           = NSImage.SymbolConfiguration(pointSize: 14, weight: .regular)
+        btn.image         = NSImage(systemSymbolName: "rectangle.stack", accessibilityDescription: "Paste Multiple")?
+            .withSymbolConfiguration(cfg)
+        btn.contentTintColor = .secondaryLabelColor
+        btn.toolTip       = "Paste Multiple Items (⌘⇧L)"
+        btn.translatesAutoresizingMaskIntoConstraints = false
+        return btn
+    }()
+
     private let pinButton: NSButton = {
         let btn = NSButton(title: "", target: nil, action: nil)
         btn.bezelStyle   = .circular
@@ -124,6 +137,19 @@ final class ClipboardPanelVC: NSViewController {
         btn.image        = NSImage(systemSymbolName: "delete.left", accessibilityDescription: "Delete")?
             .withSymbolConfiguration(cfg)
         btn.contentTintColor = .secondaryLabelColor
+        btn.translatesAutoresizingMaskIntoConstraints = false
+        return btn
+    }()
+
+    private let clearAllButton: NSButton = {
+        let btn = NSButton(title: "", target: nil, action: nil)
+        btn.bezelStyle       = .circular
+        btn.isBordered       = false
+        let cfg              = NSImage.SymbolConfiguration(pointSize: 14, weight: .regular)
+        btn.image            = NSImage(systemSymbolName: "trash.circle", accessibilityDescription: "Clear All")?
+            .withSymbolConfiguration(cfg)
+        btn.contentTintColor = .secondaryLabelColor
+        btn.toolTip          = "Clear All History"
         btn.translatesAutoresizingMaskIntoConstraints = false
         return btn
     }()
@@ -171,6 +197,19 @@ final class ClipboardPanelVC: NSViewController {
     /// The full store list filtered by the current search query (or the full list when empty).
     private var filteredItems: [ClipboardItem] = []
 
+    /// The row currently under the mouse cursor (-1 = none).
+    private var hoveredRow: Int = -1 {
+        didSet {
+            guard oldValue != hoveredRow else { return }
+            var dirty = IndexSet()
+            if oldValue >= 0 { dirty.insert(oldValue) }
+            if hoveredRow >= 0 { dirty.insert(hoveredRow) }
+            if !dirty.isEmpty {
+                tableView.reloadData(forRowIndexes: dirty, columnIndexes: IndexSet(integer: 0))
+            }
+        }
+    }
+
     /// The transform popover; created lazily and reused across openings.
     private lazy var transformPopover = TransformPickerPopover()
 
@@ -194,9 +233,29 @@ final class ClipboardPanelVC: NSViewController {
         super.viewDidLoad()
         buildLayout()
         wireTargetActions()
-        registerTableClasses()
         subscribeToNotifications()
         reload()
+        installHoverTracking()
+    }
+
+    private func installHoverTracking() {
+        let area = NSTrackingArea(
+            rect: .zero,
+            options: [.mouseMoved, .mouseEnteredAndExited, .activeInKeyWindow, .inVisibleRect],
+            owner: self,
+            userInfo: nil
+        )
+        tableView.addTrackingArea(area)
+    }
+
+    override func mouseMoved(with event: NSEvent) {
+        let point = tableView.convert(event.locationInWindow, from: nil)
+        let row = tableView.row(at: point)
+        hoveredRow = row
+    }
+
+    override func mouseExited(with event: NSEvent) {
+        hoveredRow = -1
     }
 
     // MARK: - Public interface (called by ClipboardPanel)
@@ -207,6 +266,7 @@ final class ClipboardPanelVC: NSViewController {
         applySearch(query: "")
         selectFirstItem()
         searchField.becomeFirstResponder()
+        updateTrialBanner()
     }
 
     // MARK: - Layout Construction
@@ -241,12 +301,12 @@ final class ClipboardPanelVC: NSViewController {
         toolbarRow.translatesAutoresizingMaskIntoConstraints = false
         toolbarRow.heightAnchor.constraint(equalToConstant: Layout.toolbarRowHeight).isActive = true
 
-        let toolbarStack = NSStackView(views: [pasteButton, transformButton])
+        let toolbarStack = NSStackView(views: [pasteButton, transformButton, multiPasteButton])
         toolbarStack.spacing     = 6
         toolbarStack.orientation = .horizontal
         toolbarStack.translatesAutoresizingMaskIntoConstraints = false
 
-        let rightStack = NSStackView(views: [pinButton, deleteButton])
+        let rightStack = NSStackView(views: [pinButton, deleteButton, clearAllButton])
         rightStack.spacing     = 4
         rightStack.orientation = .horizontal
         rightStack.translatesAutoresizingMaskIntoConstraints = false
@@ -263,9 +323,12 @@ final class ClipboardPanelVC: NSViewController {
         ])
 
         // ── Trial banner ──────────────────────────────────────────────────────
-        let bannerHeight: CGFloat = TrialManager.shared.isRestricted ? Layout.trialBannerHeight : 0
-        trialBanner.heightAnchor.constraint(equalToConstant: bannerHeight).isActive = true
-        trialBannerHeightConstraint = trialBanner.constraints.first(where: { $0.firstAttribute == .height })
+        let isRestricted = TrialManager.shared.isRestricted
+        let bannerHeight: CGFloat = isRestricted ? Layout.trialBannerHeight : 0
+        trialBanner.isHidden = !isRestricted
+        let bannerHeightConstraint = trialBanner.heightAnchor.constraint(equalToConstant: bannerHeight)
+        bannerHeightConstraint.isActive = true
+        trialBannerHeightConstraint = bannerHeightConstraint
 
         // ── Top-level separator ───────────────────────────────────────────────
         let searchSep = separatorView()
@@ -318,22 +381,22 @@ final class ClipboardPanelVC: NSViewController {
         transformButton.target = self
         transformButton.action = #selector(handleTransformButtonTapped(_:))
 
+        multiPasteButton.target = self
+        multiPasteButton.action = #selector(handleMultiPaste)
+
         pinButton.target       = self
         pinButton.action       = #selector(handlePin)
 
         deleteButton.target    = self
         deleteButton.action    = #selector(handleDelete)
 
+        clearAllButton.target  = self
+        clearAllButton.action  = #selector(handleClearAll)
+
+        tableView.target       = self
+        tableView.doubleAction = #selector(handleDoubleClick)
+
         searchField.delegate   = self
-    }
-
-    // MARK: - Table registration
-
-    private func registerTableClasses() {
-        tableView.register(
-            ClipboardItemCell.self,
-            forIdentifier: ClipboardItemCell.reuseIdentifier
-        )
     }
 
     // MARK: - Notifications
@@ -430,6 +493,7 @@ final class ClipboardPanelVC: NSViewController {
         transformButton.isEnabled = hasSelection && !isRestricted
         pinButton.isEnabled       = hasSelection
         deleteButton.isEnabled    = hasSelection
+        clearAllButton.isEnabled  = !ClipboardStore.shared.recentItems.isEmpty
 
         // Update the pin button icon depending on item state.
         if let item = selectedItem {
@@ -444,10 +508,8 @@ final class ClipboardPanelVC: NSViewController {
         let isRestricted = TrialManager.shared.isRestricted
         let targetHeight: CGFloat = isRestricted ? Layout.trialBannerHeight : 0
 
-        NSAnimationContext.runAnimationGroup { ctx in
-            ctx.duration = 0.2
-            trialBannerHeightConstraint?.animator().constant = targetHeight
-        }
+        trialBanner.isHidden = !isRestricted
+        trialBannerHeightConstraint?.constant = targetHeight
         updateToolbarState()
     }
 
@@ -491,6 +553,29 @@ final class ClipboardPanelVC: NSViewController {
         reload()
     }
 
+    @objc private func handleMultiPaste() {
+        MultiPastePanel.shared.show()
+    }
+
+    @objc private func handleDoubleClick() {
+        guard tableView.clickedRow >= 0,
+              case .item = rows[tableView.clickedRow] else { return }
+        tableView.selectRowIndexes(IndexSet(integer: tableView.clickedRow), byExtendingSelection: false)
+        pasteSelected()
+    }
+
+    @objc private func handleClearAll() {
+        let alert = NSAlert()
+        alert.messageText     = "Clear All History?"
+        alert.informativeText = "This removes all non-pinned items. Pinned items are kept."
+        alert.addButton(withTitle: "Clear All")
+        alert.addButton(withTitle: "Cancel")
+        alert.alertStyle = .warning
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+        ClipboardStore.shared.clearAll()
+        reload()
+    }
+
     @objc private func handleBuy() {
         // Kick off the StoreKit purchase flow.
         Task {
@@ -503,13 +588,19 @@ final class ClipboardPanelVC: NSViewController {
     /// Pastes the selected item, optionally applying a transform first.
     func pasteSelected(with transform: (any Transform)? = nil) {
         guard let item = selectedItem else { return }
-        let text: String
-        if let transform {
-            text = transform.apply(to: item.content)
-        } else {
-            text = item.content
-        }
+
         ClipboardStore.shared.recordUse(id: item.id)
+        if transform == nil && !item.isPinned {
+            ClipboardStore.shared.moveToTop(id: item.id)
+        }
+
+        // Image items bypass the text paste path entirely.
+        if item.contentType == .image, let data = item.imageData, transform == nil {
+            PasteEngine.hotstashedPasteImage(data)
+            return
+        }
+
+        let text: String = transform?.apply(to: item.content) ?? item.content
         PasteEngine.hotstashedPaste(text)
     }
 
@@ -638,7 +729,8 @@ extension ClipboardPanelVC: NSTableViewDelegate {
             ?? ClipboardItemCell()
         cell.identifier = ClipboardItemCell.reuseIdentifier
         let isSelected = tableView.selectedRow == row
-        cell.configure(with: item, isSelected: isSelected)
+        let isHovered  = hoveredRow == row && !isSelected
+        cell.configure(with: item, isSelected: isSelected, isHovered: isHovered)
         return cell
     }
 }

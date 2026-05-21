@@ -8,6 +8,7 @@ enum TransformCategory: String, CaseIterable {
     case lists      = "Lists"
     case json       = "JSON"
     case encoding   = "Encoding"
+    case code       = "Code"
     case cleanup    = "Cleanup"
     case wrap       = "Wrap"
 }

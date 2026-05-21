@@ -21,13 +21,19 @@ final class TransformPickerPopover: NSPopover {
         set { pickerVC.onSelect = newValue }
     }
 
+    /// The clipboard item whose content type drives the "Suggested" section.
+    var sourceItem: ClipboardItem? {
+        get { pickerVC.sourceItem }
+        set { pickerVC.sourceItem = newValue }
+    }
+
     // MARK: Private
 
     private let pickerVC = TransformPickerVC()
 
     // MARK: Init
 
-    init() {
+    override init() {
         super.init()
         contentViewController = pickerVC
         behavior = .transient
@@ -137,6 +143,7 @@ final class TransformPickerVC: NSViewController {
         // Suggested section.
         let contentType = sourceItem?.contentType ?? .plainText
         let suggestions = TransformRegistry.shared.suggested(for: contentType)
+        let suggestedIDs = Set(suggestions.map { $0.id })
         if !suggestions.isEmpty {
             addSectionHeader(title: "Suggested")
             for transform in suggestions {
@@ -145,14 +152,10 @@ final class TransformPickerVC: NSViewController {
             addDivider()
         }
 
-        // One section per category.
-        for category in TransformCategory.allCases {
-            let transforms = TransformRegistry.shared.transforms(in: category)
-            guard !transforms.isEmpty else { continue }
-            addSectionHeader(title: category.rawValue)
-            for transform in transforms {
-                addTransformRow(transform, isHighlighted: false)
-            }
+        // All enabled transforms in user-defined order (skip ones already in Suggested).
+        let ordered = TransformRegistry.shared.enabled.filter { !suggestedIDs.contains($0.id) }
+        for transform in ordered {
+            addTransformRow(transform, isHighlighted: false)
         }
 
         updatePreferredContentSize()
