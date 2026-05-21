@@ -92,7 +92,7 @@ final class ClipboardPanel: NSPanel {
 
         // Panel loses key status (click in same-app window, menu bar, etc.) → dismiss.
         // Delay slightly so transient popovers (transform picker) can steal/return key
-        // without triggering a dismiss.
+        // without triggering a dismiss. Never dismiss when multi-paste panel is open.
         NotificationCenter.default.addObserver(
             forName: NSWindow.didResignKeyNotification,
             object: self,
@@ -100,6 +100,7 @@ final class ClipboardPanel: NSPanel {
         ) { [weak self] _ in
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
                 guard let self, self.isVisible, !self.isKeyWindow else { return }
+                guard !MultiPastePanel.shared.isVisible else { return }
                 self.hide()
             }
         }
