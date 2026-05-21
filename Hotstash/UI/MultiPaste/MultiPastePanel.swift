@@ -66,6 +66,7 @@ final class MultiPastePanel: NSPanel {
     // MARK: - Show / Hide
 
     func show() {
+        ClipboardPanel.shared.hide()
         positionNearCursor()
         alphaValue = 0
         makeKeyAndOrderFront(nil)
