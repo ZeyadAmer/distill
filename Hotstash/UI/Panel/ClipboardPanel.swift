@@ -149,6 +149,7 @@ final class ClipboardPanel: NSPanel {
 
     /// Fades out the panel, then moves it off screen.
     func hide() {
+        MultiPastePanel.shared.hide()
         NSAnimationContext.runAnimationGroup({ ctx in
             ctx.duration = 0.14
             ctx.timingFunction = CAMediaTimingFunction(name: .easeIn)
