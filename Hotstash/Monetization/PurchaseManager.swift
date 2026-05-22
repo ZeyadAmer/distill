@@ -36,38 +36,39 @@ final class PurchaseManager: ObservableObject {
 
     // MARK: - Purchase
 
+    enum PurchaseError: Error {
+        case productNotFound
+        case verificationFailed
+    }
+
     /// Fetches the product from the App Store and initiates a purchase.
-    func purchase() async {
+    /// Returns `true` on success, throws on failure.
+    @discardableResult
+    func purchase() async throws -> Bool {
         isLoading = true
         defer { isLoading = false }
 
-        do {
-            let products = try await Product.products(for: [productID])
-            guard let product = products.first else {
-                // Product not found — could be a sandbox/configuration issue.
-                return
-            }
+        let products = try await Product.products(for: [productID])
+        guard let product = products.first else {
+            throw PurchaseError.productNotFound
+        }
 
-            let result = try await product.purchase()
+        let result = try await product.purchase()
 
-            switch result {
-            case .success(let verificationResult):
-                if case .verified(let transaction) = verificationResult {
-                    await transaction.finish()
-                    markPurchased()
-                }
-            case .pending:
-                // Deferred purchase (e.g. Ask to Buy) — wait for Transaction.updates.
-                break
-            case .userCancelled:
-                break
-            @unknown default:
-                break
+        switch result {
+        case .success(let verificationResult):
+            guard case .verified(let transaction) = verificationResult else {
+                throw PurchaseError.verificationFailed
             }
-        } catch {
-            // Purchase errors are surfaced to the user via the UI layer;
-            // log here to aid debugging without crashing.
-            print("[PurchaseManager] Purchase failed: \(error.localizedDescription)")
+            await transaction.finish()
+            markPurchased()
+            return true
+        case .pending:
+            return false
+        case .userCancelled:
+            return false
+        @unknown default:
+            return false
         }
     }
 

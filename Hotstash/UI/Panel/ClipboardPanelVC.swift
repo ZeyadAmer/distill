@@ -630,9 +630,17 @@ final class ClipboardPanelVC: NSViewController {
     }
 
     @objc private func handleBuy() {
-        // Kick off the StoreKit purchase flow.
         Task {
-            await PurchaseManager.shared.purchase()
+            do {
+                try await PurchaseManager.shared.purchase()
+            } catch {
+                let alert = NSAlert()
+                alert.messageText     = "Purchase Unavailable"
+                alert.informativeText = "Unable to complete the purchase. Please check your internet connection and try again.\n\n\(error.localizedDescription)"
+                alert.alertStyle      = .warning
+                alert.addButton(withTitle: "OK")
+                alert.runModal()
+            }
         }
     }
 
