@@ -115,65 +115,7 @@ private struct StepWelcomeView: View {
     }
 }
 
-// MARK: - Step 2: Accessibility
-
-private struct StepAccessibilityView: View {
-
-    let onNext: () -> Void
-    let onSkip: () -> Void
-
-    var body: some View {
-        VStack(spacing: 20) {
-            Spacer()
-
-            Image(systemName: "accessibility")
-                .font(.system(size: 64))
-                .foregroundStyle(Color.accentColor)
-
-            VStack(spacing: 8) {
-                Text("Grant Accessibility Access")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-
-                Text("Hotstash needs accessibility access to automatically paste your selected item into the active app.")
-                    .font(.body)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-
-            Spacer()
-
-            VStack(spacing: 10) {
-                Button(action: openAccessibilityPreferences) {
-                    Text("Open System Settings")
-                        .frame(width: 220)
-                }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
-
-                Button("Skip for now", action: onSkip)
-                    .buttonStyle(.borderless)
-                    .foregroundStyle(.secondary)
-                    .controlSize(.regular)
-            }
-
-            stepIndicator(current: 2, total: 3)
-                .padding(.bottom, 20)
-        }
-        .padding(.horizontal, 48)
-    }
-
-    private func openAccessibilityPreferences() {
-        let urlString = "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"
-        if let url = URL(string: urlString) {
-            NSWorkspace.shared.open(url)
-        }
-        onNext()
-    }
-}
-
-// MARK: - Step 3: Ready
+// MARK: - Step 2: Ready
 
 private struct StepReadyView: View {
 

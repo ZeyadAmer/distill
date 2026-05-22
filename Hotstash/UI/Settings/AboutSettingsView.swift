@@ -93,10 +93,10 @@ struct AboutSettingsView: View {
 
                     Link(
                         "Contact Support",
-                        destination: URL(string: "mailto:support@hotstash.app")!
+                        destination: URL(string: "mailto:zeyad.hesham@icloud.com")!
                     )
                     .font(.caption)
-                }
+                }§
                 .padding(.vertical, 16)
             }
             .frame(maxWidth: .infinity)

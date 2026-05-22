@@ -1,4 +1,3 @@
-import AppKit
 import SwiftUI
 
 // MARK: - GeneralSettingsView
@@ -103,28 +102,8 @@ struct GeneralSettingsView: View {
                 Text("History")
             }
 
-            // MARK: Accessibility
-
-            Section {
-                Button("Request Accessibility Permission") {
-                    requestAccessibilityPermission()
-                }
-            } header: {
-                Text("Permissions")
-            } footer: {
-                Text("Hotstash needs accessibility access to simulate paste when you select a clipboard item.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
         }
         .formStyle(.grouped)
         .padding(.vertical, 8)
-    }
-
-    // MARK: - Actions
-
-    private func requestAccessibilityPermission() {
-        let options: NSDictionary = [kAXTrustedCheckOptionPrompt.takeRetainedValue(): true]
-        AXIsProcessTrustedWithOptions(options)
     }
 }
