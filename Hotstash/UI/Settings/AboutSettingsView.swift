@@ -96,7 +96,7 @@ struct AboutSettingsView: View {
                         destination: URL(string: "mailto:zeyad.hesham@icloud.com")!
                     )
                     .font(.caption)
-                }§
+                }
                 .padding(.vertical, 16)
             }
             .frame(maxWidth: .infinity)
