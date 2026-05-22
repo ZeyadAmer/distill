@@ -90,9 +90,10 @@ final class ClipboardPanelVC: NSViewController {
     // MARK: - Subviews — Toolbar
 
     private let pasteButton: NSButton = {
-        let btn = NSButton(title: "Paste", target: nil, action: nil)
+        let btn = NSButton(title: "Copy", target: nil, action: nil)
         btn.bezelStyle       = .rounded
         btn.keyEquivalent    = "\r"
+        btn.toolTip          = "Copy to Clipboard (Return)"
         btn.translatesAutoresizingMaskIntoConstraints = false
         return btn
     }()
@@ -150,6 +151,19 @@ final class ClipboardPanelVC: NSViewController {
             .withSymbolConfiguration(cfg)
         btn.contentTintColor = .secondaryLabelColor
         btn.toolTip          = "Clear All History"
+        btn.translatesAutoresizingMaskIntoConstraints = false
+        return btn
+    }()
+
+    private let gearButton: NSButton = {
+        let btn = NSButton(title: "", target: nil, action: nil)
+        btn.bezelStyle   = .circular
+        btn.isBordered   = false
+        let cfg          = NSImage.SymbolConfiguration(pointSize: 14, weight: .regular)
+        btn.image        = NSImage(systemSymbolName: "gearshape", accessibilityDescription: "Settings")?
+            .withSymbolConfiguration(cfg)
+        btn.contentTintColor = .secondaryLabelColor
+        btn.toolTip      = "Settings"
         btn.translatesAutoresizingMaskIntoConstraints = false
         return btn
     }()
@@ -306,7 +320,7 @@ final class ClipboardPanelVC: NSViewController {
         toolbarStack.orientation = .horizontal
         toolbarStack.translatesAutoresizingMaskIntoConstraints = false
 
-        let rightStack = NSStackView(views: [pinButton, deleteButton, clearAllButton])
+        let rightStack = NSStackView(views: [pinButton, deleteButton, clearAllButton, gearButton])
         rightStack.spacing     = 4
         rightStack.orientation = .horizontal
         rightStack.translatesAutoresizingMaskIntoConstraints = false
@@ -392,6 +406,9 @@ final class ClipboardPanelVC: NSViewController {
 
         clearAllButton.target  = self
         clearAllButton.action  = #selector(handleClearAll)
+
+        gearButton.target      = self
+        gearButton.action      = #selector(handleGear)
 
         tableView.target       = self
         tableView.action       = #selector(handleSingleClick)
@@ -585,6 +602,31 @@ final class ClipboardPanelVC: NSViewController {
         guard alert.runModal() == .alertFirstButtonReturn else { return }
         ClipboardStore.shared.clearAll()
         reload()
+    }
+
+    @objc private func handleGear() {
+        let menu = NSMenu()
+
+        let settingsItem = NSMenuItem(title: "Settings\u{2026}", action: #selector(openSettings), keyEquivalent: ",")
+        settingsItem.keyEquivalentModifierMask = .command
+        settingsItem.target = self
+        menu.addItem(settingsItem)
+
+        menu.addItem(.separator())
+
+        let quitItem = NSMenuItem(title: "Quit Hotstash", action: #selector(quitApp), keyEquivalent: "")
+        quitItem.target = self
+        menu.addItem(quitItem)
+
+        menu.popUp(positioning: nil, at: NSPoint(x: 0, y: gearButton.bounds.maxY + 4), in: gearButton)
+    }
+
+    @objc private func openSettings() {
+        SettingsWindowController.shared.show()
+    }
+
+    @objc private func quitApp() {
+        NSApp.terminate(nil)
     }
 
     @objc private func handleBuy() {

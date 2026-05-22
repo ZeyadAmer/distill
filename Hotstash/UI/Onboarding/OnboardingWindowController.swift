@@ -50,15 +50,6 @@ struct OnboardingView: View {
                         insertion: .move(edge: .trailing),
                         removal: .move(edge: .leading)
                     ))
-            } else if step == 2 {
-                StepAccessibilityView(
-                    onNext: advance,
-                    onSkip: advance
-                )
-                .transition(.asymmetric(
-                    insertion: .move(edge: .trailing),
-                    removal: .move(edge: .leading)
-                ))
             } else {
                 StepReadyView(onDone: finish)
                     .transition(.asymmetric(
@@ -117,7 +108,7 @@ private struct StepWelcomeView: View {
             .controlSize(.large)
             .keyboardShortcut(.defaultAction)
 
-            stepIndicator(current: 1, total: 3)
+            stepIndicator(current: 1, total: 2)
                 .padding(.bottom, 20)
         }
         .padding(.horizontal, 48)
@@ -201,7 +192,7 @@ private struct StepReadyView: View {
                     .font(.largeTitle)
                     .fontWeight(.bold)
 
-                Text("Press ⌘⇧V anywhere to open Hotstash and paste from your clipboard history.")
+                Text("Press ⌘⇧V anywhere to open Hotstash. Select an item, press Return to copy it, then ⌘V to paste.")
                     .font(.body)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
@@ -218,7 +209,7 @@ private struct StepReadyView: View {
             .controlSize(.large)
             .keyboardShortcut(.defaultAction)
 
-            stepIndicator(current: 3, total: 3)
+            stepIndicator(current: 2, total: 2)
                 .padding(.bottom, 20)
         }
         .padding(.horizontal, 48)

@@ -32,10 +32,6 @@
     <true/>
     <key>NSPrincipalClass</key>
     <string>NSApplication</string>
-    <key>NSAppleEventsUsageDescription</key>
-    <string>Hotstash uses Apple Events to simulate paste actions in the frontmost app.</string>
-    <key>NSAccessibilityUsageDescription</key>
-    <string>Hotstash needs Accessibility access to paste transformed clipboard content into other apps.</string>
     <key>LSApplicationCategoryType</key>
     <string>public.app-category.productivity</string>
 </dict>
