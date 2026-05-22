@@ -36,9 +36,18 @@ final class PurchaseManager: ObservableObject {
 
     // MARK: - Purchase
 
-    enum PurchaseError: Error {
+    enum PurchaseError: LocalizedError {
         case productNotFound
         case verificationFailed
+
+        var errorDescription: String? {
+            switch self {
+            case .productNotFound:
+                return "The purchase could not be completed. Please check your connection and try again."
+            case .verificationFailed:
+                return "Purchase verification failed. Please try again or contact support."
+            }
+        }
     }
 
     /// Fetches the product from the App Store and initiates a purchase.

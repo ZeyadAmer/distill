@@ -52,7 +52,14 @@ struct AboutSettingsView: View {
 
                     if !purchaseManager.isPurchased {
                         Button {
-                            Task { await purchaseManager.purchase() }
+                            Task {
+                                do {
+                                    try await purchaseManager.purchase()
+                                } catch {
+                                    purchaseError = error.localizedDescription
+                                    showingPurchaseError = true
+                                }
+                            }
                         } label: {
                             Label("Purchase Hotstash — $9.99", systemImage: "cart")
                                 .frame(maxWidth: .infinity)
