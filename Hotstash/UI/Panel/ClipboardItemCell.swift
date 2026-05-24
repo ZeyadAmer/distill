@@ -19,7 +19,7 @@ final class ClipboardItemCell: NSTableCellView {
     // MARK: Row height
 
     static let rowHeight: CGFloat = 64
-    static let imageRowHeight: CGFloat = 80
+    static let imageRowHeight: CGFloat = 110
 
     // MARK: - Subviews
 
@@ -94,6 +94,12 @@ final class ClipboardItemCell: NSTableCellView {
         return v
     }()
 
+    // Two mutually-exclusive constraints that reposition the badge row:
+    // — text items: badge sits just below the preview text label
+    // — image items: badge is pinned to the bottom of the cell
+    private var textBadgeTopConstraint: NSLayoutConstraint!
+    private var imageBadgeBottomConstraint: NSLayoutConstraint!
+
     // MARK: Init
 
     override init(frame: NSRect) {
@@ -152,9 +158,8 @@ final class ClipboardItemCell: NSTableCellView {
             imagePreview.topAnchor.constraint(equalTo: topAnchor, constant: 6),
             imagePreview.bottomAnchor.constraint(equalTo: badgeBackground.topAnchor, constant: -4),
 
-            // Badge — below preview, left-aligned.
+            // Badge — left-aligned; vertical position switched per content type.
             badgeBackground.leadingAnchor.constraint(equalTo: previewLabel.leadingAnchor),
-            badgeBackground.topAnchor.constraint(equalTo: previewLabel.bottomAnchor, constant: 4),
             badgeBackground.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor, constant: -8),
 
             // Badge label inside badge background.
@@ -163,6 +168,11 @@ final class ClipboardItemCell: NSTableCellView {
             badgeLabel.topAnchor.constraint(equalTo: badgeBackground.topAnchor, constant: 1),
             badgeLabel.bottomAnchor.constraint(equalTo: badgeBackground.bottomAnchor, constant: -1),
         ])
+
+        // Switchable badge-position constraints (text vs image layout).
+        textBadgeTopConstraint  = badgeBackground.topAnchor.constraint(equalTo: previewLabel.bottomAnchor, constant: 4)
+        imageBadgeBottomConstraint = badgeBackground.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8)
+        textBadgeTopConstraint.isActive = true   // default: text layout
     }
 
     // MARK: - Configuration
@@ -184,11 +194,17 @@ final class ClipboardItemCell: NSTableCellView {
             previewLabel.isHidden  = true
             imagePreview.isHidden  = false
             imagePreview.image     = NSImage(data: data)
+            // Badge pinned to cell bottom so image fills the row.
+            textBadgeTopConstraint.isActive    = false
+            imageBadgeBottomConstraint.isActive = true
             return
         }
 
         previewLabel.isHidden  = false
         imagePreview.isHidden  = true
+        // Badge follows the text label.
+        imageBadgeBottomConstraint.isActive = false
+        textBadgeTopConstraint.isActive     = true
 
         let maxChars = 120
         let raw = item.content

@@ -580,16 +580,16 @@ final class ClipboardPanelVC: NSViewController {
     }
 
     @objc private func handleSingleClick() {
-        guard tableView.clickedRow >= 0,
-              case .item = rows[tableView.clickedRow] else { return }
-        MultiPastePanel.shared.hide()
-        tableView.selectRowIndexes(IndexSet(integer: tableView.clickedRow), byExtendingSelection: false)
-        pasteSelected()
+        // Paste is handled in tableViewSelectionDidChange on clickedRow >= 0.
     }
 
     @objc private func handleDoubleClick() {
-        // Single click handles paste — double-click is a no-op.
+        guard tableView.clickedRow >= 0,
+              tableView.clickedRow < rows.count,
+              case .item = rows[tableView.clickedRow] else { return }
+        ClipboardPanel.shared.dismiss()
     }
+
 
     @objc private func handleClearAll() {
         let alert = NSAlert()
@@ -645,7 +645,21 @@ final class ClipboardPanelVC: NSViewController {
 
     // MARK: - Paste
 
-    /// Pastes the selected item, optionally applying a transform first.
+    /// Copies the selected item to the clipboard. Panel stays open.
+    private func copySelected() {
+        guard let item = selectedItem else { return }
+        ClipboardStore.shared.recordUse(id: item.id)
+        if !item.isPinned {
+            ClipboardStore.shared.moveToTop(id: item.id)
+        }
+        if item.contentType == .image, let data = item.imageData {
+            PasteEngine.hotstashedCopyImage(data)
+        } else {
+            PasteEngine.hotstashedCopy(item.content)
+        }
+    }
+
+    /// Copies the selected item and dismisses the panel (optionally applying a transform).
     func pasteSelected(with transform: (any Transform)? = nil) {
         guard let item = selectedItem else { return }
 
@@ -666,7 +680,7 @@ final class ClipboardPanelVC: NSViewController {
 
     // MARK: - Position paste (⌘1–⌘9)
 
-    private func pasteItemAtPosition(_ position: Int) {
+    func pasteItemAtPosition(_ position: Int) {
         var count = 0
         for (index, row) in rows.enumerated() {
             if case .item = row {
@@ -750,8 +764,10 @@ extension ClipboardPanelVC: NSTableViewDelegate {
         switch rows[row] {
         case .sectionHeader:
             return 24
-        case .item:
-            return ClipboardItemCell.rowHeight
+        case .item(let item):
+            return item.contentType == .image
+                ? ClipboardItemCell.imageRowHeight
+                : ClipboardItemCell.rowHeight
         }
     }
 
@@ -773,18 +789,21 @@ extension ClipboardPanelVC: NSTableViewDelegate {
     func tableViewSelectionDidChange(_ notification: Notification) {
         guard let tv = notification.object as? NSTableView else { return }
 
-        // If the user selects a header row, skip forward to the next item row.
         let selectedRow = tv.selectedRow
         if selectedRow >= 0, case .sectionHeader = rows[selectedRow] {
             moveSelection(by: +1)
             return
         }
 
-        // Reload visible rows to update selection highlighting.
+        // Mouse click on an item row → copy to clipboard, keep panel open.
+        if tv.clickedRow >= 0, selectedRow >= 0, case .item = rows[selectedRow] {
+            copySelected()
+        }
+
+        // Reload visible rows to update highlight.
         let visibleRange = tv.rows(in: tv.visibleRect)
         let indexSet = IndexSet(integersIn: visibleRange.location ..< (visibleRange.location + visibleRange.length))
         tv.reloadData(forRowIndexes: indexSet, columnIndexes: IndexSet(integer: 0))
-
         updateToolbarState()
     }
 

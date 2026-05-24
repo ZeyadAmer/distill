@@ -10,8 +10,16 @@ struct TrimWhitespaceTransform: Transform {
 
     let applicableTo: [ContentType] = []
 
+    /// Trims leading/trailing whitespace on every line and collapses
+    /// consecutive internal spaces/tabs on each line to a single space.
     func apply(to input: String) -> String {
-        input.trimmingCharacters(in: .whitespacesAndNewlines)
+        input.components(separatedBy: "\n")
+            .map { line in
+                line.components(separatedBy: .whitespaces)
+                    .filter { !$0.isEmpty }
+                    .joined(separator: " ")
+            }
+            .joined(separator: "\n")
     }
 }
 

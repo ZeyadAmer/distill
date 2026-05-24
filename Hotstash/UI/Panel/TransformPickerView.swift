@@ -74,8 +74,8 @@ final class TransformPickerVC: NSViewController {
     // MARK: Subviews
 
     private let scrollView = NSScrollView()
-    private let stackView: NSStackView = {
-        let sv = NSStackView()
+    private let stackView: FlippedStackView = {
+        let sv = FlippedStackView()
         sv.orientation  = .vertical
         sv.alignment    = .leading
         sv.distribution = .fill
@@ -233,6 +233,12 @@ final class TransformPickerVC: NSViewController {
         let clampedHeight = min(totalHeight, Self.maxHeight)
         preferredContentSize = NSSize(width: Self.width, height: clampedHeight)
     }
+}
+
+// MARK: - FlippedStackView
+
+private final class FlippedStackView: NSStackView {
+    override var isFlipped: Bool { true }
 }
 
 // MARK: - TransformRowView

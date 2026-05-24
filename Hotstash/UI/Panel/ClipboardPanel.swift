@@ -82,12 +82,28 @@ final class ClipboardPanel: NSPanel {
             DispatchQueue.main.async { self?.dismiss() }
         }
 
-        // Local Escape key → dismiss both panels.
+        // Local key events — Escape dismisses; ⌘1–⌘9 paste by position.
+        // Using the monitor (rather than keyDown overrides) ensures these work
+        // regardless of which subview currently holds first responder.
         localKeyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            if event.keyCode == 53 { // kVK_Escape = 53
-                self?.dismiss()
+            guard let self else { return event }
+
+            if event.keyCode == 53 { // kVK_Escape
+                self.dismiss()
                 return nil
             }
+
+            if event.modifierFlags.contains(.command) {
+                let keyCodes: [UInt16: Int] = [
+                    18: 1, 19: 2, 20: 3, 21: 4, 23: 5,
+                    22: 6, 26: 7, 28: 8, 25: 9,
+                ]
+                if let position = keyCodes[event.keyCode] {
+                    self.contentVC.pasteItemAtPosition(position)
+                    return nil
+                }
+            }
+
             return event
         }
 
