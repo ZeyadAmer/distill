@@ -100,6 +100,7 @@ final class TransformPickerVC: NSViewController {
     override func viewWillAppear() {
         super.viewWillAppear()
         updatePreferredContentSize()
+        scrollView.documentView?.scroll(.zero)
     }
 
     // MARK: - Layout

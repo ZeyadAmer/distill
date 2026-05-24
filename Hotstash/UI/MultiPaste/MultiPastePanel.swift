@@ -151,7 +151,7 @@ private struct MultiPasteView: View {
                 Button("Cancel") { onDismiss() }
                     .keyboardShortcut(.cancelAction)
 
-                Button("Paste") { paste() }
+                Button("Copy") { paste() }
                     .keyboardShortcut(.defaultAction)
                     .buttonStyle(.borderedProminent)
             }
