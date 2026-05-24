@@ -135,14 +135,29 @@ final class TransformPickerVC: NSViewController {
     private func rebuildRows() {
         guard isViewLoaded else { return }
 
-        // Remove all existing rows.
         for view in stackView.arrangedSubviews {
             stackView.removeArrangedSubview(view)
             view.removeFromSuperview()
         }
 
-        // Suggested section.
         let contentType = sourceItem?.contentType ?? .plainText
+
+        if contentType == .image {
+            // Show only image-applicable transforms.
+            let imageTransforms = TransformRegistry.shared.all.filter {
+                $0.applicableTo.contains(.image)
+            }
+            if !imageTransforms.isEmpty {
+                addSectionHeader(title: "Image Transforms")
+                for transform in imageTransforms {
+                    addTransformRow(transform, isHighlighted: true)
+                }
+            }
+            updatePreferredContentSize()
+            return
+        }
+
+        // Suggested section for text items.
         let suggestions = TransformRegistry.shared.suggested(for: contentType)
         let suggestedIDs = Set(suggestions.map { $0.id })
         if !suggestions.isEmpty {
@@ -153,8 +168,9 @@ final class TransformPickerVC: NSViewController {
             addDivider()
         }
 
-        // All enabled transforms in user-defined order (skip ones already in Suggested).
-        let ordered = TransformRegistry.shared.enabled.filter { !suggestedIDs.contains($0.id) }
+        // All enabled text transforms in user-defined order.
+        let ordered = TransformRegistry.shared.enabled
+            .filter { !suggestedIDs.contains($0.id) && !$0.applicableTo.contains(.image) }
         for transform in ordered {
             addTransformRow(transform, isHighlighted: false)
         }

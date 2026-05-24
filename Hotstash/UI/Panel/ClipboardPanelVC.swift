@@ -583,13 +583,12 @@ final class ClipboardPanelVC: NSViewController {
         guard tableView.clickedRow >= 0,
               case .item = rows[tableView.clickedRow] else { return }
         MultiPastePanel.shared.hide()
+        tableView.selectRowIndexes(IndexSet(integer: tableView.clickedRow), byExtendingSelection: false)
+        pasteSelected()
     }
 
     @objc private func handleDoubleClick() {
-        guard tableView.clickedRow >= 0,
-              case .item = rows[tableView.clickedRow] else { return }
-        tableView.selectRowIndexes(IndexSet(integer: tableView.clickedRow), byExtendingSelection: false)
-        pasteSelected()
+        // Single click handles paste — double-click is a no-op.
     }
 
     @objc private func handleClearAll() {
@@ -655,9 +654,9 @@ final class ClipboardPanelVC: NSViewController {
             ClipboardStore.shared.moveToTop(id: item.id)
         }
 
-        // Image items bypass the text paste path entirely.
-        if item.contentType == .image, let data = item.imageData, transform == nil {
-            PasteEngine.hotstashedPasteImage(data)
+        if item.contentType == .image, let data = item.imageData {
+            let outputData = transform?.applyToImageData(data) ?? data
+            PasteEngine.hotstashedPasteImage(outputData)
             return
         }
 
@@ -665,9 +664,38 @@ final class ClipboardPanelVC: NSViewController {
         PasteEngine.hotstashedPaste(text)
     }
 
+    // MARK: - Position paste (⌘1–⌘9)
+
+    private func pasteItemAtPosition(_ position: Int) {
+        var count = 0
+        for (index, row) in rows.enumerated() {
+            if case .item = row {
+                count += 1
+                if count == position {
+                    MultiPastePanel.shared.hide()
+                    tableView.selectRowIndexes(IndexSet(integer: index), byExtendingSelection: false)
+                    tableView.scrollRowToVisible(index)
+                    pasteSelected()
+                    return
+                }
+            }
+        }
+    }
+
     // MARK: - Keyboard navigation
 
+    // Physical key codes for 1–9 on a US keyboard layout.
+    private static let numberKeyCodes: [UInt16: Int] = [
+        18: 1, 19: 2, 20: 3, 21: 4, 23: 5,
+        22: 6, 26: 7, 28: 8, 25: 9,
+    ]
+
     override func keyDown(with event: NSEvent) {
+        if event.modifierFlags.contains(.command),
+           let position = Self.numberKeyCodes[event.keyCode] {
+            pasteItemAtPosition(position)
+            return
+        }
         switch event.keyCode {
         case 125: // Down arrow
             moveSelection(by: +1)
@@ -791,7 +819,14 @@ extension ClipboardPanelVC: NSTableViewDelegate {
         cell.identifier = ClipboardItemCell.reuseIdentifier
         let isSelected = tableView.selectedRow == row
         let isHovered  = hoveredRow == row && !isSelected
-        cell.configure(with: item, isSelected: isSelected, isHovered: isHovered)
+
+        var itemCount = 0
+        for kind in rows.prefix(row + 1) {
+            if case .item = kind { itemCount += 1 }
+        }
+        let hotkey: Int? = itemCount <= 9 ? itemCount : nil
+
+        cell.configure(with: item, isSelected: isSelected, isHovered: isHovered, hotkey: hotkey)
         return cell
     }
 }

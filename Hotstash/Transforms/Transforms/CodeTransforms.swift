@@ -2,6 +2,7 @@ import Foundation
 
 // MARK: - RuffFormatTransform
 
+#if os(macOS)
 /// Formats Python code using the `ruff format` command.
 /// If ruff is not installed or formatting fails, returns the input unchanged.
 struct RuffFormatTransform: Transform {
@@ -59,3 +60,4 @@ struct RuffFormatTransform: Transform {
         return String(data: outputData, encoding: .utf8)
     }
 }
+#endif

@@ -11,6 +11,7 @@ enum TransformCategory: String, CaseIterable {
     case code       = "Code"
     case cleanup    = "Cleanup"
     case wrap       = "Wrap"
+    case image      = "Image"
 }
 
 // MARK: - Transform Protocol
@@ -38,4 +39,12 @@ protocol Transform {
     /// Applies the transform to `input` and returns the result.
     /// Must never throw or crash — return `input` unchanged on any failure.
     func apply(to input: String) -> String
+
+    /// Applies the transform to image `data` and returns the result.
+    /// Returns `nil` by default; only image transforms override this.
+    func applyToImageData(_ data: Data) -> Data?
+}
+
+extension Transform {
+    func applyToImageData(_ data: Data) -> Data? { nil }
 }

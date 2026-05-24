@@ -15,48 +15,58 @@ final class TransformRegistry {
     // MARK: All Transforms
 
     /// The complete ordered list of all registered transforms.
-    let all: [any Transform] = [
-        // Case
-        ToUppercaseTransform(),
-        ToLowercaseTransform(),
-        ToTitleCaseTransform(),
-        ToSentenceCaseTransform(),
+    var all: [any Transform] {
+        var transforms: [any Transform] = [
+            // Case
+            ToUppercaseTransform(),
+            ToLowercaseTransform(),
+            ToTitleCaseTransform(),
+            ToSentenceCaseTransform(),
 
-        // Whitespace
-        TrimWhitespaceTransform(),
-        RemoveBlankLinesTransform(),
-        RemoveDuplicateLinesTransform(),
-        RemoveLineBreaksTransform(),
+            // Whitespace
+            TrimWhitespaceTransform(),
+            RemoveBlankLinesTransform(),
+            RemoveDuplicateLinesTransform(),
+            RemoveLineBreaksTransform(),
 
-        // Lists
-        SortAZTransform(),
-        SortZATransform(),
+            // Lists
+            SortAZTransform(),
+            SortZATransform(),
 
-        // JSON
-        FormatJSONTransform(),
-        MinifyJSONTransform(),
+            // JSON
+            FormatJSONTransform(),
+            MinifyJSONTransform(),
 
-        // Encoding
-        Base64EncodeTransform(),
-        Base64DecodeTransform(),
-        URLEncodeTransform(),
-        URLDecodeTransform(),
-        JWTDecodeTransform(),
+            // Encoding
+            Base64EncodeTransform(),
+            Base64DecodeTransform(),
+            URLEncodeTransform(),
+            URLDecodeTransform(),
+            JWTDecodeTransform(),
 
-        // Code
-        RuffFormatTransform(),
+            // Cleanup
+            ExtractURLsTransform(),
+            StripHTMLTransform(),
+            RemoveMarkdownTransform(),
+            WordCountTransform(),
 
-        // Cleanup
-        ExtractURLsTransform(),
-        StripHTMLTransform(),
-        RemoveMarkdownTransform(),
-        WordCountTransform(),
-
-        // Wrap
-        WrapInBackticksTransform(),
-        WrapInQuotesTransform(),
-        WrapInBracketsTransform(),
-    ]
+            // Wrap
+            WrapInBackticksTransform(),
+            WrapInQuotesTransform(),
+            WrapInBracketsTransform(),
+        ]
+        #if os(macOS)
+        transforms.append(RuffFormatTransform())
+        transforms += [
+            ResizeHalfTransform(),
+            GrayscaleTransform(),
+            ConvertToPNGTransform(),
+            FlipHorizontalTransform(),
+            Rotate90Transform(),
+        ]
+        #endif
+        return transforms
+    }
 
     // MARK: Custom-Ordered Transforms
 
@@ -122,7 +132,15 @@ final class TransformRegistry {
                 RemoveBlankLinesTransform().id,
             ]
         case .image:
+            #if os(macOS)
+            suggestedIDs = [
+                ResizeHalfTransform().id,
+                GrayscaleTransform().id,
+                Rotate90Transform().id,
+            ]
+            #else
             suggestedIDs = []
+            #endif
         case .plainText:
             suggestedIDs = [
                 TrimWhitespaceTransform().id,

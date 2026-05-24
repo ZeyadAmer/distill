@@ -76,6 +76,15 @@ final class ClipboardItemCell: NSTableCellView {
         return v
     }()
 
+    private let hotkeyLabel: NSTextField = {
+        let tf = NSTextField(labelWithString: "")
+        tf.maximumNumberOfLines = 1
+        tf.alignment = .right
+        tf.isHidden = true
+        tf.translatesAutoresizingMaskIntoConstraints = false
+        return tf
+    }()
+
     private let selectionBackground: NSView = {
         let v = NSView()
         v.wantsLayer = true
@@ -100,12 +109,12 @@ final class ClipboardItemCell: NSTableCellView {
     // MARK: - Layout
 
     private func buildLayout() {
-        // Selection highlight sits behind everything.
         addSubview(selectionBackground)
         addSubview(typeIconView)
         addSubview(previewLabel)
         addSubview(imagePreview)
         addSubview(timestampLabel)
+        addSubview(hotkeyLabel)
         badgeBackground.addSubview(badgeLabel)
         addSubview(badgeBackground)
 
@@ -126,6 +135,11 @@ final class ClipboardItemCell: NSTableCellView {
             timestampLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12),
             timestampLabel.topAnchor.constraint(equalTo: topAnchor, constant: 12),
             timestampLabel.widthAnchor.constraint(lessThanOrEqualToConstant: 80),
+
+            // Hotkey hint — right side, below timestamp.
+            hotkeyLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12),
+            hotkeyLabel.topAnchor.constraint(equalTo: timestampLabel.bottomAnchor, constant: 3),
+            hotkeyLabel.widthAnchor.constraint(lessThanOrEqualToConstant: 40),
 
             // Preview label — between icon and timestamp, top area.
             previewLabel.leadingAnchor.constraint(equalTo: typeIconView.trailingAnchor, constant: 10),
@@ -154,11 +168,12 @@ final class ClipboardItemCell: NSTableCellView {
     // MARK: - Configuration
 
     /// Populates the cell with the given clipboard item.
-    func configure(with item: ClipboardItem, isSelected: Bool, isHovered: Bool = false) {
+    func configure(with item: ClipboardItem, isSelected: Bool, isHovered: Bool = false, hotkey: Int? = nil) {
         configurePreview(for: item)
         configureTypeIcon(for: item.contentType)
         configureBadge(for: item.contentType)
         configureTimestamp(item.timestamp)
+        configureHotkey(hotkey)
         configureSelection(isSelected, isHovered: isHovered)
     }
 
@@ -227,6 +242,17 @@ final class ClipboardItemCell: NSTableCellView {
         timestampLabel.font       = .systemFont(ofSize: 10.5, weight: .regular)
         timestampLabel.textColor  = .tertiaryLabelColor
         timestampLabel.stringValue = Self.relativeTimestamp(from: date)
+    }
+
+    private func configureHotkey(_ position: Int?) {
+        guard let n = position else {
+            hotkeyLabel.isHidden = true
+            return
+        }
+        hotkeyLabel.isHidden = false
+        hotkeyLabel.font = .systemFont(ofSize: 9.5, weight: .regular)
+        hotkeyLabel.textColor = .quaternaryLabelColor
+        hotkeyLabel.stringValue = "⌘\(n)"
     }
 
     private func configureSelection(_ isSelected: Bool, isHovered: Bool) {
