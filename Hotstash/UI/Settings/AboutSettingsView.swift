@@ -4,115 +4,20 @@ import SwiftUI
 
 struct AboutSettingsView: View {
 
-    // MARK: - Observed state
-
     @ObservedObject private var purchaseManager = PurchaseManager.shared
-
-    // MARK: - Local state
 
     @State private var purchaseError: String?
     @State private var showingPurchaseError = false
 
-    // MARK: - Body
-
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
-
-                // MARK: App identity
-
-                VStack(spacing: 6) {
-                    Image(systemName: "doc.on.clipboard.fill")
-                        .font(.system(size: 52))
-                        .foregroundStyle(Color.accentColor)
-                        .padding(.top, 24)
-
-                    Text("Hotstash")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-
-                    Text(versionString)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-
-                    Text("Copy anything. Paste it perfectly.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .padding(.top, 2)
-                }
-                .padding(.bottom, 20)
-
-                Divider()
-                    .padding(.horizontal, 24)
-
-                // MARK: Purchase / trial section
-
-                VStack(spacing: 12) {
-                    trialStatusView
-
-                    if !purchaseManager.isPurchased {
-                        Button {
-                            Task {
-                                do {
-                                    try await purchaseManager.purchase()
-                                } catch {
-                                    purchaseError = error.localizedDescription
-                                    showingPurchaseError = true
-                                }
-                            }
-                        } label: {
-                            Label("Purchase Hotstash — $9.99", systemImage: "cart")
-                                .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .controlSize(.large)
-                        .disabled(purchaseManager.isLoading)
-                        .padding(.horizontal, 24)
-
-                        Button("Restore Purchase") {
-                            Task { await purchaseManager.restorePurchases() }
-                        }
-                        .buttonStyle(.borderless)
-                        .foregroundStyle(.secondary)
-                        .disabled(purchaseManager.isLoading)
-                    }
-
-                    if purchaseManager.isLoading {
-                        ProgressView()
-                            .progressViewStyle(.circular)
-                            .controlSize(.small)
-                    }
-                }
-                .padding(.vertical, 16)
-
-                Divider()
-                    .padding(.horizontal, 24)
-
-                // MARK: Free vs Premium comparison
-
-                featureComparisonView
-                    .padding(.vertical, 16)
-
-                Divider()
-                    .padding(.horizontal, 24)
-
-                // MARK: Privacy note + support
-
-                VStack(spacing: 10) {
-                    Label(
-                        "Your clipboard never leaves your Mac.",
-                        systemImage: "lock.fill"
-                    )
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-
-                    Link(
-                        "Contact Support",
-                        destination: URL(string: "mailto:zeyad.hesham@icloud.com")!
-                    )
-                    .font(.caption)
-                }
-                .padding(.vertical, 16)
+                heroSection
+                purchaseSection
+                featuresSection
+                transformsSection
+                shortcutsSection
+                footerSection
             }
             .frame(maxWidth: .infinity)
         }
@@ -123,66 +28,261 @@ struct AboutSettingsView: View {
         }
     }
 
-    // MARK: - Subviews
+    // MARK: - Hero
 
-    private struct Feature {
-        let name: String
-        let inFree: Bool
-    }
+    private var heroSection: some View {
+        ZStack {
+            LinearGradient(
+                colors: [Color.accentColor.opacity(0.18), Color.purple.opacity(0.10), Color.clear],
+                startPoint: .top,
+                endPoint: .bottom
+            )
 
-    private let features: [Feature] = [
-        Feature(name: "Clipboard history (last 25)", inFree: true),
-        Feature(name: "Search history",              inFree: true),
-        Feature(name: "Copy from history",           inFree: true),
-        Feature(name: "Unlimited history",           inFree: false),
-        Feature(name: "Text transformations",        inFree: false),
-        Feature(name: "Multi-paste",                 inFree: false),
-    ]
-
-    @ViewBuilder
-    private var featureComparisonView: some View {
-        VStack(spacing: 0) {
-            HStack {
-                Spacer()
-                Text("Free")
-                    .font(.caption)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.secondary)
-                    .frame(width: 52, alignment: .center)
-                Text("Hotstash")
-                    .font(.caption)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(Color.accentColor)
-                    .frame(width: 64, alignment: .center)
-            }
-            .padding(.horizontal, 24)
-            .padding(.bottom, 6)
-
-            ForEach(features, id: \.name) { feature in
-                HStack {
-                    Text(feature.name)
-                        .font(.subheadline)
-                        .foregroundStyle(.primary)
-                    Spacer()
-                    Image(systemName: feature.inFree ? "checkmark" : "xmark")
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(feature.inFree ? Color.green : Color.secondary.opacity(0.4))
-                        .frame(width: 52, alignment: .center)
-                    Image(systemName: "checkmark")
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(Color.green)
-                        .frame(width: 64, alignment: .center)
+            VStack(spacing: 8) {
+                ZStack {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.accentColor, Color.purple],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 72, height: 72)
+                    Image(systemName: "doc.on.clipboard.fill")
+                        .font(.system(size: 34, weight: .medium))
+                        .foregroundStyle(.white)
                 }
-                .padding(.vertical, 6)
-                .padding(.horizontal, 24)
-                .background(features.firstIndex(where: { $0.name == feature.name })?.isMultiple(of: 2) == true
-                    ? Color.primary.opacity(0.03)
-                    : Color.clear)
+                .shadow(color: Color.accentColor.opacity(0.4), radius: 12, y: 4)
+                .padding(.top, 28)
+
+                Text("Hotstash")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+
+                Text("Version \(versionString)")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+
+                Text("Copy anything. Paste it perfectly.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .padding(.bottom, 24)
             }
         }
     }
+
+    // MARK: - Purchase
+
+    private var purchaseSection: some View {
+        VStack(spacing: 12) {
+            trialStatusView
+
+            if !purchaseManager.isPurchased {
+                Button {
+                    Task {
+                        do {
+                            try await purchaseManager.purchase()
+                        } catch {
+                            purchaseError = error.localizedDescription
+                            showingPurchaseError = true
+                        }
+                    }
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "cart.fill")
+                        Text("Purchase Hotstash — $9.99")
+                            .fontWeight(.semibold)
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .disabled(purchaseManager.isLoading)
+                .padding(.horizontal, 24)
+
+                Button("Restore Purchase") {
+                    Task { await purchaseManager.restorePurchases() }
+                }
+                .buttonStyle(.borderless)
+                .foregroundStyle(.secondary)
+                .disabled(purchaseManager.isLoading)
+            }
+
+            if purchaseManager.isLoading {
+                ProgressView().controlSize(.small)
+            }
+        }
+        .padding(.vertical, 20)
+        .background(Color.primary.opacity(0.03))
+
+    }
+
+    // MARK: - Features
+
+    private struct FeatureCard: Identifiable {
+        let id = UUID()
+        let icon: String
+        let title: String
+        let description: String
+        let color: Color
+        let premium: Bool
+    }
+
+    private let featureCards: [FeatureCard] = [
+        FeatureCard(icon: "clock.arrow.circlepath",
+                    title: "Clipboard History",
+                    description: "Everything you copy, always at hand. Unlimited with Hotstash.",
+                    color: .blue, premium: false),
+        FeatureCard(icon: "pin.fill",
+                    title: "Pin Items",
+                    description: "Keep important snippets pinned and drag to reorder them.",
+                    color: .orange, premium: false),
+        FeatureCard(icon: "magnifyingglass",
+                    title: "Instant Search",
+                    description: "Find any snippet in milliseconds across your entire history.",
+                    color: .purple, premium: false),
+        FeatureCard(icon: "wand.and.stars",
+                    title: "Text Transforms",
+                    description: "30+ transforms: case, encoding, JSON, lists, cleanup, and more.",
+                    color: .pink, premium: true),
+        FeatureCard(icon: "photo.stack",
+                    title: "Image Transforms",
+                    description: "Resize, convert, rotate, and filter images right from the panel.",
+                    color: .teal, premium: true),
+        FeatureCard(icon: "rectangle.stack.fill",
+                    title: "Multi-Paste",
+                    description: "Paste multiple items at once into any app.",
+                    color: .indigo, premium: true),
+    ]
+
+    private var featuresSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SectionHeader(title: "What's Inside", icon: "sparkles")
+                .padding(.horizontal, 20)
+
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+                ForEach(featureCards) { card in
+                    FeatureCardView(card: card)
+                }
+            }
+            .padding(.horizontal, 16)
+        }
+        .padding(.vertical, 20)
+    }
+
+    // MARK: - Transforms
+
+    private struct TransformGroup: Identifiable {
+        let id = UUID()
+        let name: String
+        let icon: String
+        let color: Color
+        let items: [String]
+    }
+
+    private let transformGroups: [TransformGroup] = [
+        TransformGroup(name: "Case", icon: "textformat", color: .blue,
+                       items: ["UPPERCASE", "lowercase", "Title Case", "Sentence case"]),
+        TransformGroup(name: "Whitespace", icon: "line.3.horizontal", color: .gray,
+                       items: ["Trim", "Remove blank lines", "Remove duplicates", "Remove line breaks"]),
+        TransformGroup(name: "Encoding", icon: "lock.doc", color: .orange,
+                       items: ["Base64 Encode/Decode", "URL Encode/Decode", "Decode JWT"]),
+        TransformGroup(name: "JSON", icon: "curlybraces", color: .green,
+                       items: ["Format JSON", "Minify JSON"]),
+        TransformGroup(name: "Cleanup", icon: "scissors", color: .pink,
+                       items: ["Strip HTML", "Remove Markdown", "Extract URLs", "Word Count"]),
+        TransformGroup(name: "Images", icon: "photo", color: .teal,
+                       items: ["Resize 50%", "Grayscale", "PNG/WebP", "Flip", "Rotate 90°"]),
+    ]
+
+    private var transformsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SectionHeader(title: "Transforms", icon: "wand.and.stars")
+                .padding(.horizontal, 20)
+
+            VStack(spacing: 6) {
+                ForEach(transformGroups) { group in
+                    TransformGroupRow(group: group)
+                }
+            }
+            .padding(.horizontal, 16)
+        }
+        .padding(.vertical, 20)
+        .background(Color.primary.opacity(0.025))
+    }
+
+    // MARK: - Shortcuts
+
+    private let shortcuts: [(String, String, String)] = [
+        ("⌘⇧V", "Open Hotstash", "Global hotkey (customizable in General)"),
+        ("⌘1–9", "Paste by position", "Paste the nth item instantly"),
+        ("↑ ↓", "Navigate", "Move through history"),
+        ("↵", "Copy", "Copy selected item"),
+        ("⌘⇧L", "Multi-paste", "Open the multi-paste panel"),
+    ]
+
+    private var shortcutsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SectionHeader(title: "Keyboard Shortcuts", icon: "keyboard")
+                .padding(.horizontal, 20)
+
+            VStack(spacing: 1) {
+                ForEach(Array(shortcuts.enumerated()), id: \.offset) { idx, shortcut in
+                    HStack(spacing: 12) {
+                        Text(shortcut.0)
+                            .font(.system(.body, design: .monospaced).weight(.medium))
+                            .foregroundStyle(Color.accentColor)
+                            .frame(width: 68, alignment: .trailing)
+
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text(shortcut.1)
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                            Text(shortcut.2)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+
+                        Spacer()
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 9)
+                    .background(idx.isMultiple(of: 2) ? Color.primary.opacity(0.03) : Color.clear)
+                }
+            }
+        }
+        .padding(.vertical, 20)
+    }
+
+    // MARK: - Footer
+
+    private var footerSection: some View {
+        VStack(spacing: 14) {
+            Divider().padding(.horizontal, 24)
+
+            HStack(spacing: 6) {
+                Image(systemName: "lock.shield.fill")
+                    .foregroundStyle(.green)
+                Text("Your clipboard never leaves your Mac. No cloud. No tracking.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+            .padding(.horizontal, 24)
+
+            Link("Contact Support", destination: URL(string: "mailto:zeyad.hesham@icloud.com")!)
+                .font(.caption)
+                .foregroundStyle(.accentColor)
+
+            Text("Made with ♥ by Zeyad Amer")
+                .font(.caption2)
+                .foregroundStyle(.tertiary)
+                .padding(.bottom, 24)
+        }
+        .padding(.top, 8)
+    }
+
+    // MARK: - Trial status
 
     @ViewBuilder
     private var trialStatusView: some View {
@@ -193,11 +293,15 @@ struct AboutSettingsView: View {
                 .fontWeight(.medium)
         } else if TrialManager.shared.isInTrial {
             let days = TrialManager.shared.trialDaysRemaining
-            Text("\(days) day\(days == 1 ? "" : "s") remaining in trial")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+            HStack(spacing: 4) {
+                Image(systemName: "hourglass")
+                    .foregroundStyle(.orange)
+                Text("\(days) day\(days == 1 ? "" : "s") remaining in your free trial")
+                    .foregroundStyle(.secondary)
+            }
+            .font(.subheadline)
         } else {
-            Label("Trial expired", systemImage: "exclamationmark.triangle.fill")
+            Label("Trial expired — unlock full access below", systemImage: "exclamationmark.triangle.fill")
                 .foregroundStyle(.orange)
                 .font(.subheadline)
                 .fontWeight(.medium)
@@ -208,5 +312,116 @@ struct AboutSettingsView: View {
 
     private var versionString: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
+    }
+}
+
+// MARK: - SectionHeader
+
+private struct SectionHeader: View {
+    let title: String
+    let icon: String
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: icon)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(Color.accentColor)
+            Text(title.uppercased())
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .kerning(0.5)
+        }
+    }
+}
+
+// MARK: - FeatureCardView
+
+private struct FeatureCardView: View {
+    let card: AboutSettingsView.FeatureCard
+    @State private var isHovered = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(card.color.opacity(0.15))
+                        .frame(width: 32, height: 32)
+                    Image(systemName: card.icon)
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundStyle(card.color)
+                }
+                Spacer()
+                if card.premium {
+                    Text("PRO")
+                        .font(.system(size: 8, weight: .bold))
+                        .foregroundStyle(Color.accentColor)
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 2)
+                        .background(Color.accentColor.opacity(0.12))
+                        .clipShape(Capsule())
+                }
+            }
+
+            Text(card.title)
+                .font(.subheadline)
+                .fontWeight(.semibold)
+
+            Text(card.description)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(3)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color.primary.opacity(isHovered ? 0.06 : 0.04))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(card.color.opacity(isHovered ? 0.25 : 0.08), lineWidth: 1)
+        )
+        .onHover { isHovered = $0 }
+        .animation(.easeOut(duration: 0.15), value: isHovered)
+    }
+}
+
+// MARK: - TransformGroupRow
+
+private struct TransformGroupRow: View {
+    let group: AboutSettingsView.TransformGroup
+
+    var body: some View {
+        HStack(spacing: 10) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(group.color.opacity(0.15))
+                    .frame(width: 26, height: 26)
+                Image(systemName: group.icon)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(group.color)
+            }
+
+            Text(group.name)
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .frame(width: 72, alignment: .leading)
+
+            Text(group.items.joined(separator: " · "))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .truncationMode(.tail)
+
+            Spacer()
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 7)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color.primary.opacity(0.03))
+        )
     }
 }
