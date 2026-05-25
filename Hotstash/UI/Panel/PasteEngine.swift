@@ -15,6 +15,7 @@ enum PasteEngine {
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.setString(text, forType: .string)
+        ClipboardMonitor.shared.suppressCurrentChange()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
             ClipboardMonitor.shared.isAppWriting = false
         }
@@ -28,6 +29,7 @@ enum PasteEngine {
         if let image = NSImage(data: data) {
             pasteboard.writeObjects([image])
         }
+        ClipboardMonitor.shared.suppressCurrentChange()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
             ClipboardMonitor.shared.isAppWriting = false
         }

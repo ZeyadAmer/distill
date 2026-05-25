@@ -5,8 +5,8 @@ import Carbon
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
 
-    // Retain the onboarding window controller while it is visible.
     private var onboardingWindowController: OnboardingWindowController?
+    private var whatsNewWindowController: WhatsNewWindowController?
 
     // MARK: NSApplicationDelegate
 
@@ -42,8 +42,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         TrialManager.shared.start()
         PurchaseManager.shared.listenForTransactions()
 
-        // Show first-launch onboarding if needed.
+        // Show first-launch onboarding or version What's New.
         showOnboardingIfNeeded()
+        showWhatsNewIfNeeded()
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
@@ -77,6 +78,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         let wc = OnboardingWindowController()
         onboardingWindowController = wc
+        wc.showWindow(nil)
+        wc.window?.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
+    private func showWhatsNewIfNeeded() {
+        guard UserDefaults.standard.bool(forKey: "hasCompletedOnboarding") else { return }
+
+        let current = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
+        let lastSeen = UserDefaults.standard.string(forKey: "lastSeenVersion") ?? ""
+        guard current != lastSeen else { return }
+
+        UserDefaults.standard.set(current, forKey: "lastSeenVersion")
+
+        let wc = WhatsNewWindowController()
+        whatsNewWindowController = wc
         wc.showWindow(nil)
         wc.window?.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)

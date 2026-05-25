@@ -85,6 +85,17 @@ final class ClipboardItemCell: NSTableCellView {
         return tf
     }()
 
+    private let dragHandleView: NSImageView = {
+        let iv = NSImageView()
+        let config = NSImage.SymbolConfiguration(pointSize: 11, weight: .regular)
+        iv.image = NSImage(systemSymbolName: "line.3.horizontal", accessibilityDescription: "Drag to reorder")?
+            .withSymbolConfiguration(config)
+        iv.contentTintColor = .tertiaryLabelColor
+        iv.isHidden = true
+        iv.translatesAutoresizingMaskIntoConstraints = false
+        return iv
+    }()
+
     private let selectionBackground: NSView = {
         let v = NSView()
         v.wantsLayer = true
@@ -99,6 +110,10 @@ final class ClipboardItemCell: NSTableCellView {
     // — image items: badge is pinned to the bottom of the cell
     private var textBadgeTopConstraint: NSLayoutConstraint!
     private var imageBadgeBottomConstraint: NSLayoutConstraint!
+
+    // Drag handle shifts the type icon right when visible.
+    private var typeIconLeadingDefault: NSLayoutConstraint!
+    private var typeIconLeadingWithHandle: NSLayoutConstraint!
 
     // MARK: Init
 
@@ -116,6 +131,7 @@ final class ClipboardItemCell: NSTableCellView {
 
     private func buildLayout() {
         addSubview(selectionBackground)
+        addSubview(dragHandleView)
         addSubview(typeIconView)
         addSubview(previewLabel)
         addSubview(imagePreview)
@@ -124,6 +140,10 @@ final class ClipboardItemCell: NSTableCellView {
         badgeBackground.addSubview(badgeLabel)
         addSubview(badgeBackground)
 
+        typeIconLeadingDefault  = typeIconView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 12)
+        typeIconLeadingWithHandle = typeIconView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 30)
+        typeIconLeadingDefault.isActive = true
+
         NSLayoutConstraint.activate([
             // Selection background — inset slightly for breathing room.
             selectionBackground.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 4),
@@ -131,8 +151,12 @@ final class ClipboardItemCell: NSTableCellView {
             selectionBackground.topAnchor.constraint(equalTo: topAnchor, constant: 2),
             selectionBackground.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -2),
 
-            // Type icon — left side, vertically centred.
-            typeIconView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 12),
+            // Drag handle — far left, vertically centred.
+            dragHandleView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 8),
+            dragHandleView.centerYAnchor.constraint(equalTo: centerYAnchor),
+            dragHandleView.widthAnchor.constraint(equalToConstant: 16),
+
+            // Type icon — vertically centred; leading set by active constraint.
             typeIconView.centerYAnchor.constraint(equalTo: centerYAnchor),
             typeIconView.widthAnchor.constraint(equalToConstant: 22),
             typeIconView.heightAnchor.constraint(equalToConstant: 22),
@@ -178,13 +202,14 @@ final class ClipboardItemCell: NSTableCellView {
     // MARK: - Configuration
 
     /// Populates the cell with the given clipboard item.
-    func configure(with item: ClipboardItem, isSelected: Bool, isHovered: Bool = false, hotkey: Int? = nil) {
+    func configure(with item: ClipboardItem, isSelected: Bool, isHovered: Bool = false, hotkey: Int? = nil, showsDragHandle: Bool = false) {
         configurePreview(for: item)
         configureTypeIcon(for: item.contentType)
         configureBadge(for: item.contentType)
         configureTimestamp(item.timestamp)
         configureHotkey(hotkey)
         configureSelection(isSelected, isHovered: isHovered)
+        configureDragHandle(showsDragHandle)
     }
 
     // MARK: - Private configuration helpers
@@ -269,6 +294,12 @@ final class ClipboardItemCell: NSTableCellView {
         hotkeyLabel.font = .systemFont(ofSize: 9.5, weight: .regular)
         hotkeyLabel.textColor = .quaternaryLabelColor
         hotkeyLabel.stringValue = "⌘\(n)"
+    }
+
+    private func configureDragHandle(_ show: Bool) {
+        dragHandleView.isHidden = !show
+        typeIconLeadingDefault.isActive = !show
+        typeIconLeadingWithHandle.isActive = show
     }
 
     private func configureSelection(_ isSelected: Bool, isHovered: Bool) {

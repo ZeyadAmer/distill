@@ -104,6 +104,7 @@
 		BEFDCF0EEC0A5445A11F76E6 /* Transform.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5C42098CBDBF783A7B887BE /* Transform.swift */; };
 		BFB943260F8C1C84D5882469 /* OpenHistoryIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 720B341D92FF54442D78D1C3 /* OpenHistoryIntent.swift */; };
 		C005ACD88EE6E2CB845C0710 /* OnboardingWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE0FA158D27BCC877128B1AC /* OnboardingWindowController.swift */; };
+		A1B2C3D4E5F6A7B8C9D0E1F2 /* WhatsNewWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1E2D3C4B5A6F7E8D9C0B1A2 /* WhatsNewWindowController.swift */; };
 		C1FDA11266C0844176389BF2 /* ClipboardPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D31B6CA4813B599061AE43C /* ClipboardPanel.swift */; };
 		C264F3358E4C5D089B3F4937 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4EA3F63C439EEFEB230985C /* AppDelegate.swift */; };
 		C4B05CCB707E086AB988E8A0 /* WhitespaceTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC8FD990DF3BF88CE1E8B306 /* WhitespaceTransforms.swift */; };
@@ -214,6 +215,7 @@
 		B8867D061EB86A9D577C92E9 /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
 		BC8FD990DF3BF88CE1E8B306 /* WhitespaceTransforms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhitespaceTransforms.swift; sourceTree = "<group>"; };
 		BE0FA158D27BCC877128B1AC /* OnboardingWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingWindowController.swift; sourceTree = "<group>"; };
+		F1E2D3C4B5A6F7E8D9C0B1A2 /* WhatsNewWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhatsNewWindowController.swift; sourceTree = "<group>"; };
 		BE1B33F7E9EF3F45381A3B2B /* MenuBarManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarManager.swift; sourceTree = "<group>"; };
 		BEF17AA532CE411B1ABAA44E /* TransformView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransformView.swift; sourceTree = "<group>"; };
 		BF8E8D7BDEE4360F02FE1574 /* HistoryRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryRow.swift; sourceTree = "<group>"; };
@@ -588,6 +590,7 @@
 			isa = PBXGroup;
 			children = (
 				BE0FA158D27BCC877128B1AC /* OnboardingWindowController.swift */,
+				F1E2D3C4B5A6F7E8D9C0B1A2 /* WhatsNewWindowController.swift */,
 			);
 			path = Onboarding;
 			sourceTree = "<group>";
@@ -797,6 +800,7 @@
 				F89BE5C9121D3392040BB4C9 /* MultiPastePanel.swift in Sources */,
 				1DC62D1D2745328DB77C4421 /* Notifications.swift in Sources */,
 				C005ACD88EE6E2CB845C0710 /* OnboardingWindowController.swift in Sources */,
+				A1B2C3D4E5F6A7B8C9D0E1F2 /* WhatsNewWindowController.swift in Sources */,
 				80A0153929730092F80F58BD /* PasteEngine.swift in Sources */,
 				D4B0E830A7AE62BBCB66C1D5 /* PurchaseManager.swift in Sources */,
 				464AB6DC1E4AA9F3EF0229F4 /* SettingsView.swift in Sources */,
@@ -966,7 +970,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1029,7 +1033,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -1109,7 +1113,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = Hotstash/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = com.zeyadamer.hotstash;
 				PRODUCT_NAME = Hotstash;
@@ -1187,7 +1191,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = Hotstash/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.zeyadamer.hotstash;
 				PRODUCT_NAME = Hotstash;

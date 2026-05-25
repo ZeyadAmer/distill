@@ -88,6 +88,14 @@ struct AboutSettingsView: View {
                 Divider()
                     .padding(.horizontal, 24)
 
+                // MARK: Free vs Premium comparison
+
+                featureComparisonView
+                    .padding(.vertical, 16)
+
+                Divider()
+                    .padding(.horizontal, 24)
+
                 // MARK: Privacy note + support
 
                 VStack(spacing: 10) {
@@ -116,6 +124,65 @@ struct AboutSettingsView: View {
     }
 
     // MARK: - Subviews
+
+    private struct Feature {
+        let name: String
+        let inFree: Bool
+    }
+
+    private let features: [Feature] = [
+        Feature(name: "Clipboard history (last 25)", inFree: true),
+        Feature(name: "Search history",              inFree: true),
+        Feature(name: "Copy from history",           inFree: true),
+        Feature(name: "Unlimited history",           inFree: false),
+        Feature(name: "Text transformations",        inFree: false),
+        Feature(name: "Multi-paste",                 inFree: false),
+    ]
+
+    @ViewBuilder
+    private var featureComparisonView: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Spacer()
+                Text("Free")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.secondary)
+                    .frame(width: 52, alignment: .center)
+                Text("Hotstash")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(Color.accentColor)
+                    .frame(width: 64, alignment: .center)
+            }
+            .padding(.horizontal, 24)
+            .padding(.bottom, 6)
+
+            ForEach(features, id: \.name) { feature in
+                HStack {
+                    Text(feature.name)
+                        .font(.subheadline)
+                        .foregroundStyle(.primary)
+                    Spacer()
+                    Image(systemName: feature.inFree ? "checkmark" : "xmark")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(feature.inFree ? Color.green : Color.secondary.opacity(0.4))
+                        .frame(width: 52, alignment: .center)
+                    Image(systemName: "checkmark")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(Color.green)
+                        .frame(width: 64, alignment: .center)
+                }
+                .padding(.vertical, 6)
+                .padding(.horizontal, 24)
+                .background(features.firstIndex(where: { $0.name == feature.name })?.isMultiple(of: 2) == true
+                    ? Color.primary.opacity(0.03)
+                    : Color.clear)
+            }
+        }
+    }
 
     @ViewBuilder
     private var trialStatusView: some View {

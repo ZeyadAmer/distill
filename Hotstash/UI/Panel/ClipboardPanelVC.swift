@@ -30,10 +30,21 @@ final class ClipboardPanelVC: NSViewController {
 
     private enum Layout {
         static let searchRowHeight:   CGFloat = 44
+        static let tabRowHeight:      CGFloat = 38
         static let toolbarRowHeight:  CGFloat = 44
         static let trialBannerHeight: CGFloat = 36
         static let horizontalPadding: CGFloat = 12
     }
+
+    // MARK: - Subviews — Tab bar
+
+    private let tabControl: NSSegmentedControl = {
+        let sc = NSSegmentedControl(labels: ["Recents", "Pinned"], trackingMode: .selectOne, target: nil, action: nil)
+        sc.selectedSegment = 0
+        sc.segmentStyle    = .automatic
+        sc.translatesAutoresizingMaskIntoConstraints = false
+        return sc
+    }()
 
     // MARK: - Subviews — Search row
 
@@ -211,6 +222,9 @@ final class ClipboardPanelVC: NSViewController {
     /// The full store list filtered by the current search query (or the full list when empty).
     private var filteredItems: [ClipboardItem] = []
 
+    /// 0 = Recents, 1 = Pinned.
+    private var currentTab: Int = 0
+
     /// The row currently under the mouse cursor (-1 = none).
     private var hoveredRow: Int = -1 {
         didSet {
@@ -277,6 +291,8 @@ final class ClipboardPanelVC: NSViewController {
     /// Called just before the panel becomes visible so the view can reset state.
     func panelWillShow() {
         searchField.stringValue = ""
+        currentTab = 0
+        tabControl.selectedSegment = 0
         applySearch(query: "")
         selectFirstItem()
         searchField.becomeFirstResponder()
@@ -305,9 +321,22 @@ final class ClipboardPanelVC: NSViewController {
             closeButton.heightAnchor.constraint(equalToConstant: 22),
         ])
 
+        // ── Tab bar ───────────────────────────────────────────────────────────
+        let tabRow = NSView()
+        tabRow.translatesAutoresizingMaskIntoConstraints = false
+        tabRow.heightAnchor.constraint(equalToConstant: Layout.tabRowHeight).isActive = true
+        tabRow.addSubview(tabControl)
+        NSLayoutConstraint.activate([
+            tabControl.centerXAnchor.constraint(equalTo: tabRow.centerXAnchor),
+            tabControl.centerYAnchor.constraint(equalTo: tabRow.centerYAnchor),
+        ])
+        let tabSep = separatorView()
+
         // ── Scroll + table ────────────────────────────────────────────────────
         tableView.delegate   = self
         tableView.dataSource = self
+        tableView.registerForDraggedTypes([.hotstashDragRow])
+        tableView.setDraggingSourceOperationMask(.move, forLocal: true)
         scrollView.documentView = tableView
 
         // ── Toolbar row ───────────────────────────────────────────────────────
@@ -352,6 +381,8 @@ final class ClipboardPanelVC: NSViewController {
         let outerStack = NSStackView(views: [
             searchRow,
             searchSep,
+            tabRow,
+            tabSep,
             scrollView,
             toolbarSep,
             toolbarRow,
@@ -386,6 +417,9 @@ final class ClipboardPanelVC: NSViewController {
     // MARK: - Wire Target/Actions
 
     private func wireTargetActions() {
+        tabControl.target      = self
+        tabControl.action      = #selector(handleTabChanged(_:))
+
         closeButton.target     = self
         closeButton.action     = #selector(handleClose)
 
@@ -461,29 +495,21 @@ final class ClipboardPanelVC: NSViewController {
             filteredItems = store.search(query: query)
         }
 
+        if TrialManager.shared.isRestricted {
+            filteredItems = Array(filteredItems.prefix(TrialManager.freeHistoryLimit))
+        }
+
         rebuildRows()
         tableView.reloadData()
         updateToolbarState()
     }
 
-    /// Converts `filteredItems` into a flat `[RowKind]` with section headers.
+    /// Converts `filteredItems` into a flat `[RowKind]` for the active tab.
     private func rebuildRows() {
-        var newRows: [RowKind] = []
-
-        let pinned = filteredItems.filter { $0.isPinned }
-        let recent = filteredItems.filter { !$0.isPinned }
-
-        if !pinned.isEmpty {
-            newRows.append(.sectionHeader("PINNED"))
-            newRows.append(contentsOf: pinned.map { .item($0) })
-        }
-
-        if !recent.isEmpty {
-            newRows.append(.sectionHeader("RECENT"))
-            newRows.append(contentsOf: recent.map { .item($0) })
-        }
-
-        rows = newRows
+        let source = currentTab == 0
+            ? filteredItems.filter { !$0.isPinned }
+            : filteredItems.filter {  $0.isPinned }
+        rows = source.map { .item($0) }
     }
 
     // MARK: - Selection
@@ -507,11 +533,12 @@ final class ClipboardPanelVC: NSViewController {
     private func updateToolbarState() {
         let hasSelection = selectedItem != nil
         let isRestricted = TrialManager.shared.isRestricted
-        pasteButton.isEnabled     = hasSelection && !isRestricted
-        transformButton.isEnabled = hasSelection && !isRestricted
+        pasteButton.isEnabled      = hasSelection
+        transformButton.isEnabled  = hasSelection && !isRestricted
+        multiPasteButton.isEnabled = !isRestricted
         pinButton.isEnabled       = hasSelection
         deleteButton.isEnabled    = hasSelection
-        clearAllButton.isEnabled  = !ClipboardStore.shared.recentItems.isEmpty
+        clearAllButton.isEnabled  = currentTab == 0 && !ClipboardStore.shared.recentItems.isEmpty
 
         // Update the pin button icon depending on item state.
         if let item = selectedItem {
@@ -532,6 +559,12 @@ final class ClipboardPanelVC: NSViewController {
     }
 
     // MARK: - Action handlers
+
+    @objc private func handleTabChanged(_ sender: NSSegmentedControl) {
+        currentTab = sender.selectedSegment
+        applySearch(query: searchField.stringValue)
+        selectFirstItem()
+    }
 
     @objc private func handleClose() {
         ClipboardPanel.shared.dismiss()
@@ -580,7 +613,10 @@ final class ClipboardPanelVC: NSViewController {
     }
 
     @objc private func handleSingleClick() {
-        // Paste is handled in tableViewSelectionDidChange on clickedRow >= 0.
+        guard tableView.clickedRow >= 0,
+              tableView.clickedRow < rows.count,
+              case .item = rows[tableView.clickedRow] else { return }
+        copySelected()
     }
 
     @objc private func handleDoubleClick() {
@@ -754,6 +790,29 @@ extension ClipboardPanelVC: NSTableViewDataSource {
     func numberOfRows(in tableView: NSTableView) -> Int {
         rows.count
     }
+
+    func tableView(_ tableView: NSTableView, pasteboardWriterForRow row: Int) -> (any NSPasteboardWriting)? {
+        guard currentTab == 1, case .item = rows[row] else { return nil }
+        let pbItem = NSPasteboardItem()
+        pbItem.setString(String(row), forType: .hotstashDragRow)
+        return pbItem
+    }
+
+    func tableView(_ tableView: NSTableView, validateDrop info: any NSDraggingInfo, proposedRow row: Int, proposedDropOperation dropOperation: NSTableView.DropOperation) -> NSDragOperation {
+        guard currentTab == 1, dropOperation == .above else { return [] }
+        return .move
+    }
+
+    func tableView(_ tableView: NSTableView, acceptDrop info: any NSDraggingInfo, row: Int, dropOperation: NSTableView.DropOperation) -> Bool {
+        guard let pbItem = info.draggingPasteboard.pasteboardItems?.first,
+              let rowStr = pbItem.string(forType: .hotstashDragRow),
+              let sourceRow = Int(rowStr) else { return false }
+        let dest = row > sourceRow ? row - 1 : row
+        guard dest != sourceRow else { return false }
+        ClipboardStore.shared.reorderPinned(from: sourceRow, to: dest)
+        reload()
+        return true
+    }
 }
 
 // MARK: - NSTableViewDelegate
@@ -793,11 +852,6 @@ extension ClipboardPanelVC: NSTableViewDelegate {
         if selectedRow >= 0, case .sectionHeader = rows[selectedRow] {
             moveSelection(by: +1)
             return
-        }
-
-        // Mouse click on an item row → copy to clipboard, keep panel open.
-        if tv.clickedRow >= 0, selectedRow >= 0, case .item = rows[selectedRow] {
-            copySelected()
         }
 
         // Reload visible rows to update highlight.
@@ -845,9 +899,15 @@ extension ClipboardPanelVC: NSTableViewDelegate {
         }
         let hotkey: Int? = itemCount <= 9 ? itemCount : nil
 
-        cell.configure(with: item, isSelected: isSelected, isHovered: isHovered, hotkey: hotkey)
+        cell.configure(with: item, isSelected: isSelected, isHovered: isHovered, hotkey: hotkey, showsDragHandle: currentTab == 1)
         return cell
     }
+}
+
+// MARK: - Pasteboard type
+
+private extension NSPasteboard.PasteboardType {
+    static let hotstashDragRow = NSPasteboard.PasteboardType("com.zeyadamer.hotstash.dragRow")
 }
 
 // MARK: - NSSearchFieldDelegate

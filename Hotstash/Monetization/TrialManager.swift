@@ -23,6 +23,9 @@ final class TrialManager {
 
     private static let trialDurationDays = 30
 
+    /// Max items shown in the panel for free (expired-trial) users.
+    static let freeHistoryLimit = 25
+
     // MARK: - Public API
 
     /// The date the app was first launched. `nil` only if `start()` has not been called yet.

@@ -61,6 +61,7 @@ final class TransformRegistry {
             ResizeHalfTransform(),
             GrayscaleTransform(),
             ConvertToPNGTransform(),
+            ConvertToWebPTransform(),
             FlipHorizontalTransform(),
             Rotate90Transform(),
         ]

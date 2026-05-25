@@ -19,6 +19,12 @@ final class ClipboardMonitor {
     /// (e.g. when pasting a transformed item) so the monitor ignores that write.
     var isAppWriting: Bool = false
 
+    /// Call immediately after writing to the pasteboard so the next poll skips
+    /// the app's own write (prevents duplicate image items and selection loss).
+    func suppressCurrentChange() {
+        lastChangeCount = NSPasteboard.general.changeCount
+    }
+
     // MARK: Private state
 
     private var timer: Timer?

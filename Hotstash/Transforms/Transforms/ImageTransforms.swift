@@ -70,6 +70,28 @@ struct ConvertToPNGTransform: Transform {
     }
 }
 
+// MARK: - ConvertToWebPTransform
+
+struct ConvertToWebPTransform: Transform {
+    let id       = "image_to_webp"
+    let name     = "Convert to WebP"
+    let icon     = "doc.badge.arrow.up"
+    let category = TransformCategory.image
+    let applicableTo: [ContentType] = [.image]
+
+    func apply(to input: String) -> String { input }
+
+    func applyToImageData(_ data: Data) -> Data? {
+        guard let image = NSImage(data: data),
+              let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) else { return nil }
+        let output = NSMutableData()
+        guard let dest = CGImageDestinationCreateWithData(output, "public.webp" as CFString, 1, nil) else { return nil }
+        CGImageDestinationAddImage(dest, cgImage, nil)
+        guard CGImageDestinationFinalize(dest) else { return nil }
+        return output as Data
+    }
+}
+
 // MARK: - FlipHorizontalTransform
 
 struct FlipHorizontalTransform: Transform {

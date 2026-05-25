@@ -99,6 +99,20 @@ final class ClipboardStore {
         persist()
     }
 
+    /// Reorders pinned items by moving the item at `source` to `destination` (both indices within the pinned subarray).
+    func reorderPinned(from source: Int, to destination: Int) {
+        var pinnedIndices = items.indices.filter { items[$0].isPinned }
+        guard source < pinnedIndices.count, destination <= pinnedIndices.count, source != destination else { return }
+        let fromIdx = pinnedIndices[source]
+        let item = items.remove(at: fromIdx)
+        pinnedIndices = items.indices.filter { items[$0].isPinned }
+        let insertAt = destination < pinnedIndices.count
+            ? pinnedIndices[destination]
+            : (pinnedIndices.last.map { $0 + 1 } ?? items.endIndex)
+        items.insert(item, at: insertAt)
+        persist()
+    }
+
     /// Moves an existing item to the front of the unpinned list without creating a duplicate.
     func moveToTop(id: UUID) {
         guard let index = items.firstIndex(where: { $0.id == id }) else { return }
