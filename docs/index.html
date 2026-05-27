@@ -3,55 +3,686 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hotstash Support</title>
+  <title>Hotstash — Clipboard Manager for Mac</title>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-width: 680px; margin: 60px auto; padding: 0 24px; color: #1d1d1f; line-height: 1.6; }
-    h1 { font-size: 2rem; font-weight: 700; margin-bottom: 4px; }
-    h2 { font-size: 1.2rem; font-weight: 600; margin-top: 40px; }
-    p, li { color: #3d3d3f; }
-    a { color: #0066cc; }
-    .subtitle { color: #6e6e73; margin-bottom: 48px; }
-    hr { border: none; border-top: 1px solid #e5e5ea; margin: 40px 0; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --accent: #5b5bd6;
+      --accent-2: #9333ea;
+      --accent-3: #06b6d4;
+      --surface: #ffffff;
+      --surface-2: #f5f5f7;
+      --surface-3: #ebebf0;
+      --text: #1d1d1f;
+      --text-2: #3d3d3f;
+      --text-3: #6e6e73;
+      --border: #e5e5ea;
+      --radius: 14px;
+      --radius-sm: 8px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --surface: #111113;
+        --surface-2: #1c1c1e;
+        --surface-3: #2c2c2e;
+        --text: #f5f5f7;
+        --text-2: #adadb8;
+        --text-3: #6e6e73;
+        --border: #2c2c2e;
+      }
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+      background: var(--surface);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    /* ── Hero ─────────────────────────────────── */
+
+    .hero {
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      color: white;
+      text-align: center;
+      padding: 80px 24px 64px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 30% 40%, rgba(91,91,214,.35) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 60% at 75% 60%, rgba(147,51,234,.25) 0%, transparent 70%);
+    }
+
+    .hero-inner { position: relative; max-width: 680px; margin: 0 auto; }
+
+    .hero-icon {
+      width: 88px;
+      height: 88px;
+      border-radius: 22px;
+      background: linear-gradient(135deg, #5b5bd6, #9333ea);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      font-size: 42px;
+      box-shadow: 0 8px 32px rgba(91,91,214,.5), 0 2px 8px rgba(0,0,0,.3);
+    }
+
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 10px;
+    }
+
+    .hero-tagline {
+      font-size: 1.1rem;
+      color: rgba(255,255,255,.65);
+      margin-bottom: 28px;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 100px;
+      padding: 6px 14px;
+      font-size: 0.82rem;
+      color: rgba(255,255,255,.8);
+      backdrop-filter: blur(8px);
+    }
+
+    /* ── Layout ───────────────────────────────── */
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    section { padding: 56px 0; }
+    section + section { border-top: 1px solid var(--border); }
+
+    .section-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+
+    .section-title {
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 24px;
+    }
+
+    /* ── Quick start ──────────────────────────── */
+
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .step {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 16px 18px;
+      background: var(--surface-2);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+    }
+
+    .step-num {
+      width: 30px;
+      height: 30px;
+      min-width: 30px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: white;
+      font-size: 0.82rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .step-text { font-size: 0.95rem; color: var(--text-2); padding-top: 4px; }
+    .step-text strong { color: var(--text); }
+
+    /* ── Feature cards ────────────────────────── */
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 14px;
+    }
+
+    .card {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      transition: transform .15s ease, box-shadow .15s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,.08);
+    }
+
+    .card-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      margin-bottom: 12px;
+    }
+
+    .card h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 4px; }
+    .card p  { font-size: 0.83rem; color: var(--text-3); }
+
+    .card-pro {
+      display: inline-block;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: var(--accent);
+      background: rgba(91,91,214,.1);
+      border-radius: 4px;
+      padding: 1px 5px;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+
+    /* ── Transforms ───────────────────────────── */
+
+    .transform-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 10px;
+    }
+
+    .transform-group {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+    }
+
+    .transform-group-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .transform-group-icon {
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+    }
+
+    .transform-group h4 { font-size: 0.88rem; font-weight: 600; }
+
+    .transform-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .pill {
+      font-size: 0.75rem;
+      color: var(--text-3);
+      background: var(--surface-3);
+      border-radius: 100px;
+      padding: 2px 8px;
+    }
+
+    /* ── Shortcuts ────────────────────────────── */
+
+    .shortcuts {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .shortcut {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 12px 16px;
+      border-radius: var(--radius-sm);
+      transition: background .1s;
+    }
+
+    .shortcut:hover { background: var(--surface-2); }
+
+    .kbd {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Mono", "Menlo", monospace;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--accent);
+      min-width: 72px;
+      text-align: right;
+    }
+
+    .shortcut-text { font-size: 0.92rem; }
+    .shortcut-text small { display: block; color: var(--text-3); font-size: 0.8rem; }
+
+    /* ── FAQ ──────────────────────────────────── */
+
+    .faq { display: flex; flex-direction: column; gap: 2px; }
+
+    details {
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    summary {
+      font-weight: 600;
+      font-size: 0.95rem;
+      padding: 16px 18px;
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface-2);
+      user-select: none;
+    }
+
+    summary::-webkit-details-marker { display: none; }
+
+    summary::after {
+      content: '+';
+      font-size: 1.3rem;
+      color: var(--text-3);
+      font-weight: 300;
+      transition: transform .2s;
+    }
+
+    details[open] summary::after { transform: rotate(45deg); }
+    details[open] summary { border-bottom: 1px solid var(--border); }
+
+    .faq-body {
+      padding: 16px 18px;
+      font-size: 0.92rem;
+      color: var(--text-2);
+      background: var(--surface);
+    }
+
+    /* ── Privacy strip ────────────────────────── */
+
+    .privacy-strip {
+      background: linear-gradient(135deg, rgba(6,182,212,.08), rgba(91,91,214,.08));
+      border: 1px solid rgba(91,91,214,.2);
+      border-radius: var(--radius);
+      padding: 18px 22px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+
+    .privacy-icon { font-size: 28px; }
+    .privacy-strip h4 { font-size: 0.95rem; font-weight: 600; margin-bottom: 2px; }
+    .privacy-strip p  { font-size: 0.83rem; color: var(--text-3); }
+
+    /* ── Footer ───────────────────────────────── */
+
+    footer {
+      text-align: center;
+      padding: 40px 24px;
+      border-top: 1px solid var(--border);
+      color: var(--text-3);
+      font-size: 0.83rem;
+    }
+
+    footer a { color: var(--accent); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+    footer .heart { color: #e5484d; }
+
+    /* ── Utility ──────────────────────────────── */
+
+    code {
+      font-family: "SF Mono", "Menlo", monospace;
+      font-size: 0.88em;
+      background: var(--surface-3);
+      border-radius: 4px;
+      padding: 1px 5px;
+    }
   </style>
 </head>
 <body>
 
-  <h1>Hotstash</h1>
-  <p class="subtitle">Your clipboard, refined. — macOS App Support</p>
+  <!-- ── Hero ────────────────────────────────── -->
 
-  <h2>How to use Hotstash</h2>
-  <ol>
-    <li>Launch the app — a flame icon appears in the menu bar.</li>
-    <li>Copy anything as usual with ⌘C.</li>
-    <li>Press your global hotkey (set in Settings) or click the menu bar icon to open your clipboard history.</li>
-    <li>Use arrow keys or mouse to browse. Press Return to copy the selected item.</li>
-    <li>Switch to your target app and press ⌘V to paste.</li>
-  </ol>
+  <div class="hero">
+    <div class="hero-inner">
+      <div class="hero-icon">🔥</div>
+      <h1>Hotstash</h1>
+      <p class="hero-tagline">Your clipboard, supercharged. — macOS Clipboard Manager</p>
+      <span class="hero-badge">📖 Support &amp; Documentation</span>
+    </div>
+  </div>
 
-  <h2>Frequently Asked Questions</h2>
+  <!-- ── Quick Start ─────────────────────────── -->
 
-  <h2>Why doesn't the app appear after launch?</h2>
-  <p>Hotstash is a menu bar app — it has no dock icon. Look for the flame icon in the top-right menu bar.</p>
+  <div class="container">
+    <section>
+      <p class="section-label">Getting Started</p>
+      <h2 class="section-title">Up and running in 30 seconds</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-text"><strong>Launch Hotstash.</strong> The 🔥 flame icon appears in your menu bar. No dock icon — it stays out of your way.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-text"><strong>Copy anything</strong> as usual with <code>⌘C</code>. Hotstash silently captures every copy.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-text"><strong>Press your hotkey</strong> (default <code>⌘⇧V</code>) to open your clipboard history panel from any app.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-text"><strong>Browse &amp; select</strong> with arrow keys or mouse. Press <code>Return</code> to copy, then <code>⌘V</code> in your target app to paste.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">5</div>
+          <div class="step-text"><strong>Use shortcuts <code>⌘1</code>–<code>⌘9</code></strong> to instantly paste any of the first 9 items without even opening the panel.</div>
+        </div>
+      </div>
+    </section>
 
-  <h2>How do I change the hotkey?</h2>
-  <p>Click the gear icon in the clipboard panel, or right-click the menu bar icon and choose Settings.</p>
+    <!-- ── Features ────────────────────────────── -->
 
-  <h2>How do I unlock Hotstash Pro?</h2>
-  <p>Open the clipboard panel. When the trial expires, a banner appears at the bottom with an "Unlock Hotstash" button. Tap it to complete the in-app purchase.</p>
+    <section>
+      <p class="section-label">Features</p>
+      <h2 class="section-title">Everything Hotstash can do</h2>
+      <div class="cards">
 
-  <h2>How do I restore a previous purchase?</h2>
-  <p>Open Settings → tap "Restore Purchases". Make sure you are signed in to the same Apple ID used for the original purchase.</p>
+        <div class="card">
+          <div class="card-icon" style="background:rgba(91,91,214,.12)">🕐</div>
+          <h3>Unlimited History</h3>
+          <p>Every copy you make, available instantly. Search across your entire history.</p>
+        </div>
 
-  <h2>Where is my clipboard data stored?</h2>
-  <p>All clipboard history is stored locally on your Mac. Nothing is sent to any server.</p>
+        <div class="card">
+          <div class="card-icon" style="background:rgba(249,115,22,.12)">📌</div>
+          <h3>Pin &amp; Reorder</h3>
+          <p>Pin important items to keep them forever. Drag to reorder your pinned list.</p>
+        </div>
 
-  <h2>How do I clear my clipboard history?</h2>
-  <p>Click the trash icon in the clipboard panel toolbar to clear all non-pinned items.</p>
+        <div class="card">
+          <div class="card-icon" style="background:rgba(16,185,129,.12)">🔍</div>
+          <h3>Instant Search</h3>
+          <p>Find any snippet in milliseconds. Type to filter across your entire history.</p>
+        </div>
 
-  <hr />
+        <div class="card">
+          <div class="card-icon" style="background:rgba(236,72,153,.12)">✨</div>
+          <h3>Text Transforms <span class="card-pro">PRO</span></h3>
+          <p>30+ one-click transforms: case, encoding, JSON, cleanup, and more.</p>
+        </div>
 
-  <h2>Contact Support</h2>
-  <p>For questions, bug reports, or feature requests, please email: <a href="mailto:zeyad.hesham@icloud.com">zeyad.hesham@icloud.com</a></p>
+        <div class="card">
+          <div class="card-icon" style="background:rgba(6,182,212,.12)">🖼</div>
+          <h3>Image Transforms <span class="card-pro">PRO</span></h3>
+          <p>Resize, convert, rotate, and filter images directly from the panel.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-icon" style="background:rgba(99,102,241,.12)">⚡</div>
+          <h3>Multi-Paste <span class="card-pro">PRO</span></h3>
+          <p>Select and paste multiple clipboard items into any app at once.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-icon" style="background:rgba(245,158,11,.12)">⌨️</div>
+          <h3>Quick Keys ⌘1–⌘9</h3>
+          <p>Paste the Nth item in your list without opening the panel at all.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-icon" style="background:rgba(20,184,166,.12)">🔒</div>
+          <h3>100% Private</h3>
+          <p>All data stays on your Mac. No accounts. No servers. No tracking.</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── Transforms ───────────────────────────── -->
+
+    <section>
+      <p class="section-label">Transforms</p>
+      <h2 class="section-title">30+ ways to reshape your clipboard</h2>
+      <div class="transform-grid">
+
+        <div class="transform-group">
+          <div class="transform-group-header">
+            <div class="transform-group-icon" style="background:rgba(91,91,214,.12)">Aa</div>
+            <h4>Case</h4>
+          </div>
+          <div class="transform-pills">
+            <span class="pill">UPPERCASE</span>
+            <span class="pill">lowercase</span>
+            <span class="pill">Title Case</span>
+            <span class="pill">Sentence case</span>
+          </div>
+        </div>
+
+        <div class="transform-group">
+          <div class="transform-group-header">
+            <div class="transform-group-icon" style="background:rgba(107,114,128,.12)">☰</div>
+            <h4>Whitespace</h4>
+          </div>
+          <div class="transform-pills">
+            <span class="pill">Trim</span>
+            <span class="pill">Remove blank lines</span>
+            <span class="pill">Remove duplicates</span>
+            <span class="pill">Remove line breaks</span>
+          </div>
+        </div>
+
+        <div class="transform-group">
+          <div class="transform-group-header">
+            <div class="transform-group-icon" style="background:rgba(249,115,22,.12)">🔐</div>
+            <h4>Encoding</h4>
+          </div>
+          <div class="transform-pills">
+            <span class="pill">Base64 Encode</span>
+            <span class="pill">Base64 Decode</span>
+            <span class="pill">URL Encode</span>
+            <span class="pill">URL Decode</span>
+            <span class="pill">Decode JWT</span>
+          </div>
+        </div>
+
+        <div class="transform-group">
+          <div class="transform-group-header">
+            <div class="transform-group-icon" style="background:rgba(16,185,129,.12)">{}</div>
+            <h4>JSON</h4>
+          </div>
+          <div class="transform-pills">
+            <span class="pill">Format JSON</span>
+            <span class="pill">Minify JSON</span>
+          </div>
+        </div>
+
+        <div class="transform-group">
+          <div class="transform-group-header">
+            <div class="transform-group-icon" style="background:rgba(236,72,153,.12)">✂️</div>
+            <h4>Cleanup</h4>
+          </div>
+          <div class="transform-pills">
+            <span class="pill">Strip HTML</span>
+            <span class="pill">Remove Markdown</span>
+            <span class="pill">Extract URLs</span>
+            <span class="pill">Wrap in Backticks</span>
+            <span class="pill">Wrap in Quotes</span>
+            <span class="pill">Word Count</span>
+          </div>
+        </div>
+
+        <div class="transform-group">
+          <div class="transform-group-header">
+            <div class="transform-group-icon" style="background:rgba(6,182,212,.12)">🖼</div>
+            <h4>Images</h4>
+          </div>
+          <div class="transform-pills">
+            <span class="pill">Resize 50%</span>
+            <span class="pill">Grayscale</span>
+            <span class="pill">→ PNG</span>
+            <span class="pill">→ WebP</span>
+            <span class="pill">Flip</span>
+            <span class="pill">Rotate 90°</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── Shortcuts ────────────────────────────── -->
+
+    <section>
+      <p class="section-label">Keyboard Shortcuts</p>
+      <h2 class="section-title">Stay in flow</h2>
+      <div class="shortcuts">
+        <div class="shortcut">
+          <span class="kbd">⌘⇧V</span>
+          <span class="shortcut-text">Open Hotstash panel<small>Global hotkey — works in any app. Customizable in General settings.</small></span>
+        </div>
+        <div class="shortcut">
+          <span class="kbd">↑ ↓</span>
+          <span class="shortcut-text">Navigate history<small>Move through clipboard items without touching the mouse.</small></span>
+        </div>
+        <div class="shortcut">
+          <span class="kbd">↵ Return</span>
+          <span class="shortcut-text">Copy selected item<small>Copies to clipboard — then ⌘V in your target app to paste.</small></span>
+        </div>
+        <div class="shortcut">
+          <span class="kbd">⌘1–9</span>
+          <span class="shortcut-text">Paste by position<small>Instantly pastes the Nth item. Works while the panel is open.</small></span>
+        </div>
+        <div class="shortcut">
+          <span class="kbd">⌘⇧L</span>
+          <span class="shortcut-text">Multi-paste panel<small>Open the panel to select and paste multiple items at once.</small></span>
+        </div>
+        <div class="shortcut">
+          <span class="kbd">Esc</span>
+          <span class="shortcut-text">Close panel<small>Dismiss Hotstash and return focus to your previous app.</small></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── FAQ ──────────────────────────────────── -->
+
+    <section>
+      <p class="section-label">FAQ</p>
+      <h2 class="section-title">Common questions</h2>
+      <div class="faq">
+
+        <details>
+          <summary>Why doesn't the app appear after launch?</summary>
+          <div class="faq-body">Hotstash is a menu bar app — it has no dock icon. After launching, look for the 🔥 flame icon in the top-right menu bar. Click it or press your hotkey to open the panel.</div>
+        </details>
+
+        <details>
+          <summary>How do I change the global hotkey?</summary>
+          <div class="faq-body">Click the ⚙️ gear icon in the clipboard panel → Settings → General. You can record any key combination as your hotkey.</div>
+        </details>
+
+        <details>
+          <summary>How do I pin an item?</summary>
+          <div class="faq-body">Select any item in the panel and click the 📌 pin button in the toolbar. Pinned items appear under the Pinned tab and are never auto-deleted. Drag them to reorder.</div>
+        </details>
+
+        <details>
+          <summary>How do I use transforms?</summary>
+          <div class="faq-body">Select an item, then click the <strong>Transform ▾</strong> button in the toolbar. Pick a transform from the list — Hotstash applies it and copies the result instantly. Requires Hotstash Pro.</div>
+        </details>
+
+        <details>
+          <summary>How do I unlock Hotstash Pro?</summary>
+          <div class="faq-body">Open the clipboard panel. After your trial expires, a banner appears at the bottom with an <strong>"Unlock Hotstash"</strong> button — tap it to purchase via the App Store. You can also go to Settings → About.</div>
+        </details>
+
+        <details>
+          <summary>How do I restore a previous purchase?</summary>
+          <div class="faq-body">Go to Settings → About → tap <strong>"Restore Purchase"</strong>. Make sure you're signed in to the same Apple ID used for the original purchase.</div>
+        </details>
+
+        <details>
+          <summary>Where is my clipboard data stored?</summary>
+          <div class="faq-body">All clipboard history is stored locally on your Mac using <code>UserDefaults</code>. Nothing is uploaded, synced, or shared with any server or third party.</div>
+        </details>
+
+        <details>
+          <summary>How do I clear my history?</summary>
+          <div class="faq-body">Click the 🗑 trash icon in the panel toolbar to clear all non-pinned items. Pinned items are always preserved. You can also delete individual items with the ⌫ delete button.</div>
+        </details>
+
+        <details>
+          <summary>Does Hotstash capture passwords from password managers?</summary>
+          <div class="faq-body">Password managers like 1Password and Keychain use a private pasteboard channel that Hotstash does not read. Your passwords are not captured.</div>
+        </details>
+
+      </div>
+    </section>
+
+    <!-- ── Privacy + Contact ────────────────────── -->
+
+    <section>
+      <p class="section-label">Privacy &amp; Support</p>
+      <h2 class="section-title">We keep it simple</h2>
+
+      <div class="privacy-strip">
+        <div class="privacy-icon">🛡</div>
+        <div>
+          <h4>Your clipboard never leaves your Mac</h4>
+          <p>No accounts, no cloud sync, no analytics, no third-party SDKs. Just a fast, private tool that respects your data.</p>
+        </div>
+      </div>
+
+      <p style="color:var(--text-2);font-size:0.92rem;margin-bottom:12px;">Have a bug report, feature request, or just want to say hi? We'd love to hear from you.</p>
+      <a href="mailto:zeyad.hesham@icloud.com" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--accent),var(--accent-2));color:white;text-decoration:none;padding:10px 20px;border-radius:100px;font-size:0.9rem;font-weight:600;box-shadow:0 4px 14px rgba(91,91,214,.35)">
+        ✉️ &nbsp;Contact Support
+      </a>
+    </section>
+  </div>
+
+  <!-- ── Footer ───────────────────────────────── -->
+
+  <footer>
+    <p>Made with <span class="heart">♥</span> by Zeyad Amer &nbsp;·&nbsp; <a href="mailto:zeyad.hesham@icloud.com">zeyad.hesham@icloud.com</a></p>
+    <p style="margin-top:6px;opacity:.6">© 2026 Hotstash · All clipboard history stays on your Mac.</p>
+  </footer>
 
 </body>
 </html>
