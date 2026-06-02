@@ -29,6 +29,7 @@
 		4FB1C238201EF23819C7576F /* CaseTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 405816998C0516ABD02E3EA5 /* CaseTransforms.swift */; };
 		5332EC427A7577BC774CBC30 /* JSONTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DA7DEADB4144664958C7845 /* JSONTransforms.swift */; };
 		55309C6144D563297EA066CD /* LaunchAtLoginManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C81123429DA8F08940306AC /* LaunchAtLoginManager.swift */; };
+		5998260E55D8972C44C92CBA /* TextTransformEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BA74CF4DAB850A3D52A491 /* TextTransformEngine.swift */; };
 		5C4E8677C90D38DCE7AD5D59 /* ClipboardStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07A94AD7A9C0604D08B842FA /* ClipboardStore.swift */; };
 		639937388E0DA8F8A87D17B5 /* SettingsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 497B06AB9E1C80977587F03C /* SettingsWindowController.swift */; };
 		673EC848BD72B21679BC33DB /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A9DE6005451FB0043006828 /* AppKit.framework */; };
@@ -38,6 +39,7 @@
 		7147B0DE54461C7B0ABE6A54 /* TransformBodyHash.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14BA343EC9CF6C24495915FF /* TransformBodyHash.swift */; };
 		7CC8C7921B547CD879CC6744 /* TransformPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E14B176F759EFA9AB5D42406 /* TransformPickerView.swift */; };
 		80A0153929730092F80F58BD /* PasteEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36695DA641B3C931651BFDEC /* PasteEngine.swift */; };
+		814F3AE3D4CD42F0264120D2 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF5340A319DAF64664A96A32 /* JavaScriptCore.framework */; };
 		8FA487FFE047E607F10E4F32 /* Transform.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5C42098CBDBF783A7B887BE /* Transform.swift */; };
 		8FE01F40B1F461B734E36421 /* ListTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA61738337E4369F78AAFB73 /* ListTransforms.swift */; };
 		900E818E852CF81ADDA6AF59 /* ClipboardStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 883C0E0540370662D042B67A /* ClipboardStoreTests.swift */; };
@@ -57,6 +59,7 @@
 		D4B0E830A7AE62BBCB66C1D5 /* PurchaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ECB321F90AFA8FD509986C0 /* PurchaseManager.swift */; };
 		D62305E0FB7754EB04A3C68A /* TransformManifest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B88FF4244587A52947EA560 /* TransformManifest.swift */; };
 		E472EAE697693B03E5F8549C /* ModelContainer+Hotstash.swift in Sources */ = {isa = PBXBuildFile; fileRef = B995C407D9121B04B8DE1694 /* ModelContainer+Hotstash.swift */; };
+		EDF035328BBEDB29F970782E /* TextTransformEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CC810AA2F7272A184F0AC9A /* TextTransformEngineTests.swift */; };
 		F3F821A1D7B0A1C0EA4689FF /* ClipboardItemCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6A9D0726BB159ACE3620C30 /* ClipboardItemCell.swift */; };
 		F5E342105F5DFFC300929CC4 /* ClipboardMigrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51880DC40FE10900391A63EB /* ClipboardMigrationTests.swift */; };
 		F89BE5C9121D3392040BB4C9 /* MultiPastePanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3D42C077663BCE0A8ADE17 /* MultiPastePanel.swift */; };
@@ -75,7 +78,9 @@
 /* Begin PBXFileReference section */
 		07A94AD7A9C0604D08B842FA /* ClipboardStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardStore.swift; sourceTree = "<group>"; };
 		0C6A59EE77E7406B797E74A2 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		0CC810AA2F7272A184F0AC9A /* TextTransformEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextTransformEngineTests.swift; sourceTree = "<group>"; };
 		0F5A0B2DFE8E78A0497DE0A4 /* Notifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notifications.swift; sourceTree = "<group>"; };
+		11BA74CF4DAB850A3D52A491 /* TextTransformEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextTransformEngine.swift; sourceTree = "<group>"; };
 		14BA343EC9CF6C24495915FF /* TransformBodyHash.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransformBodyHash.swift; sourceTree = "<group>"; };
 		18FF863ED71FDBE116D2D759 /* ClipboardMigration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardMigration.swift; sourceTree = "<group>"; };
 		1A9DE6005451FB0043006828 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -118,12 +123,14 @@
 		BC8FD990DF3BF88CE1E8B306 /* WhitespaceTransforms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhitespaceTransforms.swift; sourceTree = "<group>"; };
 		BE0FA158D27BCC877128B1AC /* OnboardingWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingWindowController.swift; sourceTree = "<group>"; };
 		BE1B33F7E9EF3F45381A3B2B /* MenuBarManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarManager.swift; sourceTree = "<group>"; };
+		BF5340A319DAF64664A96A32 /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		C21843FA206C510288A536E6 /* HotstashTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HotstashTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CADE6965A34882FA76B8FE89 /* ImageTransforms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageTransforms.swift; sourceTree = "<group>"; };
 		D4EA3F63C439EEFEB230985C /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		D5C42098CBDBF783A7B887BE /* Transform.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Transform.swift; sourceTree = "<group>"; };
 		D8C1302B2401F121B1FB4F20 /* CodeTransforms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeTransforms.swift; sourceTree = "<group>"; };
 		E14B176F759EFA9AB5D42406 /* TransformPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransformPickerView.swift; sourceTree = "<group>"; };
+		E5FFE6B9EEFA88A4AD43F0B8 /* HotstashJSCore.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HotstashJSCore.h; sourceTree = "<group>"; };
 		E6A9D0726BB159ACE3620C30 /* ClipboardItemCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardItemCell.swift; sourceTree = "<group>"; };
 		EB283CDF3A9539DCDA1A2214 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = System/Library/Frameworks/Carbon.framework; sourceTree = SDKROOT; };
 		F8758C63AA816832764F2043 /* ServiceManagement.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ServiceManagement.framework; path = System/Library/Frameworks/ServiceManagement.framework; sourceTree = SDKROOT; };
@@ -141,6 +148,7 @@
 				23E8305A5D49348DDED051A4 /* ServiceManagement.framework in Frameworks */,
 				BEEA2E29292B05A21183640A /* StoreKit.framework in Frameworks */,
 				B807F2D9B5F520D1C1EC3C46 /* CoreGraphics.framework in Frameworks */,
+				814F3AE3D4CD42F0264120D2 /* JavaScriptCore.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -272,6 +280,8 @@
 		8A38177833964239FF6039EA /* Marketplace */ = {
 			isa = PBXGroup;
 			children = (
+				E5FFE6B9EEFA88A4AD43F0B8 /* HotstashJSCore.h */,
+				11BA74CF4DAB850A3D52A491 /* TextTransformEngine.swift */,
 				14BA343EC9CF6C24495915FF /* TransformBodyHash.swift */,
 				1B88FF4244587A52947EA560 /* TransformManifest.swift */,
 				3BB7F14A2532ED233E9E50D1 /* TransformManifestCodec.swift */,
@@ -286,6 +296,7 @@
 				EB283CDF3A9539DCDA1A2214 /* Carbon.framework */,
 				83A92FB48CB294E715B02806 /* CoreGraphics.framework */,
 				0C6A59EE77E7406B797E74A2 /* Foundation.framework */,
+				BF5340A319DAF64664A96A32 /* JavaScriptCore.framework */,
 				F8758C63AA816832764F2043 /* ServiceManagement.framework */,
 				FF8673C62891F86C722E27A1 /* StoreKit.framework */,
 			);
@@ -338,6 +349,7 @@
 				51880DC40FE10900391A63EB /* ClipboardMigrationTests.swift */,
 				883C0E0540370662D042B67A /* ClipboardStoreTests.swift */,
 				5AAC8B5CB7445D1E6B14899B /* SmokeTests.swift */,
+				0CC810AA2F7272A184F0AC9A /* TextTransformEngineTests.swift */,
 				70D7A178D07506F1EDAB47E3 /* TransformManifestTests.swift */,
 			);
 			path = HotstashTests;
@@ -449,6 +461,7 @@
 				F5E342105F5DFFC300929CC4 /* ClipboardMigrationTests.swift in Sources */,
 				900E818E852CF81ADDA6AF59 /* ClipboardStoreTests.swift in Sources */,
 				3C9715A9ADD898F8DEC1AB62 /* SmokeTests.swift in Sources */,
+				EDF035328BBEDB29F970782E /* TextTransformEngineTests.swift in Sources */,
 				49CB8CA419F5BD520AF6E9AD /* TransformManifestTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -488,6 +501,7 @@
 				D4B0E830A7AE62BBCB66C1D5 /* PurchaseManager.swift in Sources */,
 				464AB6DC1E4AA9F3EF0229F4 /* SettingsView.swift in Sources */,
 				639937388E0DA8F8A87D17B5 /* SettingsWindowController.swift in Sources */,
+				5998260E55D8972C44C92CBA /* TextTransformEngine.swift in Sources */,
 				8FA487FFE047E607F10E4F32 /* Transform.swift in Sources */,
 				7147B0DE54461C7B0ABE6A54 /* TransformBodyHash.swift in Sources */,
 				D62305E0FB7754EB04A3C68A /* TransformManifest.swift in Sources */,
@@ -694,6 +708,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.zeyadamer.hotstash;
 				PRODUCT_NAME = Hotstash;
 				SDKROOT = macosx;
+				SWIFT_OBJC_BRIDGING_HEADER = Hotstash/Transforms/Marketplace/HotstashJSCore.h;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_STRICT_CONCURRENCY = minimal;
 				SWIFT_VERSION = 5.9;
@@ -722,6 +737,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.zeyadamer.hotstash;
 				PRODUCT_NAME = Hotstash;
 				SDKROOT = macosx;
+				SWIFT_OBJC_BRIDGING_HEADER = Hotstash/Transforms/Marketplace/HotstashJSCore.h;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_STRICT_CONCURRENCY = minimal;
 				SWIFT_VERSION = 5.9;

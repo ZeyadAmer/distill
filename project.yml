@@ -44,6 +44,7 @@ targets:
         LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/../Frameworks"
         COMBINE_HIDPI_IMAGES: YES
         ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES: YES
+        SWIFT_OBJC_BRIDGING_HEADER: Hotstash/Transforms/Marketplace/HotstashJSCore.h
       configs:
         Debug:
           SWIFT_OPTIMIZATION_LEVEL: "-Onone"
@@ -63,6 +64,7 @@ targets:
       - sdk: ServiceManagement.framework
       - sdk: StoreKit.framework
       - sdk: CoreGraphics.framework
+      - sdk: JavaScriptCore.framework
 
     entitlements:
       path: Hotstash/Resources/Hotstash.entitlements
