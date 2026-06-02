@@ -44,11 +44,13 @@
 		8FE01F40B1F461B734E36421 /* ListTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA61738337E4369F78AAFB73 /* ListTransforms.swift */; };
 		900E818E852CF81ADDA6AF59 /* ClipboardStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 883C0E0540370662D042B67A /* ClipboardStoreTests.swift */; };
 		9281E15530C2905396A38C57 /* TransformRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = B75544001AF733AFAAA0014D /* TransformRegistry.swift */; };
+		936CA7D5140136362CCC2A7F /* ImageTransformEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC2101067B68235A22AFF739 /* ImageTransformEngineTests.swift */; };
 		989AD24250841C51BA711B55 /* CodeTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8C1302B2401F121B1FB4F20 /* CodeTransforms.swift */; };
 		A716C9D9EA74A355B3A21704 /* TransformSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 745DE6446393891754A48B11 /* TransformSettingsView.swift */; };
 		B2E1CFEF13F2C256B9BF84B1 /* ContentDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DC86C0A994B73FB8009A7EA /* ContentDetector.swift */; };
 		B551B4E62A7FA5D33AD53681 /* ClipboardPanelVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DAB0717E7F75E3FF9B30BBE /* ClipboardPanelVC.swift */; };
 		B807F2D9B5F520D1C1EC3C46 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 83A92FB48CB294E715B02806 /* CoreGraphics.framework */; };
+		BAEBF0F27D9192FB7D65B468 /* ImageTransformEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71A0B6F31FE22C5044C273B5 /* ImageTransformEngine.swift */; };
 		BCC2DF21669D6C5A99EB970C /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EB283CDF3A9539DCDA1A2214 /* Carbon.framework */; };
 		BEEA2E29292B05A21183640A /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FF8673C62891F86C722E27A1 /* StoreKit.framework */; };
 		C005ACD88EE6E2CB845C0710 /* OnboardingWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE0FA158D27BCC877128B1AC /* OnboardingWindowController.swift */; };
@@ -106,6 +108,7 @@
 		5D31B6CA4813B599061AE43C /* ClipboardPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardPanel.swift; sourceTree = "<group>"; };
 		61E8D2209E6F7B00DD9FE504 /* WhatsNewWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhatsNewWindowController.swift; sourceTree = "<group>"; };
 		70D7A178D07506F1EDAB47E3 /* TransformManifestTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransformManifestTests.swift; sourceTree = "<group>"; };
+		71A0B6F31FE22C5044C273B5 /* ImageTransformEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageTransformEngine.swift; sourceTree = "<group>"; };
 		72D38A0D5D49CAA9F1A4419C /* AboutSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutSettingsView.swift; sourceTree = "<group>"; };
 		745DE6446393891754A48B11 /* TransformSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransformSettingsView.swift; sourceTree = "<group>"; };
 		83A92FB48CB294E715B02806 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -120,6 +123,7 @@
 		AB8722D370AD74770468379D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B75544001AF733AFAAA0014D /* TransformRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransformRegistry.swift; sourceTree = "<group>"; };
 		B995C407D9121B04B8DE1694 /* ModelContainer+Hotstash.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ModelContainer+Hotstash.swift"; sourceTree = "<group>"; };
+		BC2101067B68235A22AFF739 /* ImageTransformEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageTransformEngineTests.swift; sourceTree = "<group>"; };
 		BC8FD990DF3BF88CE1E8B306 /* WhitespaceTransforms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhitespaceTransforms.swift; sourceTree = "<group>"; };
 		BE0FA158D27BCC877128B1AC /* OnboardingWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingWindowController.swift; sourceTree = "<group>"; };
 		BE1B33F7E9EF3F45381A3B2B /* MenuBarManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarManager.swift; sourceTree = "<group>"; };
@@ -281,6 +285,7 @@
 			isa = PBXGroup;
 			children = (
 				E5FFE6B9EEFA88A4AD43F0B8 /* HotstashJSCore.h */,
+				71A0B6F31FE22C5044C273B5 /* ImageTransformEngine.swift */,
 				11BA74CF4DAB850A3D52A491 /* TextTransformEngine.swift */,
 				14BA343EC9CF6C24495915FF /* TransformBodyHash.swift */,
 				1B88FF4244587A52947EA560 /* TransformManifest.swift */,
@@ -348,6 +353,7 @@
 			children = (
 				51880DC40FE10900391A63EB /* ClipboardMigrationTests.swift */,
 				883C0E0540370662D042B67A /* ClipboardStoreTests.swift */,
+				BC2101067B68235A22AFF739 /* ImageTransformEngineTests.swift */,
 				5AAC8B5CB7445D1E6B14899B /* SmokeTests.swift */,
 				0CC810AA2F7272A184F0AC9A /* TextTransformEngineTests.swift */,
 				70D7A178D07506F1EDAB47E3 /* TransformManifestTests.swift */,
@@ -460,6 +466,7 @@
 			files = (
 				F5E342105F5DFFC300929CC4 /* ClipboardMigrationTests.swift in Sources */,
 				900E818E852CF81ADDA6AF59 /* ClipboardStoreTests.swift in Sources */,
+				936CA7D5140136362CCC2A7F /* ImageTransformEngineTests.swift in Sources */,
 				3C9715A9ADD898F8DEC1AB62 /* SmokeTests.swift in Sources */,
 				EDF035328BBEDB29F970782E /* TextTransformEngineTests.swift in Sources */,
 				49CB8CA419F5BD520AF6E9AD /* TransformManifestTests.swift in Sources */,
@@ -487,6 +494,7 @@
 				03BD1322CEA0EA3C206792D8 /* GeneralSettingsView.swift in Sources */,
 				233E720F4358B5BA58F1CD0B /* HotkeyManager.swift in Sources */,
 				18B914CE5F3DD4A352269353 /* HotkeyRecorderView.swift in Sources */,
+				BAEBF0F27D9192FB7D65B468 /* ImageTransformEngine.swift in Sources */,
 				36E86F2188D0CBA7BA4D402B /* ImageTransforms.swift in Sources */,
 				5332EC427A7577BC774CBC30 /* JSONTransforms.swift in Sources */,
 				55309C6144D563297EA066CD /* LaunchAtLoginManager.swift in Sources */,
