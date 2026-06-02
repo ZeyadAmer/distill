@@ -164,7 +164,7 @@ private struct MultiPasteView: View {
         onDismiss()
 
         Task { @MainActor in
-            let items = ClipboardStore.shared.recentItems
+            let items = ClipboardStore.shared.recentItems(limit: 200)
                 .prefix(count)
                 .map { $0.content }
             guard !items.isEmpty else { return }

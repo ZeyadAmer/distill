@@ -3,6 +3,7 @@ import Carbon
 
 // MARK: - AppDelegate
 
+@MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private var onboardingWindowController: OnboardingWindowController?
@@ -11,10 +12,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     // MARK: NSApplicationDelegate
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Under unit tests the app is launched only to host the test bundle.
+        // Skip booting the pipeline so the CloudKit-backed store is never
+        // initialized in environments without iCloud provisioning.
+        let isRunningTests = NSClassFromString("XCTestCase") != nil
+            || ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+        if isRunningTests { return }
+
         // Run as a menubar-only (accessory) app — no Dock icon.
         NSApp.setActivationPolicy(.accessory)
 
-        // Boot the clipboard pipeline.
+        // Migrate legacy UserDefaults history into SwiftData, then boot the pipeline.
+        ClipboardMigration.runIfNeeded(context: ClipboardStore.shared.modelContextForMigration)
         ClipboardMonitor.shared.start()
 
         // Set up the status bar item and panel.

@@ -119,7 +119,7 @@ struct AboutSettingsView: View {
 
     // MARK: - Features
 
-    private struct FeatureCard: Identifiable {
+    fileprivate struct FeatureCard: Identifiable {
         let id = UUID()
         let icon: String
         let title: String
@@ -172,7 +172,7 @@ struct AboutSettingsView: View {
 
     // MARK: - Transforms
 
-    private struct TransformGroup: Identifiable {
+    fileprivate struct TransformGroup: Identifiable {
         let id = UUID()
         let name: String
         let icon: String
@@ -263,7 +263,7 @@ struct AboutSettingsView: View {
             HStack(spacing: 6) {
                 Image(systemName: "lock.shield.fill")
                     .foregroundStyle(.green)
-                Text("Your clipboard never leaves your Mac. No cloud. No tracking.")
+                Text("Synced privately through your iCloud. No third parties. No tracking.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
@@ -272,7 +272,7 @@ struct AboutSettingsView: View {
 
             Link("Contact Support", destination: URL(string: "mailto:zeyad.hesham@icloud.com")!)
                 .font(.caption)
-                .foregroundStyle(.accentColor)
+                .foregroundStyle(Color.accentColor)
 
             Text("Made with ♥ by Zeyad Amer")
                 .font(.caption2)

@@ -222,6 +222,11 @@ final class ClipboardPanelVC: NSViewController {
     /// The full store list filtered by the current search query (or the full list when empty).
     private var filteredItems: [ClipboardItem] = []
 
+    /// Number of recent items fetched per page.
+    private let pageSize = 100
+    /// How many recent pages are currently loaded.
+    private var loadedRecentCount = 0
+
     /// 0 = Recents, 1 = Pinned.
     private var currentTab: Int = 0
 
@@ -488,11 +493,19 @@ final class ClipboardPanelVC: NSViewController {
     /// Filters items by `query` and rebuilds the `rows` array.
     private func applySearch(query: String) {
         let store = ClipboardStore.shared
+        let trimmed = query.trimmingCharacters(in: .whitespaces)
 
-        if query.trimmingCharacters(in: .whitespaces).isEmpty {
-            filteredItems = store.items
+        if !trimmed.isEmpty {
+            // Search spans full history; split by current tab below.
+            let results = store.search(query: trimmed)
+            filteredItems = currentTab == 0
+                ? results.filter { !$0.isPinned }
+                : results.filter {  $0.isPinned }
+        } else if currentTab == 1 {
+            filteredItems = store.pinnedItems
         } else {
-            filteredItems = store.search(query: query)
+            loadedRecentCount = pageSize
+            filteredItems = store.recentItems(limit: loadedRecentCount)
         }
 
         if TrialManager.shared.isRestricted {
@@ -504,12 +517,27 @@ final class ClipboardPanelVC: NSViewController {
         updateToolbarState()
     }
 
+    /// Appends the next page of recent items (recent tab, no active search).
+    private func loadMoreIfNeeded(currentRow: Int) {
+        guard currentTab == 0,
+              searchField.stringValue.trimmingCharacters(in: .whitespaces).isEmpty,
+              !TrialManager.shared.isRestricted,
+              currentRow >= rows.count - 10,
+              filteredItems.count >= loadedRecentCount  // a full page was returned
+        else { return }
+        loadedRecentCount += pageSize
+        filteredItems = ClipboardStore.shared.recentItems(limit: loadedRecentCount)
+        rebuildRows()
+        // Defer to the next run-loop turn: this runs inside viewFor(row:), and
+        // reloadData() must not be called reentrantly during that callback.
+        DispatchQueue.main.async { [weak self] in
+            self?.tableView.reloadData()
+        }
+    }
+
     /// Converts `filteredItems` into a flat `[RowKind]` for the active tab.
     private func rebuildRows() {
-        let source = currentTab == 0
-            ? filteredItems.filter { !$0.isPinned }
-            : filteredItems.filter {  $0.isPinned }
-        rows = source.map { .item($0) }
+        rows = filteredItems.map { .item($0) }
     }
 
     // MARK: - Selection
@@ -538,7 +566,7 @@ final class ClipboardPanelVC: NSViewController {
         multiPasteButton.isEnabled = !isRestricted
         pinButton.isEnabled       = hasSelection
         deleteButton.isEnabled    = hasSelection
-        clearAllButton.isEnabled  = currentTab == 0 && !ClipboardStore.shared.recentItems.isEmpty
+        clearAllButton.isEnabled  = currentTab == 0 && ClipboardStore.shared.recentCount > 0
 
         // Update the pin button icon depending on item state.
         if let item = selectedItem {
@@ -831,6 +859,7 @@ extension ClipboardPanelVC: NSTableViewDelegate {
     }
 
     func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
+        loadMoreIfNeeded(currentRow: row)
         switch rows[row] {
         case .sectionHeader(let title):
             return makeSectionHeaderView(title: title, for: tableView)

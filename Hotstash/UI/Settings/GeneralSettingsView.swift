@@ -7,18 +7,10 @@ struct GeneralSettingsView: View {
     // MARK: - State
 
     @State private var launchAtLogin: Bool = LaunchAtLoginManager.isEnabled
-    @State private var historyLimit: Int = {
-        let stored = UserDefaults.standard.integer(forKey: "historyLimit")
-        return stored > 0 ? stored : 200
-    }()
     @State private var hotkeyCode:      UInt32 = HotkeyManager.shared.keyCode
     @State private var hotkeyModifiers: UInt32 = HotkeyManager.shared.modifiers
     @State private var panelPosition: PanelPosition = PanelPosition.current
     @State private var showingClearConfirmation = false
-
-    // MARK: - Supported history limits
-
-    private let historyLimits: [Int] = [50, 100, 200, 500]
 
     // MARK: - Body
 
@@ -67,19 +59,11 @@ struct GeneralSettingsView: View {
             // MARK: History
 
             Section {
-                Picker("History limit", selection: $historyLimit) {
-                    ForEach(historyLimits, id: \.self) { limit in
-                        Text("\(limit) items").tag(limit)
-                    }
+                LabeledContent("History") {
+                    Text("Unlimited")
+                        .foregroundStyle(.secondary)
                 }
-                .pickerStyle(.menu)
-                .onChange(of: historyLimit) { newValue in
-                    UserDefaults.standard.set(newValue, forKey: "historyLimit")
-                    Task { @MainActor in
-                        ClipboardStore.shared.maxItems = newValue
-                    }
-                }
-                
+
                 Button("Clear History\u{2026}") {
                     showingClearConfirmation = true
                 }
