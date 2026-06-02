@@ -25,6 +25,7 @@
 		42768796D6C8E0D6A12BD830 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0C6A59EE77E7406B797E74A2 /* Foundation.framework */; };
 		464AB6DC1E4AA9F3EF0229F4 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9234AAFE290C57FDE0FB78F8 /* SettingsView.swift */; };
 		4852AE51BAB98172933F36AF /* CleanupTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206650306DE75178F63F72E5 /* CleanupTransforms.swift */; };
+		49CB8CA419F5BD520AF6E9AD /* TransformManifestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70D7A178D07506F1EDAB47E3 /* TransformManifestTests.swift */; };
 		4FB1C238201EF23819C7576F /* CaseTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 405816998C0516ABD02E3EA5 /* CaseTransforms.swift */; };
 		5332EC427A7577BC774CBC30 /* JSONTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DA7DEADB4144664958C7845 /* JSONTransforms.swift */; };
 		55309C6144D563297EA066CD /* LaunchAtLoginManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C81123429DA8F08940306AC /* LaunchAtLoginManager.swift */; };
@@ -34,6 +35,7 @@
 		68C4134F124CC338F0D3C814 /* WhitespaceTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC8FD990DF3BF88CE1E8B306 /* WhitespaceTransforms.swift */; };
 		6C753C09746911A0AD935C4B /* ClipboardItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F6E7D0DCEC47B20359A28A1 /* ClipboardItem.swift */; };
 		6F2F5F32E018AFDCF7D9E2A6 /* WhatsNewWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61E8D2209E6F7B00DD9FE504 /* WhatsNewWindowController.swift */; };
+		7147B0DE54461C7B0ABE6A54 /* TransformBodyHash.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14BA343EC9CF6C24495915FF /* TransformBodyHash.swift */; };
 		7CC8C7921B547CD879CC6744 /* TransformPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E14B176F759EFA9AB5D42406 /* TransformPickerView.swift */; };
 		80A0153929730092F80F58BD /* PasteEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36695DA641B3C931651BFDEC /* PasteEngine.swift */; };
 		8FA487FFE047E607F10E4F32 /* Transform.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5C42098CBDBF783A7B887BE /* Transform.swift */; };
@@ -50,8 +52,10 @@
 		C005ACD88EE6E2CB845C0710 /* OnboardingWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE0FA158D27BCC877128B1AC /* OnboardingWindowController.swift */; };
 		C1FDA11266C0844176389BF2 /* ClipboardPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D31B6CA4813B599061AE43C /* ClipboardPanel.swift */; };
 		C264F3358E4C5D089B3F4937 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4EA3F63C439EEFEB230985C /* AppDelegate.swift */; };
+		CE5F686F1E974854CBC9A6F6 /* TransformManifestCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BB7F14A2532ED233E9E50D1 /* TransformManifestCodec.swift */; };
 		CF210BA00EABB53C3D0BDF80 /* EncodingTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55953DA19505ACD1E2B0551A /* EncodingTransforms.swift */; };
 		D4B0E830A7AE62BBCB66C1D5 /* PurchaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ECB321F90AFA8FD509986C0 /* PurchaseManager.swift */; };
+		D62305E0FB7754EB04A3C68A /* TransformManifest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B88FF4244587A52947EA560 /* TransformManifest.swift */; };
 		E472EAE697693B03E5F8549C /* ModelContainer+Hotstash.swift in Sources */ = {isa = PBXBuildFile; fileRef = B995C407D9121B04B8DE1694 /* ModelContainer+Hotstash.swift */; };
 		F3F821A1D7B0A1C0EA4689FF /* ClipboardItemCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6A9D0726BB159ACE3620C30 /* ClipboardItemCell.swift */; };
 		F5E342105F5DFFC300929CC4 /* ClipboardMigrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51880DC40FE10900391A63EB /* ClipboardMigrationTests.swift */; };
@@ -72,8 +76,10 @@
 		07A94AD7A9C0604D08B842FA /* ClipboardStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardStore.swift; sourceTree = "<group>"; };
 		0C6A59EE77E7406B797E74A2 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		0F5A0B2DFE8E78A0497DE0A4 /* Notifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notifications.swift; sourceTree = "<group>"; };
+		14BA343EC9CF6C24495915FF /* TransformBodyHash.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransformBodyHash.swift; sourceTree = "<group>"; };
 		18FF863ED71FDBE116D2D759 /* ClipboardMigration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardMigration.swift; sourceTree = "<group>"; };
 		1A9DE6005451FB0043006828 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
+		1B88FF4244587A52947EA560 /* TransformManifest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransformManifest.swift; sourceTree = "<group>"; };
 		1DC86C0A994B73FB8009A7EA /* ContentDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentDetector.swift; sourceTree = "<group>"; };
 		1E3D42C077663BCE0A8ADE17 /* MultiPastePanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiPastePanel.swift; sourceTree = "<group>"; };
 		206650306DE75178F63F72E5 /* CleanupTransforms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CleanupTransforms.swift; sourceTree = "<group>"; };
@@ -81,6 +87,7 @@
 		22D1F8CFB59A151FB042BEB6 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		252AECFD0C49802E4F197FEC /* HotkeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeyManager.swift; sourceTree = "<group>"; };
 		36695DA641B3C931651BFDEC /* PasteEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasteEngine.swift; sourceTree = "<group>"; };
+		3BB7F14A2532ED233E9E50D1 /* TransformManifestCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransformManifestCodec.swift; sourceTree = "<group>"; };
 		3DAB0717E7F75E3FF9B30BBE /* ClipboardPanelVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardPanelVC.swift; sourceTree = "<group>"; };
 		3ECB321F90AFA8FD509986C0 /* PurchaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PurchaseManager.swift; sourceTree = "<group>"; };
 		405816998C0516ABD02E3EA5 /* CaseTransforms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaseTransforms.swift; sourceTree = "<group>"; };
@@ -93,6 +100,7 @@
 		5ADB0D8C46670B9E8F1B67A8 /* HotkeyRecorderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeyRecorderView.swift; sourceTree = "<group>"; };
 		5D31B6CA4813B599061AE43C /* ClipboardPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardPanel.swift; sourceTree = "<group>"; };
 		61E8D2209E6F7B00DD9FE504 /* WhatsNewWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhatsNewWindowController.swift; sourceTree = "<group>"; };
+		70D7A178D07506F1EDAB47E3 /* TransformManifestTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransformManifestTests.swift; sourceTree = "<group>"; };
 		72D38A0D5D49CAA9F1A4419C /* AboutSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutSettingsView.swift; sourceTree = "<group>"; };
 		745DE6446393891754A48B11 /* TransformSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransformSettingsView.swift; sourceTree = "<group>"; };
 		83A92FB48CB294E715B02806 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -261,6 +269,16 @@
 			path = MultiPaste;
 			sourceTree = "<group>";
 		};
+		8A38177833964239FF6039EA /* Marketplace */ = {
+			isa = PBXGroup;
+			children = (
+				14BA343EC9CF6C24495915FF /* TransformBodyHash.swift */,
+				1B88FF4244587A52947EA560 /* TransformManifest.swift */,
+				3BB7F14A2532ED233E9E50D1 /* TransformManifestCodec.swift */,
+			);
+			path = Marketplace;
+			sourceTree = "<group>";
+		};
 		97C092D724F6E68989802746 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -305,6 +323,7 @@
 		D689FDCE5BE85B28471E5424 /* Transforms */ = {
 			isa = PBXGroup;
 			children = (
+				8A38177833964239FF6039EA /* Marketplace */,
 				051F873F1FDCB725B57D0948 /* Transforms */,
 				1DC86C0A994B73FB8009A7EA /* ContentDetector.swift */,
 				D5C42098CBDBF783A7B887BE /* Transform.swift */,
@@ -319,6 +338,7 @@
 				51880DC40FE10900391A63EB /* ClipboardMigrationTests.swift */,
 				883C0E0540370662D042B67A /* ClipboardStoreTests.swift */,
 				5AAC8B5CB7445D1E6B14899B /* SmokeTests.swift */,
+				70D7A178D07506F1EDAB47E3 /* TransformManifestTests.swift */,
 			);
 			path = HotstashTests;
 			sourceTree = "<group>";
@@ -429,6 +449,7 @@
 				F5E342105F5DFFC300929CC4 /* ClipboardMigrationTests.swift in Sources */,
 				900E818E852CF81ADDA6AF59 /* ClipboardStoreTests.swift in Sources */,
 				3C9715A9ADD898F8DEC1AB62 /* SmokeTests.swift in Sources */,
+				49CB8CA419F5BD520AF6E9AD /* TransformManifestTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -468,6 +489,9 @@
 				464AB6DC1E4AA9F3EF0229F4 /* SettingsView.swift in Sources */,
 				639937388E0DA8F8A87D17B5 /* SettingsWindowController.swift in Sources */,
 				8FA487FFE047E607F10E4F32 /* Transform.swift in Sources */,
+				7147B0DE54461C7B0ABE6A54 /* TransformBodyHash.swift in Sources */,
+				D62305E0FB7754EB04A3C68A /* TransformManifest.swift in Sources */,
+				CE5F686F1E974854CBC9A6F6 /* TransformManifestCodec.swift in Sources */,
 				7CC8C7921B547CD879CC6744 /* TransformPickerView.swift in Sources */,
 				9281E15530C2905396A38C57 /* TransformRegistry.swift in Sources */,
 				A716C9D9EA74A355B3A21704 /* TransformSettingsView.swift in Sources */,
