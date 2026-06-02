@@ -1,4 +1,5 @@
 import Foundation
+import OSLog
 import SwiftData
 
 /// One-time migration of clipboard history from the legacy UserDefaults JSON
@@ -6,6 +7,8 @@ import SwiftData
 /// call on every launch.
 @MainActor
 enum ClipboardMigration {
+
+    private static let logger = Logger(subsystem: "com.zeyadamer.hotstash", category: "ClipboardMigration")
 
     private enum Keys {
         static let legacyItems = "com.zeyadamer.hotstash.clipboardItems"
@@ -26,6 +29,7 @@ enum ClipboardMigration {
         if let data = defaults.data(forKey: Keys.legacyItems),
            let legacy = try? JSONDecoder().decode([LegacyClipboardItem].self, from: data) {
             for old in legacy {
+                // Legacy items had no pinnedOrder; migrated pins default to 0 and tie-break on timestamp.
                 let item = ClipboardItem(
                     id: old.id,
                     content: old.content,
@@ -38,9 +42,17 @@ enum ClipboardMigration {
                 context.insert(item)
                 migrated += 1
             }
-            try? context.save()
+            do {
+                try context.save()
+            } catch {
+                // Persisting failed (e.g. disk full, store not ready).
+                // Leave legacy data + flag intact so migration retries next launch.
+                logger.error("Clipboard migration save failed: \(error, privacy: .public)")
+                return 0
+            }
         }
 
+        // Only reached when there was nothing to migrate, or the save succeeded.
         defaults.set(true, forKey: Keys.didMigrate)
         defaults.removeObject(forKey: Keys.legacyItems)
         defaults.removeObject(forKey: Keys.legacyMaxItems)

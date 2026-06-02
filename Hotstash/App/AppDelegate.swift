@@ -3,6 +3,7 @@ import Carbon
 
 // MARK: - AppDelegate
 
+@MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private var onboardingWindowController: OnboardingWindowController?

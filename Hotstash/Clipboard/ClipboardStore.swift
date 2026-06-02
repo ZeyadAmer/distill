@@ -1,4 +1,5 @@
 import Foundation
+import OSLog
 import SwiftData
 
 // MARK: - ClipboardStore
@@ -17,6 +18,7 @@ final class ClipboardStore {
 
     private let container: ModelContainer
     private var context: ModelContext { container.mainContext }
+    private let logger = Logger(subsystem: "com.zeyadamer.hotstash", category: "ClipboardStore")
 
     /// Production uses the shared CloudKit container; tests inject in-memory.
     init(container: ModelContainer = .hotstashShared) {
@@ -74,7 +76,7 @@ final class ClipboardStore {
     /// Case-insensitive substring match across the full history (capped for UI).
     func search(query: String) -> [ClipboardItem] {
         let trimmed = query.trimmingCharacters(in: .whitespaces)
-        guard !trimmed.isEmpty else { return items }
+        guard !trimmed.isEmpty else { return [] }
         var descriptor = FetchDescriptor<ClipboardItem>(
             predicate: #Predicate { $0.content.localizedStandardContains(trimmed) },
             sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
@@ -83,12 +85,21 @@ final class ClipboardStore {
         return fetch(descriptor)
     }
 
+    /// Returns the existing non-pinned item with exactly this content, if any.
+    func existingUnpinned(content: String) -> ClipboardItem? {
+        var descriptor = FetchDescriptor<ClipboardItem>(
+            predicate: #Predicate { !$0.isPinned && $0.content == content }
+        )
+        descriptor.fetchLimit = 1
+        return fetch(descriptor).first
+    }
+
     // MARK: Mutations
 
     func add(item: ClipboardItem) {
         context.insert(item)
         save()
-        if item.imageData != nil { enforceImageBudget() }
+        if item.hasImage { enforceImageBudget() }
     }
 
     func pin(id: UUID) {
@@ -130,6 +141,7 @@ final class ClipboardStore {
     }
 
     /// Bumps a non-pinned item to the top of the recent list (by recency).
+    /// Note: mutates timestamp, so this change propagates via CloudKit (last-writer-wins on merge).
     func moveToTop(id: UUID) {
         guard let item = item(id: id), !item.isPinned else { return }
         item.timestamp = .now
@@ -148,7 +160,7 @@ final class ClipboardStore {
     /// budgets are satisfied. Pinned images are always retained.
     func enforceImageBudget() {
         var imageItems = fetch(FetchDescriptor<ClipboardItem>(
-            predicate: #Predicate { !$0.isPinned && $0.imageData != nil },
+            predicate: #Predicate { !$0.isPinned && $0.hasImage },
             sortBy: [SortDescriptor(\.timestamp, order: .reverse)]  // newest first
         ))
         var totalBytes = imageItems.reduce(0) { $0 + ($1.imageData?.count ?? 0) }
@@ -176,6 +188,10 @@ final class ClipboardStore {
     }
 
     private func save() {
-        try? context.save()
+        do {
+            try context.save()
+        } catch {
+            logger.error("SwiftData save failed: \(error, privacy: .public)")
+        }
     }
 }

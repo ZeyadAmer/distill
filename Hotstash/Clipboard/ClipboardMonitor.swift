@@ -100,7 +100,7 @@ final class ClipboardMonitor {
             // Already at top; nothing to do.
             return
         }
-        if let dup = store.search(query: content).first(where: { !$0.isPinned && $0.content == content }) {
+        if let dup = store.existingUnpinned(content: content) {
             store.moveToTop(id: dup.id)
             NotificationCenter.default.post(name: .clipboardDidUpdate, object: nil)
             return

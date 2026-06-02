@@ -50,6 +50,9 @@ final class ClipboardItem {
     var pinnedOrder: Int = 0
     var useCount: Int = 0
     @Attribute(.externalStorage) var imageData: Data?
+    /// True when `imageData` is present. Sentinel so image queries avoid
+    /// nil-comparison predicates (CloudKit-safe).
+    var hasImage: Bool = false
 
     /// Typed accessor over the persisted raw string.
     var contentType: ContentType {
@@ -75,5 +78,6 @@ final class ClipboardItem {
         self.pinnedOrder = pinnedOrder
         self.useCount = useCount
         self.imageData = imageData
+        self.hasImage = imageData != nil
     }
 }

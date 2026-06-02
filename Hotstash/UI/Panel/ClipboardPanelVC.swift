@@ -528,7 +528,9 @@ final class ClipboardPanelVC: NSViewController {
         loadedRecentCount += pageSize
         filteredItems = ClipboardStore.shared.recentItems(limit: loadedRecentCount)
         rebuildRows()
-        tableView.reloadData()
+        DispatchQueue.main.async { [weak self] in
+            self?.tableView.reloadData()
+        }
     }
 
     /// Converts `filteredItems` into a flat `[RowKind]` for the active tab.
