@@ -1,191 +1,181 @@
 import Foundation
+import SwiftData
 
 // MARK: - ClipboardStore
 
-/// In-memory clipboard history backed by UserDefaults for persistence.
+/// Clipboard history backed by SwiftData (and CloudKit via the shared container).
 ///
-/// All mutations must happen on the main actor so observers always see a
-/// consistent snapshot.  The store enforces a configurable upper bound on
-/// the total number of items; when the limit is reached the oldest
-/// non-pinned item is evicted first.
+/// Text history is unbounded. Image bodies are capped by a rolling budget
+/// (`maxImageCount` / `maxImageBytes`); the oldest non-pinned image items are
+/// evicted first. Pinned items are never auto-evicted.
 @MainActor
 final class ClipboardStore {
 
-    // MARK: Singleton
+    // MARK: Singleton / init
 
     static let shared = ClipboardStore()
 
-    // MARK: Constants
+    private let container: ModelContainer
+    private var context: ModelContext { container.mainContext }
 
-    private enum Keys {
-        static let items    = "com.zeyadamer.hotstash.clipboardItems"
-        static let maxItems = "com.zeyadamer.hotstash.maxItems"
+    /// Production uses the shared CloudKit container; tests inject in-memory.
+    init(container: ModelContainer = .hotstashShared) {
+        self.container = container
     }
 
-    /// Default upper limit — can be overridden via UserDefaults.
-    private static let defaultMaxItems = 200
+    /// Context used by one-time migration at launch.
+    var modelContextForMigration: ModelContext { context }
 
-    // MARK: Public properties
+    // MARK: Image budget constants
 
-    /// Full ordered list of clipboard items (pinned + recent, newest first).
-    private(set) var items: [ClipboardItem] = []
+    /// Keep at most this many image items.
+    static let maxImageCount = 200
+    /// Keep image bodies under this total byte budget (~50MB).
+    static let maxImageBytes = 50 * 1024 * 1024
 
-    /// Pinned items only, in the order they were pinned (first in `items` array).
+    // MARK: Reads
+
+    /// All items, newest first. Use sparingly — prefer `recentItems(limit:offset:)`.
+    var items: [ClipboardItem] {
+        fetch(FetchDescriptor<ClipboardItem>(
+            sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
+        ))
+    }
+
+    /// Pinned items, ordered by `pinnedOrder` then recency.
     var pinnedItems: [ClipboardItem] {
-        items.filter { $0.isPinned }
+        let descriptor = FetchDescriptor<ClipboardItem>(
+            predicate: #Predicate { $0.isPinned },
+            sortBy: [SortDescriptor(\.pinnedOrder), SortDescriptor(\.timestamp, order: .reverse)]
+        )
+        return fetch(descriptor)
     }
 
-    /// Non-pinned items, sorted by timestamp descending.
-    var recentItems: [ClipboardItem] {
-        items
-            .filter { !$0.isPinned }
-            .sorted { $0.timestamp > $1.timestamp }
+    /// A page of non-pinned items, newest first.
+    func recentItems(limit: Int, offset: Int = 0) -> [ClipboardItem] {
+        var descriptor = FetchDescriptor<ClipboardItem>(
+            predicate: #Predicate { !$0.isPinned },
+            sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
+        )
+        descriptor.fetchLimit = limit
+        descriptor.fetchOffset = offset
+        return fetch(descriptor)
     }
 
-    /// Maximum number of items to retain.  Changing this value immediately
-    /// re-enforces the limit and persists.
-    var maxItems: Int {
-        get {
-            let stored = UserDefaults.standard.integer(forKey: Keys.maxItems)
-            return stored > 0 ? stored : Self.defaultMaxItems
-        }
-        set {
-            UserDefaults.standard.set(newValue, forKey: Keys.maxItems)
-            enforceLimit()
-            persist()
-        }
+    /// Count of non-pinned items.
+    var recentCount: Int {
+        (try? context.fetchCount(FetchDescriptor<ClipboardItem>(
+            predicate: #Predicate { !$0.isPinned }
+        ))) ?? 0
     }
 
-    // MARK: Init
+    // MARK: Search
 
-    private init() {
-        load()
-    }
-
-    // MARK: - Mutations
-
-    /// Prepends a new item and enforces the maximum limit.
-    func add(item: ClipboardItem) {
-        items.insert(item, at: 0)
-        enforceLimit()
-        persist()
-    }
-
-    /// Pins the item with the given id (no-op if already pinned or not found).
-    func pin(id: UUID) {
-        guard let index = items.firstIndex(where: { $0.id == id }) else { return }
-        guard !items[index].isPinned else { return }
-        items[index].isPinned = true
-        persist()
-    }
-
-    /// Unpins the item with the given id (no-op if not pinned or not found).
-    func unpin(id: UUID) {
-        guard let index = items.firstIndex(where: { $0.id == id }) else { return }
-        guard items[index].isPinned else { return }
-        items[index].isPinned = false
-        persist()
-    }
-
-    /// Removes the item with the given id entirely.
-    func remove(id: UUID) {
-        items.removeAll { $0.id == id }
-        persist()
-    }
-
-    /// Removes all non-pinned items.
-    func clearAll() {
-        items.removeAll { !$0.isPinned }
-        persist()
-    }
-
-    /// Reorders pinned items by moving the item at `source` to `destination` (both indices within the pinned subarray).
-    func reorderPinned(from source: Int, to destination: Int) {
-        var pinnedIndices = items.indices.filter { items[$0].isPinned }
-        guard source < pinnedIndices.count, destination <= pinnedIndices.count, source != destination else { return }
-        let fromIdx = pinnedIndices[source]
-        let item = items.remove(at: fromIdx)
-        pinnedIndices = items.indices.filter { items[$0].isPinned }
-        let insertAt = destination < pinnedIndices.count
-            ? pinnedIndices[destination]
-            : (pinnedIndices.last.map { $0 + 1 } ?? items.endIndex)
-        items.insert(item, at: insertAt)
-        persist()
-    }
-
-    /// Moves an existing item to the front of the unpinned list without creating a duplicate.
-    func moveToTop(id: UUID) {
-        guard let index = items.firstIndex(where: { $0.id == id }) else { return }
-        guard !items[index].isPinned else { return }
-        let item = items.remove(at: index)
-        // Insert after any pinned items so it sits at the top of the recent section.
-        let insertAt = items.firstIndex(where: { !$0.isPinned }) ?? items.endIndex
-        items.insert(item, at: insertAt)
-        persist()
-    }
-
-    /// Increments the use count for the item, recording that it was pasted.
-    func recordUse(id: UUID) {
-        guard let index = items.firstIndex(where: { $0.id == id }) else { return }
-        items[index].useCount += 1
-        persist()
-    }
-
-    // MARK: - Search
-
-    /// Returns items whose content contains `query` (case-insensitive).
+    /// Case-insensitive substring match across the full history (capped for UI).
     func search(query: String) -> [ClipboardItem] {
-        guard !query.trimmingCharacters(in: .whitespaces).isEmpty else {
-            return items
-        }
-        return items.filter {
-            $0.content.range(of: query, options: .caseInsensitive) != nil
-        }
+        let trimmed = query.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty else { return items }
+        var descriptor = FetchDescriptor<ClipboardItem>(
+            predicate: #Predicate { $0.content.localizedStandardContains(trimmed) },
+            sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
+        )
+        descriptor.fetchLimit = 500
+        return fetch(descriptor)
     }
 
-    // MARK: - Private helpers
+    // MARK: Mutations
 
-    /// Drops the oldest non-pinned item(s) until the count is within the limit.
-    private func enforceLimit() {
-        let limit = maxItems
-        guard items.count > limit else { return }
-
-        // Build a list of non-pinned indices sorted oldest-first.
-        let evictionCandidates = items
-            .enumerated()
-            .filter { !$0.element.isPinned }
-            .sorted { $0.element.timestamp < $1.element.timestamp }
-
-        var excess = items.count - limit
-        var indicesToRemove: [Int] = []
-
-        for candidate in evictionCandidates {
-            guard excess > 0 else { break }
-            indicesToRemove.append(candidate.offset)
-            excess -= 1
-        }
-
-        // Remove in reverse order to keep indices valid.
-        for index in indicesToRemove.sorted().reversed() {
-            items.remove(at: index)
-        }
+    func add(item: ClipboardItem) {
+        context.insert(item)
+        save()
+        if item.imageData != nil { enforceImageBudget() }
     }
 
-    // MARK: - Persistence
-
-    private func persist() {
-        guard let data = try? JSONEncoder().encode(items) else { return }
-        UserDefaults.standard.set(data, forKey: Keys.items)
+    func pin(id: UUID) {
+        guard let item = item(id: id), !item.isPinned else { return }
+        item.isPinned = true
+        item.pinnedOrder = (pinnedItems.map(\.pinnedOrder).max() ?? -1) + 1
+        save()
     }
 
-    private func load() {
-        guard
-            let data = UserDefaults.standard.data(forKey: Keys.items),
-            let decoded = try? JSONDecoder().decode([ClipboardItem].self, from: data)
-        else {
-            items = []
-            return
+    func unpin(id: UUID) {
+        guard let item = item(id: id), item.isPinned else { return }
+        item.isPinned = false
+        save()
+    }
+
+    func remove(id: UUID) {
+        guard let item = item(id: id) else { return }
+        context.delete(item)
+        save()
+    }
+
+    /// Deletes all non-pinned items.
+    func clearAll() {
+        try? context.delete(model: ClipboardItem.self, where: #Predicate { !$0.isPinned })
+        save()
+    }
+
+    /// Reorders pinned items by reassigning `pinnedOrder`.
+    func reorderPinned(from source: Int, to destination: Int) {
+        var pinned = pinnedItems
+        guard source >= 0, source < pinned.count,
+              destination >= 0, destination <= pinned.count, source != destination
+        else { return }
+        let moved = pinned.remove(at: source)
+        let insertAt = min(destination, pinned.count)
+        pinned.insert(moved, at: insertAt)
+        for (index, item) in pinned.enumerated() { item.pinnedOrder = index }
+        save()
+    }
+
+    /// Bumps a non-pinned item to the top of the recent list (by recency).
+    func moveToTop(id: UUID) {
+        guard let item = item(id: id), !item.isPinned else { return }
+        item.timestamp = .now
+        save()
+    }
+
+    func recordUse(id: UUID) {
+        guard let item = item(id: id) else { return }
+        item.useCount += 1
+        save()
+    }
+
+    // MARK: Image budget
+
+    /// Evicts oldest non-pinned image items until both the count and byte
+    /// budgets are satisfied. Pinned images are always retained.
+    func enforceImageBudget() {
+        var imageItems = fetch(FetchDescriptor<ClipboardItem>(
+            predicate: #Predicate { !$0.isPinned && $0.imageData != nil },
+            sortBy: [SortDescriptor(\.timestamp, order: .reverse)]  // newest first
+        ))
+        var totalBytes = imageItems.reduce(0) { $0 + ($1.imageData?.count ?? 0) }
+        var changed = false
+        // Evict from the oldest end while over budget.
+        while (imageItems.count > Self.maxImageCount || totalBytes > Self.maxImageBytes),
+              let oldest = imageItems.popLast() {
+            totalBytes -= (oldest.imageData?.count ?? 0)
+            context.delete(oldest)
+            changed = true
         }
-        items = decoded
+        if changed { save() }
+    }
+
+    // MARK: Private helpers
+
+    private func item(id: UUID) -> ClipboardItem? {
+        var descriptor = FetchDescriptor<ClipboardItem>(predicate: #Predicate { $0.id == id })
+        descriptor.fetchLimit = 1
+        return fetch(descriptor).first
+    }
+
+    private func fetch(_ descriptor: FetchDescriptor<ClipboardItem>) -> [ClipboardItem] {
+        (try? context.fetch(descriptor)) ?? []
+    }
+
+    private func save() {
+        try? context.save()
     }
 }

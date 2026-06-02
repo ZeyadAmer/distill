@@ -14,7 +14,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Run as a menubar-only (accessory) app — no Dock icon.
         NSApp.setActivationPolicy(.accessory)
 
-        // Boot the clipboard pipeline.
+        // Migrate legacy UserDefaults history into SwiftData, then boot the pipeline.
+        ClipboardMigration.runIfNeeded(context: ClipboardStore.shared.modelContextForMigration)
         ClipboardMonitor.shared.start()
 
         // Set up the status bar item and panel.
