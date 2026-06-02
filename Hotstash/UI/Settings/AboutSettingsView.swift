@@ -263,7 +263,7 @@ struct AboutSettingsView: View {
             HStack(spacing: 6) {
                 Image(systemName: "lock.shield.fill")
                     .foregroundStyle(.green)
-                Text("Your clipboard never leaves your Mac. No cloud. No tracking.")
+                Text("Synced privately through your iCloud. No third parties. No tracking.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)

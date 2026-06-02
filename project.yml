@@ -74,7 +74,6 @@ targets:
           - iCloud.com.zeyadamer.hotstash
         com.apple.developer.icloud-services:
           - CloudKit
-        com.apple.developer.ubiquity-kvstore-identifier: $(TeamIdentifierPrefix)com.zeyadamer.hotstash
 
   HotstashTests:
     type: bundle.unit-test

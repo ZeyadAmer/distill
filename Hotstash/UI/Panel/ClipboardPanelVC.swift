@@ -528,6 +528,8 @@ final class ClipboardPanelVC: NSViewController {
         loadedRecentCount += pageSize
         filteredItems = ClipboardStore.shared.recentItems(limit: loadedRecentCount)
         rebuildRows()
+        // Defer to the next run-loop turn: this runs inside viewFor(row:), and
+        // reloadData() must not be called reentrantly during that callback.
         DispatchQueue.main.async { [weak self] in
             self?.tableView.reloadData()
         }

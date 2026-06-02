@@ -28,17 +28,20 @@ enum ClipboardMigration {
         var migrated = 0
         if let data = defaults.data(forKey: Keys.legacyItems),
            let legacy = try? JSONDecoder().decode([LegacyClipboardItem].self, from: data) {
+            // Preserve legacy pinned order by the sequence pins appear in the decoded array.
+            var pinnedOrder = 0
             for old in legacy {
-                // Legacy items had no pinnedOrder; migrated pins default to 0 and tie-break on timestamp.
                 let item = ClipboardItem(
                     id: old.id,
                     content: old.content,
                     contentType: old.contentType,
                     timestamp: old.timestamp,
                     isPinned: old.isPinned,
+                    pinnedOrder: old.isPinned ? pinnedOrder : 0,
                     useCount: old.useCount,
                     imageData: old.imageData
                 )
+                if old.isPinned { pinnedOrder += 1 }
                 context.insert(item)
                 migrated += 1
             }

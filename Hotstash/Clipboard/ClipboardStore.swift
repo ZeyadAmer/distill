@@ -123,7 +123,11 @@ final class ClipboardStore {
 
     /// Deletes all non-pinned items.
     func clearAll() {
-        try? context.delete(model: ClipboardItem.self, where: #Predicate { !$0.isPinned })
+        do {
+            try context.delete(model: ClipboardItem.self, where: #Predicate { !$0.isPinned })
+        } catch {
+            logger.error("clearAll delete failed: \(error, privacy: .public)")
+        }
         save()
     }
 
