@@ -18,8 +18,8 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 // ─── CONFIG — replace both placeholders ───────────────────────
-export const SUPABASE_URL = "<SET_ME>";       // e.g. https://abcd1234.supabase.co
-export const SUPABASE_ANON_KEY = "<SET_ME>";  // public anon key from Supabase dashboard
+export const SUPABASE_URL = "https://ycudbindrobthnpoaevr.supabase.co";
+export const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljdWRiaW5kcm9idGhucG9hZXZyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0ODU3NTcsImV4cCI6MjA5NjA2MTc1N30.d4XjqzQeyFsBO4McLpXVGXWSn5H3zJImAbndf3bbow0";
 
 // Deep link scheme used by the macOS app. TODO: confirm matches the
 // app's registered URL scheme (spec §3.3: hotstash://transform/<slug>).

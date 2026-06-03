@@ -80,11 +80,20 @@ struct MarketplaceServiceTests {
         #expect(ok?.url.absoluteString == "https://x.supabase.co")
     }
 
-    @Test func providerFallsBackToMockWhenUnconfigured() {
-        // The bundled Supabase.plist ships with <SET_ME> placeholders → unconfigured.
-        #expect(SupabaseConfig.current == nil)
-        #expect(MarketplaceServiceProvider.isConfigured == false)
-        #expect(MarketplaceServiceProvider.shared is MockMarketplaceService)
+    @Test func providerSelectsServiceByConfigState() {
+        // `make` drives the choice: placeholders/invalid → unconfigured (mock),
+        // valid → configured (live). This is bundle-independent so it holds
+        // whether or not the shipped Supabase.plist has real values.
+        #expect(SupabaseConfig.make(from: ["SupabaseURL": "<SET_ME>", "SupabaseAnonKey": "<SET_ME>"]) == nil)
+        #expect(SupabaseConfig.make(from: [
+            "SupabaseURL": "https://x.supabase.co", "SupabaseAnonKey": "anon",
+        ]) != nil)
+        // The live provider type matches whatever the bundled config resolves to.
+        if SupabaseConfig.current == nil {
+            #expect(MarketplaceServiceProvider.shared is MockMarketplaceService)
+        } else {
+            #expect(MarketplaceServiceProvider.shared is SupabaseMarketplaceService)
+        }
     }
 
     // MARK: JWT subject extraction

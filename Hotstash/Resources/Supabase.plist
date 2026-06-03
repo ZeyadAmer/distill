@@ -9,8 +9,8 @@
 <plist version="1.0">
 <dict>
 	<key>SupabaseURL</key>
-	<string>&lt;SET_ME&gt;</string>
+	<string>https://ycudbindrobthnpoaevr.supabase.co</string>
 	<key>SupabaseAnonKey</key>
-	<string>&lt;SET_ME&gt;</string>
+	<string>eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljdWRiaW5kcm9idGhucG9hZXZyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0ODU3NTcsImV4cCI6MjA5NjA2MTc1N30.d4XjqzQeyFsBO4McLpXVGXWSn5H3zJImAbndf3bbow0</string>
 </dict>
 </plist>
