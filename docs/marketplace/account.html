@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Author Area — Hotstash Marketplace</title>
+  <meta name="description" content="Sign in to publish and manage your Hotstash clipboard transforms." />
+  <meta property="og:title" content="Hotstash Marketplace — Authors" />
+  <meta property="og:description" content="Publish and manage your Hotstash clipboard transforms." />
+  <link rel="stylesheet" href="marketplace.css" />
+</head>
+<body>
+
+  <nav class="nav" aria-label="Main navigation">
+    <a class="nav-brand" href="../index.html">
+      <span class="flame" aria-hidden="true">🔥</span> Hotstash
+    </a>
+    <div class="nav-links">
+      <a href="index.html">Marketplace</a>
+      <a href="account.html" aria-current="page">Authors</a>
+      <a href="../index.html">Docs</a>
+    </div>
+  </nav>
+
+  <main class="container">
+
+    <header class="page-head">
+      <p class="section-label">Author Area</p>
+      <h1>Publish your transforms</h1>
+      <p>Sign in with Apple to manage and publish your clipboard transforms. Image-pipeline transforms are authored in the Hotstash app — the web upload accepts already-built manifests.</p>
+    </header>
+
+    <div id="toast" class="hidden" role="status" aria-live="polite"></div>
+
+    <!-- Signed out -->
+    <section id="signed-out" class="panel hidden" aria-labelledby="signin-heading">
+      <h2 id="signin-heading">Sign in to continue</h2>
+      <p>Publishing, updating, and managing transforms requires an account. Browsing the marketplace stays anonymous.</p>
+      <button id="signin-btn" class="btn btn-apple btn-lg" type="button"> Sign in with Apple</button>
+    </section>
+
+    <!-- Signed in -->
+    <div id="signed-in" class="hidden">
+
+      <section class="panel" aria-labelledby="my-heading">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <div>
+            <h2 id="my-heading">My transforms</h2>
+            <p id="who" style="margin:0">Signed in.</p>
+          </div>
+          <button id="signout-btn" class="btn" type="button" style="margin-left:auto">Sign out</button>
+        </div>
+
+        <div id="my-loading" class="state"><div class="spinner" aria-hidden="true"></div>Loading your transforms…</div>
+        <div id="my-empty" class="state hidden"><h3>No transforms yet</h3><p>Upload one below to get started.</p></div>
+        <div id="my-error" class="state error hidden" role="alert"><p id="my-error-msg"></p></div>
+        <div id="my-list" class="my-list hidden"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="upload-heading">
+        <h2 id="upload-heading">Upload a transform</h2>
+        <p>Paste an exported manifest, or use the simple text-transform editor. Submissions are validated and moderated server-side.</p>
+
+        <div class="tabs" role="tablist" aria-label="Upload method">
+          <button class="tab" id="tab-manifest" role="tab" aria-selected="true" aria-controls="panel-manifest">Paste manifest JSON</button>
+          <button class="tab" id="tab-editor" role="tab" aria-selected="false" aria-controls="panel-editor">Text editor</button>
+        </div>
+
+        <!-- Manifest paste -->
+        <form id="panel-manifest" role="tabpanel" aria-labelledby="tab-manifest" class="form-grid">
+          <div class="form-row">
+            <label for="manifest-json">Manifest JSON</label>
+            <textarea id="manifest-json" placeholder='{ "schemaVersion": 1, "slug": "slugify", "kind": "text", ... }' spellcheck="false"></textarea>
+            <span class="hint">Exported from Hotstash (<code>.hotstashtransform</code>) or hand-written. Image manifests are accepted here but authored in-app.</span>
+          </div>
+          <div class="form-row"><div id="manifest-errors" class="hint" role="alert" style="color:var(--danger)"></div></div>
+          <button class="btn btn-primary" type="submit">Validate &amp; submit</button>
+        </form>
+
+        <!-- Simple text editor -->
+        <form id="panel-editor" role="tabpanel" aria-labelledby="tab-editor" class="form-grid hidden">
+          <div class="form-row">
+            <label for="f-name">Name</label>
+            <input type="text" id="f-name" required placeholder="Slugify" />
+          </div>
+          <div class="form-row">
+            <label for="f-slug">Slug</label>
+            <input type="text" id="f-slug" required placeholder="slugify" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" />
+            <span class="hint">Lowercase kebab-case. Must be unique across the marketplace.</span>
+          </div>
+          <div class="form-row">
+            <label for="f-desc">Description</label>
+            <input type="text" id="f-desc" placeholder="Lowercase, replace non-alphanumerics with hyphens." />
+          </div>
+          <div class="form-row">
+            <label for="f-category">Category</label>
+            <select id="f-category" required></select>
+          </div>
+          <div class="form-row">
+            <label for="f-icon">Icon (SF Symbol name)</label>
+            <input type="text" id="f-icon" placeholder="textformat" value="textformat" />
+          </div>
+          <div class="form-row">
+            <label for="f-js">JavaScript source</label>
+            <textarea id="f-js" spellcheck="false" placeholder="function transform(input) {&#10;  return input.toLowerCase().replace(/[^a-z0-9]+/g, '-');&#10;}"></textarea>
+            <span class="hint">Must define a global <code>function transform(input)</code> returning a string. Runs in a sandbox (no network, no filesystem).</span>
+          </div>
+          <div class="form-row"><div id="editor-errors" class="hint" role="alert" style="color:var(--danger)"></div></div>
+          <button class="btn btn-primary" type="submit">Validate &amp; submit</button>
+        </form>
+      </section>
+    </div>
+
+  </main>
+
+  <footer>
+    <p>Made with <span style="color:#e5484d">♥</span> by Zeyad Amer · <a href="index.html">Marketplace</a></p>
+  </footer>
+
+  <script type="module">
+    import {
+      isConfigured, signIn, signOut, currentSession, onAuthChange,
+      fetchMyTransforms, submitTransform, parseManifest, validateManifest,
+      buildTextManifest, escapeHtml, formatCount,
+    } from "./marketplace.js";
+
+    const CATEGORIES = ["Case", "Whitespace", "Encoding", "JSON", "Cleanup", "Image"];
+
+    const el = (id) => document.getElementById(id);
+    const show = (n) => n.classList.remove("hidden");
+    const hide = (n) => n.classList.add("hidden");
+
+    function toast(msg, ok = true) {
+      const t = el("toast");
+      t.textContent = msg;
+      t.className = ok ? "toast toast-ok" : "toast toast-err";
+      t.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+    // Populate category select for the editor.
+    for (const c of CATEGORIES) {
+      const o = document.createElement("option");
+      o.value = c; o.textContent = c;
+      el("f-category").appendChild(o);
+    }
+
+    // ── Auth gating ──────────────────────────────────────────
+    function renderAuth(session) {
+      if (session) {
+        hide(el("signed-out")); show(el("signed-in"));
+        const name = session.user?.user_metadata?.full_name
+          || session.user?.email || "your account";
+        el("who").textContent = `Signed in as ${name}.`;
+        loadMine();
+      } else {
+        show(el("signed-out")); hide(el("signed-in"));
+      }
+    }
+
+    // ── My transforms ────────────────────────────────────────
+    function statusBadge(s) {
+      const map = { pending: "badge-pending", live: "badge-live", removed: "badge-removed" };
+      return `<span class="badge ${map[s] || ""}">${escapeHtml(s || "—")}</span>`;
+    }
+
+    async function loadMine() {
+      show(el("my-loading")); hide(el("my-empty")); hide(el("my-error")); hide(el("my-list"));
+      try {
+        const list = await fetchMyTransforms();
+        hide(el("my-loading"));
+        if (!list.length) { show(el("my-empty")); return; }
+        el("my-list").innerHTML = list.map((t) => `
+          <div class="my-item">
+            <div>
+              <div class="name">${escapeHtml(t.name)}</div>
+              <div class="meta">${escapeHtml(t.category || "")} · ${t.kind} · v${t.latest_version || 1} · ${formatCount(t.install_count)} installs</div>
+            </div>
+            <div class="spacer"></div>
+            ${statusBadge(t.status)}
+            ${t.status === "live" ? `<a class="btn" href="transform.html?slug=${encodeURIComponent(t.slug)}">View</a>` : ""}
+          </div>`).join("");
+        show(el("my-list"));
+      } catch (e) {
+        hide(el("my-loading"));
+        el("my-error-msg").textContent = e.message || "Could not load your transforms.";
+        show(el("my-error"));
+      }
+    }
+
+    // ── Submit flow ──────────────────────────────────────────
+    async function doSubmit(manifest, errorBox) {
+      errorBox.textContent = "";
+      try {
+        const res = await submitTransform(manifest);
+        const status = res?.status ? ` (status: ${res.status})` : "";
+        toast(`Submitted "${manifest.name}"${status}. It will appear after validation.`, true);
+        loadMine();
+        return true;
+      } catch (e) {
+        errorBox.textContent = e.message || "Submission failed.";
+        toast(e.message || "Submission failed.", false);
+        return false;
+      }
+    }
+
+    // ── Tabs ─────────────────────────────────────────────────
+    function selectTab(which) {
+      const isManifest = which === "manifest";
+      el("tab-manifest").setAttribute("aria-selected", String(isManifest));
+      el("tab-editor").setAttribute("aria-selected", String(!isManifest));
+      el("panel-manifest").classList.toggle("hidden", !isManifest);
+      el("panel-editor").classList.toggle("hidden", isManifest);
+    }
+    el("tab-manifest").addEventListener("click", () => selectTab("manifest"));
+    el("tab-editor").addEventListener("click", () => selectTab("editor"));
+
+    // Paste-manifest submit
+    el("panel-manifest").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const box = el("manifest-errors");
+      const { ok, manifest, errors } = parseManifest(el("manifest-json").value);
+      if (!ok) { box.innerHTML = errors.map(escapeHtml).join("<br>"); return; }
+      // Show informational notes even on success.
+      box.innerHTML = errors.length ? errors.map(escapeHtml).join("<br>") : "";
+      await doSubmit(manifest, box);
+    });
+
+    // Editor submit
+    el("panel-editor").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const box = el("editor-errors");
+      const manifest = buildTextManifest({
+        slug: el("f-slug").value,
+        name: el("f-name").value,
+        description: el("f-desc").value,
+        category: el("f-category").value,
+        icon: el("f-icon").value,
+        js: el("f-js").value,
+      });
+      const { ok, errors } = validateManifest(manifest);
+      if (!ok) { box.innerHTML = errors.map(escapeHtml).join("<br>"); return; }
+      box.innerHTML = "";
+      await doSubmit(manifest, box);
+    });
+
+    // ── Boot ─────────────────────────────────────────────────
+    el("signin-btn").addEventListener("click", async () => {
+      try { await signIn(); } catch (e) { toast(e.message, false); }
+    });
+    el("signout-btn").addEventListener("click", async () => {
+      try { await signOut(); renderAuth(null); } catch (e) { toast(e.message, false); }
+    });
+
+    if (!isConfigured()) {
+      show(el("signed-out"));
+      el("signin-btn").disabled = true;
+      toast("Marketplace is not configured yet (set SUPABASE_URL and SUPABASE_ANON_KEY in marketplace.js).", false);
+    } else {
+      onAuthChange(renderAuth);
+      currentSession().then(renderAuth).catch((e) => toast(e.message, false));
+    }
+  </script>
+</body>
+</html>

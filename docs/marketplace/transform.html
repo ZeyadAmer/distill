@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- SEO/OG tags are populated client-side from the transform (see script). -->
+  <title id="meta-title">Transform — Hotstash Marketplace</title>
+  <meta id="meta-desc" name="description" content="A community clipboard transform for Hotstash." />
+  <meta id="og-title" property="og:title" content="Hotstash Transform" />
+  <meta id="og-desc" property="og:description" content="A community clipboard transform for Hotstash." />
+  <meta property="og:type" content="website" />
+  <link rel="stylesheet" href="marketplace.css" />
+</head>
+<body>
+
+  <nav class="nav" aria-label="Main navigation">
+    <a class="nav-brand" href="../index.html">
+      <span class="flame" aria-hidden="true">🔥</span> Hotstash
+    </a>
+    <div class="nav-links">
+      <a href="index.html">Marketplace</a>
+      <a href="account.html">Authors</a>
+      <a href="../index.html">Docs</a>
+    </div>
+  </nav>
+
+  <main class="container">
+
+    <div id="loading" class="state">
+      <div class="spinner" aria-hidden="true"></div>
+      Loading transform…
+    </div>
+
+    <div id="error" class="state error hidden" role="alert">
+      <h3>Transform not found</h3>
+      <p id="error-msg">This transform may have been removed or the link is incorrect.</p>
+      <p style="margin-top:12px"><a class="btn" href="index.html">← Back to marketplace</a></p>
+    </div>
+
+    <article id="content" class="hidden">
+      <p style="padding-top:24px"><a href="index.html" style="font-size:0.85rem;text-decoration:none;color:var(--text-3)">← Marketplace</a></p>
+
+      <header class="detail-head">
+        <div class="tcard-icon" aria-hidden="true">✨</div>
+        <div>
+          <h1 id="t-name">—</h1>
+          <div class="author" id="t-author">—</div>
+        </div>
+      </header>
+
+      <p id="t-desc" style="color:var(--text-2);font-size:1.02rem;max-width:62ch"></p>
+
+      <div class="detail-actions">
+        <a id="open-btn" class="btn btn-primary btn-lg" href="#">Open in Hotstash</a>
+        <span class="detail-fallback">
+          Don't have Hotstash? <a id="download-link" href="#">Download</a>
+        </span>
+      </div>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+        <span class="badge badge-cat" id="t-cat"></span>
+        <span class="badge badge-kind" id="t-kind"></span>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat"><span class="num" id="t-installs">0</span><span class="lbl">Installs</span></div>
+        <div class="stat"><span class="num"><span class="stars" id="t-stars"></span></span><span class="lbl"><span id="t-rating-count">0</span> ratings</span></div>
+        <div class="stat"><span class="num" id="t-version">v1</span><span class="lbl">Version</span></div>
+      </div>
+
+      <h2 class="preview-label">Preview <span style="font-weight:400;text-transform:none;letter-spacing:0">(read-only)</span></h2>
+      <div id="preview"></div>
+
+    </article>
+  </main>
+
+  <footer>
+    <p>Made with <span style="color:#e5484d">♥</span> by Zeyad Amer · <a href="index.html">Marketplace</a></p>
+  </footer>
+
+  <script type="module">
+    import {
+      fetchBySlug, isConfigured, DEEP_LINK_SCHEME, DOWNLOAD_URL,
+      formatCount, starString, escapeHtml,
+    } from "./marketplace.js";
+
+    const els = {
+      loading: document.getElementById("loading"),
+      error: document.getElementById("error"),
+      errorMsg: document.getElementById("error-msg"),
+      content: document.getElementById("content"),
+    };
+
+    function showOnly(target) {
+      for (const el of [els.loading, els.error, els.content]) el.classList.add("hidden");
+      target.classList.remove("hidden");
+    }
+
+    function getSlug() {
+      const url = new URL(window.location.href);
+      const q = url.searchParams.get("slug");
+      if (q) return q;
+      // Fallback: support /transform/<slug> style paths if rewritten.
+      const parts = url.pathname.split("/").filter(Boolean);
+      const last = parts[parts.length - 1];
+      return last && last !== "transform.html" ? decodeURIComponent(last) : null;
+    }
+
+    function setMeta(t) {
+      const title = `${t.name} — Hotstash Marketplace`;
+      const desc = t.description || `A community clipboard transform for Hotstash.`;
+      document.getElementById("meta-title").textContent = title;
+      document.title = title;
+      document.getElementById("meta-desc").setAttribute("content", desc);
+      document.getElementById("og-title").setAttribute("content", t.name);
+      document.getElementById("og-desc").setAttribute("content", desc);
+    }
+
+    function renderPreview(t) {
+      const host = document.getElementById("preview");
+      if (t.kind === "image") {
+        const steps = Array.isArray(t.body?.steps) ? t.body.steps : [];
+        if (!steps.length) { host.innerHTML = `<p class="detail-fallback">No preview available.</p>`; return; }
+        const items = steps.map((s) => {
+          const params = s.params && Object.keys(s.params).length
+            ? `<span class="params">${escapeHtml(JSON.stringify(s.params))}</span>` : "";
+          return `<li><span>${escapeHtml(s.type)}</span> ${params}</li>`;
+        }).join("");
+        host.innerHTML = `<ol class="steps">${items}</ol>`;
+      } else {
+        const js = typeof t.body?.js === "string" ? t.body.js : "// Source unavailable";
+        const pre = document.createElement("pre");
+        pre.className = "code";
+        pre.textContent = js; // textContent avoids any HTML injection
+        host.innerHTML = "";
+        host.appendChild(pre);
+      }
+    }
+
+    function render(t) {
+      setMeta(t);
+      document.getElementById("t-name").textContent = t.name;
+      document.getElementById("t-author").textContent =
+        "by " + (t.author?.display_name || "Unknown author");
+      document.getElementById("t-desc").textContent = t.description || "";
+      document.getElementById("t-cat").textContent = t.category || "Uncategorized";
+      document.getElementById("t-kind").textContent = t.kind === "image" ? "Image" : "Text";
+      document.getElementById("t-installs").textContent = formatCount(t.install_count);
+      document.getElementById("t-stars").textContent = starString(t.rating_avg);
+      document.getElementById("t-rating-count").textContent = t.rating_count || 0;
+      document.getElementById("t-version").textContent = "v" + (t.version || t.latest_version || 1);
+
+      const open = document.getElementById("open-btn");
+      open.href = `${DEEP_LINK_SCHEME}://transform/${encodeURIComponent(t.slug)}`;
+      document.getElementById("download-link").href = DOWNLOAD_URL;
+
+      renderPreview(t);
+      showOnly(els.content);
+    }
+
+    async function load() {
+      const slug = getSlug();
+      if (!slug) {
+        els.errorMsg.textContent = "No transform was specified in the link.";
+        showOnly(els.error);
+        return;
+      }
+      if (!isConfigured()) {
+        els.errorMsg.textContent =
+          "Marketplace is not configured yet (set SUPABASE_URL and SUPABASE_ANON_KEY in marketplace.js).";
+        showOnly(els.error);
+        return;
+      }
+      try {
+        const t = await fetchBySlug(slug);
+        render(t);
+      } catch (e) {
+        els.errorMsg.textContent = e.message || "This transform could not be loaded.";
+        showOnly(els.error);
+      }
+    }
+
+    load();
+  </script>
+</body>
+</html>
