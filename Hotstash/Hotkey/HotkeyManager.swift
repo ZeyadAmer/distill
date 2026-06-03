@@ -17,10 +17,14 @@ final class HotkeyManager {
     private enum Keys {
         static let keyCode   = "hotkeyKeyCode"
         static let modifiers = "hotkeyModifiers"
+        static let multiPasteKeyCode   = "multiPasteHotkeyKeyCode"
+        static let multiPasteModifiers = "multiPasteHotkeyModifiers"
     }
 
     private static let defaultKeyCode:   UInt32 = UInt32(kVK_ANSI_V)
     private static let defaultModifiers: UInt32 = UInt32(cmdKey | shiftKey)
+    private static let defaultMultiPasteKeyCode:  UInt32 = 37 // kVK_ANSI_L
+    private static let defaultMultiPasteModifiers: UInt32 = UInt32(cmdKey | shiftKey)
 
     // MARK: - Persisted values
 
@@ -40,16 +44,27 @@ final class HotkeyManager {
         set { UserDefaults.standard.set(Int(newValue), forKey: Keys.modifiers) }
     }
 
+    var multiPasteKeyCode: UInt32 {
+        get {
+            let v = UserDefaults.standard.integer(forKey: Keys.multiPasteKeyCode)
+            return v > 0 ? UInt32(v) : Self.defaultMultiPasteKeyCode
+        }
+        set { UserDefaults.standard.set(Int(newValue), forKey: Keys.multiPasteKeyCode) }
+    }
+
+    var multiPasteModifiers: UInt32 {
+        get {
+            let v = UserDefaults.standard.integer(forKey: Keys.multiPasteModifiers)
+            return v > 0 ? UInt32(v) : Self.defaultMultiPasteModifiers
+        }
+        set { UserDefaults.standard.set(Int(newValue), forKey: Keys.multiPasteModifiers) }
+    }
+
     // MARK: - Carbon refs
 
     private var hotKeyRef: EventHotKeyRef?
     private var multiPasteHotKeyRef: EventHotKeyRef?
     private var eventHandlerRef: EventHandlerRef?
-
-    // MARK: - Multi-paste hotkey (CMD+Shift+L, fixed)
-
-    private static let multiPasteKeyCode:  UInt32 = 37 // kVK_ANSI_L
-    private static let multiPasteModifiers: UInt32 = UInt32(cmdKey | shiftKey)
 
     // MARK: - Lifecycle
 
@@ -67,10 +82,22 @@ final class HotkeyManager {
         registerHotKey()
     }
 
+    /// Replaces the multi-paste hotkey and immediately re-registers it.
+    func updateMultiPaste(keyCode newCode: UInt32, modifiers newMods: UInt32) {
+        unregisterMultiPasteHotKey()
+        multiPasteKeyCode  = newCode
+        multiPasteModifiers = newMods
+        registerMultiPasteHotKey()
+    }
+
     // MARK: - Display
 
     var displayString: String {
         Self.displayString(keyCode: keyCode, carbonModifiers: modifiers)
+    }
+
+    var multiPasteDisplayString: String {
+        Self.displayString(keyCode: multiPasteKeyCode, carbonModifiers: multiPasteModifiers)
     }
 
     static func displayString(keyCode: UInt32, carbonModifiers: UInt32) -> String {
@@ -139,8 +166,8 @@ final class HotkeyManager {
     private func registerMultiPasteHotKey() {
         let id = EventHotKeyID(signature: fourCharCode("HOTS"), id: 2)
         RegisterEventHotKey(
-            Self.multiPasteKeyCode,
-            Self.multiPasteModifiers,
+            multiPasteKeyCode,
+            multiPasteModifiers,
             id,
             GetApplicationEventTarget(),
             0,
@@ -152,6 +179,13 @@ final class HotkeyManager {
         if let ref = hotKeyRef {
             UnregisterEventHotKey(ref)
             hotKeyRef = nil
+        }
+    }
+
+    private func unregisterMultiPasteHotKey() {
+        if let ref = multiPasteHotKeyRef {
+            UnregisterEventHotKey(ref)
+            multiPasteHotKeyRef = nil
         }
     }
 }

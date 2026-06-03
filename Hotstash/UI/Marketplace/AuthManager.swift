@@ -179,9 +179,11 @@ extension AuthManager: ASAuthorizationControllerDelegate {
 
 extension AuthManager: ASAuthorizationControllerPresentationContextProviding {
     func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
-        SettingsWindowController.shared.window
-            ?? NSApp.keyWindow
-            ?? NSApp.windows.first
+        // Prefer the visible key window (e.g. the sign-in prompt or Settings)
+        // so the Apple sheet attaches to what the user is actually looking at.
+        NSApp.keyWindow
+            ?? NSApp.windows.first(where: { $0.isVisible })
+            ?? SettingsWindowController.shared.window
             ?? ASPresentationAnchor()
     }
 }

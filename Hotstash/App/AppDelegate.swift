@@ -8,6 +8,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private var onboardingWindowController: OnboardingWindowController?
     private var whatsNewWindowController: WhatsNewWindowController?
+    private var signInPromptWindowController: SignInPromptWindowController?
 
     // MARK: NSApplicationDelegate
 
@@ -66,6 +67,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Show first-launch onboarding or version What's New.
         showOnboardingIfNeeded()
         showWhatsNewIfNeeded()
+        showSignInPromptIfNeeded()
+    }
+
+    /// Invites the user to sign in to the marketplace on first launch and after
+    /// each update (no-op if already prompted for this version).
+    private func showSignInPromptIfNeeded() {
+        guard SignInPromptWindowController.shouldPrompt() else { return }
+        let wc = SignInPromptWindowController()
+        signInPromptWindowController = wc
+        // Defer so it lands in front of any onboarding/what's-new window.
+        DispatchQueue.main.async { wc.show() }
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {

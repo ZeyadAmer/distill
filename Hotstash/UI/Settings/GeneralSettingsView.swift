@@ -1,5 +1,11 @@
 import SwiftUI
 
+// MARK: - HistoryLimitOption
+
+private enum HistoryLimitOption: Hashable {
+    case unlimited, twoHundred, fiveHundred, custom
+}
+
 // MARK: - GeneralSettingsView
 
 struct GeneralSettingsView: View {
@@ -9,8 +15,24 @@ struct GeneralSettingsView: View {
     @State private var launchAtLogin: Bool = LaunchAtLoginManager.isEnabled
     @State private var hotkeyCode:      UInt32 = HotkeyManager.shared.keyCode
     @State private var hotkeyModifiers: UInt32 = HotkeyManager.shared.modifiers
+    @State private var multiPasteCode:      UInt32 = HotkeyManager.shared.multiPasteKeyCode
+    @State private var multiPasteModifiers: UInt32 = HotkeyManager.shared.multiPasteModifiers
     @State private var panelPosition: PanelPosition = PanelPosition.current
     @State private var showingClearConfirmation = false
+
+    @State private var historyLimitOption: HistoryLimitOption = {
+        switch UserDefaults.standard.integer(forKey: "historyLimit") {
+        case 0:   return .unlimited
+        case 200: return .twoHundred
+        case 500: return .fiveHundred
+        default:  return .custom
+        }
+    }()
+
+    @State private var customLimitText: String = {
+        let v = UserDefaults.standard.integer(forKey: "historyLimit")
+        return v > 0 && v != 200 && v != 500 ? "\(v)" : ""
+    }()
 
     // MARK: - Body
 
@@ -33,10 +55,19 @@ struct GeneralSettingsView: View {
                 LabeledContent("Open Hotstash") {
                     HotkeyRecorderView(keyCode: $hotkeyCode, modifiers: $hotkeyModifiers)
                 }
+                LabeledContent("Multi-paste") {
+                    HotkeyRecorderView(
+                        keyCode: $multiPasteCode,
+                        modifiers: $multiPasteModifiers,
+                        commit: { code, mods in
+                            HotkeyManager.shared.updateMultiPaste(keyCode: code, modifiers: mods)
+                        }
+                    )
+                }
             } header: {
-                Text("Keyboard Shortcut")
+                Text("Keyboard Shortcuts")
             } footer: {
-                Text("Click the shortcut field, then press your desired key combination.")
+                Text("Click a shortcut field, then press your desired key combination.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -59,9 +90,23 @@ struct GeneralSettingsView: View {
             // MARK: History
 
             Section {
-                LabeledContent("History") {
-                    Text("Unlimited")
-                        .foregroundStyle(.secondary)
+                Picker("Limit", selection: $historyLimitOption) {
+                    Text("Unlimited").tag(HistoryLimitOption.unlimited)
+                    Text("200 items").tag(HistoryLimitOption.twoHundred)
+                    Text("500 items").tag(HistoryLimitOption.fiveHundred)
+                    Text("Custom…").tag(HistoryLimitOption.custom)
+                }
+                .onChange(of: historyLimitOption) { applyLimit() }
+
+                if historyLimitOption == .custom {
+                    HStack(spacing: 8) {
+                        TextField("e.g. 1000", text: $customLimitText)
+                            .frame(width: 90)
+                            .textFieldStyle(.roundedBorder)
+                            .onSubmit { applyLimit() }
+                        Text("items")
+                            .foregroundStyle(.secondary)
+                    }
                 }
 
                 Button("Clear History\u{2026}") {
@@ -89,5 +134,26 @@ struct GeneralSettingsView: View {
         }
         .formStyle(.grouped)
         .padding(.vertical, 8)
+    }
+
+    // MARK: - Helpers
+
+    private func applyLimit() {
+        let store = ClipboardStore.shared
+        switch historyLimitOption {
+        case .unlimited:
+            store.maxHistoryItems = nil
+        case .twoHundred:
+            store.maxHistoryItems = 200
+            store.enforceHistoryLimit()
+        case .fiveHundred:
+            store.maxHistoryItems = 500
+            store.enforceHistoryLimit()
+        case .custom:
+            if let n = Int(customLimitText.trimmingCharacters(in: .whitespaces)), n > 0 {
+                store.maxHistoryItems = n
+                store.enforceHistoryLimit()
+            }
+        }
     }
 }

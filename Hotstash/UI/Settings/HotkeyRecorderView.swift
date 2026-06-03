@@ -10,12 +10,20 @@ struct HotkeyRecorderView: NSViewRepresentable {
     @Binding var keyCode: UInt32
     @Binding var modifiers: UInt32
 
+    /// Applies the new shortcut. Defaults to the main hotkey; pass
+    /// `HotkeyManager.shared.updateMultiPaste` for the multi-paste shortcut.
+    var commit: ((UInt32, UInt32) -> Void)?
+
     func makeNSView(context: Context) -> HotkeyRecorderControl {
         let control = HotkeyRecorderControl()
         control.onCommit = { newCode, newMods in
             keyCode   = newCode
             modifiers = newMods
-            HotkeyManager.shared.update(keyCode: newCode, modifiers: newMods)
+            if let commit {
+                commit(newCode, newMods)
+            } else {
+                HotkeyManager.shared.update(keyCode: newCode, modifiers: newMods)
+            }
         }
         return control
     }
