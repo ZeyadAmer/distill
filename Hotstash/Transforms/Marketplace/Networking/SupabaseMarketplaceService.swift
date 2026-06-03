@@ -110,7 +110,13 @@ struct SupabaseMarketplaceService: MarketplaceService {
         var req = try request(path: "/functions/v1/submit", method: "POST", token: accessToken)
         req.httpBody = body
         let (data, response) = try await session.data(for: req)
-        try Self.checkStatus(response)
+        let code = (response as? HTTPURLResponse)?.statusCode ?? -1
+        guard (200..<300).contains(code) else {
+            // Surface the server's reason (Edge Function returns {reason} or {error}).
+            let text = String(data: data, encoding: .utf8) ?? ""
+            let reason = Self.extractReason(text) ?? text
+            throw MarketplaceError.message("Publish rejected (HTTP \(code)): \(reason)")
+        }
         guard let result = try? Self.decoder.decode(SubmitResult.self, from: data) else {
             throw MarketplaceError.decoding
         }
@@ -242,6 +248,14 @@ struct SupabaseMarketplaceService: MarketplaceService {
 
     private func escape(_ value: String) -> String {
         value.addingPercentEncoding(withAllowedCharacters: Self.postgrestSafeChars) ?? value
+    }
+
+    /// Pulls a human reason out of a JSON error body like {"reason":"…"} or {"error":"…"}.
+    static func extractReason(_ text: String) -> String? {
+        guard let data = text.data(using: .utf8),
+              let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+        else { return nil }
+        return (obj["reason"] as? String) ?? (obj["error"] as? String) ?? (obj["message"] as? String)
     }
 
     /// Extracts the `sub` (user id) claim from a JWT without verifying it

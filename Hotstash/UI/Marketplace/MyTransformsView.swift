@@ -225,7 +225,7 @@ struct MyTransformsView: View {
                 reload()
             }
         } catch {
-            statusMessage = "Publish failed."
+            statusMessage = "Publish failed: \(error.localizedDescription)"
         }
     }
 }

@@ -151,3 +151,15 @@ enum MarketplaceError: Error, Equatable {
     case decoding
     case message(String)
 }
+
+extension MarketplaceError: LocalizedError {
+    var errorDescription: String? {
+        switch self {
+        case .notConfigured: return "Marketplace backend not configured."
+        case .notSignedIn:   return "You're not signed in."
+        case .http(let code): return "Network error (\(code))."
+        case .decoding:      return "Couldn't read the server response."
+        case .message(let m): return m
+        }
+    }
+}
