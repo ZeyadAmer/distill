@@ -18,6 +18,7 @@ final class AuthManager: NSObject, ObservableObject {
 
     @Published private(set) var accessToken: String?
     @Published private(set) var displayName: String?
+    @Published private(set) var isAdmin = false
     @Published private(set) var isSigningIn = false
     @Published var errorMessage: String?
 
@@ -53,7 +54,26 @@ final class AuthManager: NSObject, ObservableObject {
 
     func signOut() {
         accessToken = nil
+        isAdmin = false
         // Keep the cached display name; Apple only returns the name on first sign-in.
+    }
+
+    /// Reads the signed-in user's `is_admin` flag (profiles are publicly readable
+    /// via RLS). Best-effort; failure simply leaves `isAdmin == false`.
+    private func refreshIsAdmin(config: SupabaseConfig, token: String) async {
+        guard let uid = SupabaseMarketplaceService.subject(fromJWT: token),
+              let url = URL(string: config.url.absoluteString
+                            + "/rest/v1/profiles?id=eq.\(uid)&select=is_admin")
+        else { return }
+        var req = URLRequest(url: url)
+        req.setValue(config.anonKey, forHTTPHeaderField: "apikey")
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        guard let (data, response) = try? await session.data(for: req),
+              let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode),
+              let rows = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]],
+              let admin = rows.first?["is_admin"] as? Bool
+        else { return }
+        isAdmin = admin
     }
 
     // MARK: - Supabase exchange
@@ -97,6 +117,7 @@ final class AuthManager: NSObject, ObservableObject {
             displayName = resolvedName
             isSigningIn = false
             errorMessage = nil
+            await refreshIsAdmin(config: config, token: token)
         } catch {
             logger.error("Apple→Supabase exchange failed: \(error, privacy: .public)")
             finish(error: "Sign-in failed. Check your connection and try again.")

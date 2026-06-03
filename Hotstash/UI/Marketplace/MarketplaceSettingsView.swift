@@ -9,6 +9,7 @@ struct MarketplaceSettingsView: View {
     private enum Tab: String, CaseIterable {
         case browse = "Browse"
         case mine = "My Transforms"
+        case review = "Review"
     }
 
     @State private var tab: Tab = .browse
@@ -19,6 +20,11 @@ struct MarketplaceSettingsView: View {
 
     private var accessToken: String? { auth.accessToken }
 
+    /// Review tab is admin-only.
+    private var availableTabs: [Tab] {
+        auth.isAdmin ? Tab.allCases : [.browse, .mine]
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             authBar
@@ -26,7 +32,7 @@ struct MarketplaceSettingsView: View {
             Divider()
 
             Picker("", selection: $tab) {
-                ForEach(Tab.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                ForEach(availableTabs, id: \.self) { Text($0.rawValue).tag($0) }
             }
             .pickerStyle(.segmented)
             .labelsHidden()
@@ -39,7 +45,18 @@ struct MarketplaceSettingsView: View {
                 MarketplaceView(accessToken: accessToken)
             case .mine:
                 MyTransformsView(accessToken: accessToken)
+            case .review:
+                if let token = accessToken, auth.isAdmin {
+                    ReviewQueueView(accessToken: token)
+                } else {
+                    Text("Admins only.").foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
             }
+        }
+        // If admin status changes (e.g. sign-out) while on Review, fall back.
+        .onChange(of: auth.isAdmin) { _ in
+            if !availableTabs.contains(tab) { tab = .browse }
         }
     }
 

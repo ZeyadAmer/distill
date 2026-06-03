@@ -29,4 +29,15 @@ protocol MarketplaceService {
 
     /// File an abuse report against a transform or review.
     func report(targetType: String, targetID: UUID, reason: String, accessToken: String) async throws
+
+    // MARK: Admin (require is_admin server-side; RLS/RPCs enforce it)
+
+    /// Transforms awaiting review (admin only — RLS returns these only to admins).
+    func pendingReview(accessToken: String) async throws -> [TransformListItem]
+
+    /// Approve a pending transform → live (admin RPC).
+    func approve(transformID: UUID, accessToken: String) async throws
+
+    /// Reject/remove a transform (admin RPC).
+    func reject(transformID: UUID, accessToken: String) async throws
 }

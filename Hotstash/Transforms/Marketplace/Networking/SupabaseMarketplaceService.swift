@@ -111,6 +111,30 @@ struct SupabaseMarketplaceService: MarketplaceService {
         ], token: accessToken)
     }
 
+    // MARK: Admin
+
+    func pendingReview(accessToken: String) async throws -> [TransformListItem] {
+        // Bearer = the admin's JWT so RLS `transforms_select_admin` returns pending rows.
+        let req = try request(
+            path: "/rest/v1/transforms?status=eq.pending&select=\(Self.listColumns)&order=created_at.desc",
+            method: "GET", token: accessToken
+        )
+        let (data, response) = try await session.data(for: req)
+        try Self.checkStatus(response)
+        guard let decoded = try? Self.decoder.decode([TransformListItem].self, from: data) else {
+            throw MarketplaceError.decoding
+        }
+        return decoded
+    }
+
+    func approve(transformID: UUID, accessToken: String) async throws {
+        try await rpc("approve_transform", body: ["p_transform_id": transformID.uuidString], token: accessToken)
+    }
+
+    func reject(transformID: UUID, accessToken: String) async throws {
+        try await rpc("remove_transform", body: ["p_transform_id": transformID.uuidString], token: accessToken)
+    }
+
     // MARK: - Private helpers
 
     private static let listColumns =
@@ -134,8 +158,8 @@ struct SupabaseMarketplaceService: MarketplaceService {
         return decoded
     }
 
-    private func rpc(_ name: String, body: [String: String]) async throws {
-        var req = try request(path: "/rest/v1/rpc/\(name)", method: "POST", token: config.anonKey)
+    private func rpc(_ name: String, body: [String: String], token: String? = nil) async throws {
+        var req = try request(path: "/rest/v1/rpc/\(name)", method: "POST", token: token ?? config.anonKey)
         req.httpBody = try? JSONSerialization.data(withJSONObject: body)
         let (_, response) = try await session.data(for: req)
         try Self.checkStatus(response)

@@ -79,4 +79,14 @@ struct MockMarketplaceService: MarketplaceService {
     func rate(transformID: UUID, stars: Int, accessToken: String) async throws {}
     func postReview(transformID: UUID, body: String, accessToken: String) async throws {}
     func report(targetType: String, targetID: UUID, reason: String, accessToken: String) async throws {}
+
+    func pendingReview(accessToken: String) async throws -> [TransformListItem] {
+        [TransformListItem(
+            id: UUID(), slug: "pending-sample", name: "Pending Sample", authorName: "someone",
+            kind: .text, category: "Cleanup", installCount: 0, ratingAvg: 0, ratingCount: 0, isFeatured: false
+        )]
+    }
+
+    func approve(transformID: UUID, accessToken: String) async throws {}
+    func reject(transformID: UUID, accessToken: String) async throws {}
 }
