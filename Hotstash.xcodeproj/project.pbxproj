@@ -32,6 +32,7 @@
 		55309C6144D563297EA066CD /* LaunchAtLoginManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C81123429DA8F08940306AC /* LaunchAtLoginManager.swift */; };
 		5998260E55D8972C44C92CBA /* TextTransformEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BA74CF4DAB850A3D52A491 /* TextTransformEngine.swift */; };
 		5C4E8677C90D38DCE7AD5D59 /* ClipboardStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07A94AD7A9C0604D08B842FA /* ClipboardStore.swift */; };
+		6376DACF5122CF18585AF517 /* MarketplaceLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721A38B2C4233F9BBF04D1C1 /* MarketplaceLibrary.swift */; };
 		639937388E0DA8F8A87D17B5 /* SettingsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 497B06AB9E1C80977587F03C /* SettingsWindowController.swift */; };
 		673EC848BD72B21679BC33DB /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A9DE6005451FB0043006828 /* AppKit.framework */; };
 		68C4134F124CC338F0D3C814 /* WhitespaceTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC8FD990DF3BF88CE1E8B306 /* WhitespaceTransforms.swift */; };
@@ -67,6 +68,7 @@
 		EDF035328BBEDB29F970782E /* TextTransformEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CC810AA2F7272A184F0AC9A /* TextTransformEngineTests.swift */; };
 		F3F821A1D7B0A1C0EA4689FF /* ClipboardItemCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6A9D0726BB159ACE3620C30 /* ClipboardItemCell.swift */; };
 		F5E342105F5DFFC300929CC4 /* ClipboardMigrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51880DC40FE10900391A63EB /* ClipboardMigrationTests.swift */; };
+		F78D19D80E53738596A57E48 /* MarketplaceLibraryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29837DBAE622A1F825377A73 /* MarketplaceLibraryTests.swift */; };
 		F89BE5C9121D3392040BB4C9 /* MultiPastePanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3D42C077663BCE0A8ADE17 /* MultiPastePanel.swift */; };
 /* End PBXBuildFile section */
 
@@ -96,6 +98,7 @@
 		20861A838C19F2CAE4ED05BA /* Hotstash.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Hotstash.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		22D1F8CFB59A151FB042BEB6 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		252AECFD0C49802E4F197FEC /* HotkeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeyManager.swift; sourceTree = "<group>"; };
+		29837DBAE622A1F825377A73 /* MarketplaceLibraryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketplaceLibraryTests.swift; sourceTree = "<group>"; };
 		36695DA641B3C931651BFDEC /* PasteEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasteEngine.swift; sourceTree = "<group>"; };
 		3BB7F14A2532ED233E9E50D1 /* TransformManifestCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransformManifestCodec.swift; sourceTree = "<group>"; };
 		3DAB0717E7F75E3FF9B30BBE /* ClipboardPanelVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardPanelVC.swift; sourceTree = "<group>"; };
@@ -113,6 +116,7 @@
 		61E8D2209E6F7B00DD9FE504 /* WhatsNewWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhatsNewWindowController.swift; sourceTree = "<group>"; };
 		70D7A178D07506F1EDAB47E3 /* TransformManifestTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransformManifestTests.swift; sourceTree = "<group>"; };
 		71A0B6F31FE22C5044C273B5 /* ImageTransformEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageTransformEngine.swift; sourceTree = "<group>"; };
+		721A38B2C4233F9BBF04D1C1 /* MarketplaceLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketplaceLibrary.swift; sourceTree = "<group>"; };
 		72D38A0D5D49CAA9F1A4419C /* AboutSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutSettingsView.swift; sourceTree = "<group>"; };
 		745DE6446393891754A48B11 /* TransformSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransformSettingsView.swift; sourceTree = "<group>"; };
 		83A92FB48CB294E715B02806 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -292,6 +296,7 @@
 			children = (
 				E5FFE6B9EEFA88A4AD43F0B8 /* HotstashJSCore.h */,
 				71A0B6F31FE22C5044C273B5 /* ImageTransformEngine.swift */,
+				721A38B2C4233F9BBF04D1C1 /* MarketplaceLibrary.swift */,
 				C4E93D6391F5289AC2057ED1 /* MarketplaceTransform.swift */,
 				54B0C95B0A5D95C2B037025D /* StoredTransform.swift */,
 				11BA74CF4DAB850A3D52A491 /* TextTransformEngine.swift */,
@@ -362,6 +367,7 @@
 				51880DC40FE10900391A63EB /* ClipboardMigrationTests.swift */,
 				883C0E0540370662D042B67A /* ClipboardStoreTests.swift */,
 				BC2101067B68235A22AFF739 /* ImageTransformEngineTests.swift */,
+				29837DBAE622A1F825377A73 /* MarketplaceLibraryTests.swift */,
 				CC4832A1C57AB402DB2E5F91 /* MarketplaceTransformTests.swift */,
 				5AAC8B5CB7445D1E6B14899B /* SmokeTests.swift */,
 				0CC810AA2F7272A184F0AC9A /* TextTransformEngineTests.swift */,
@@ -476,6 +482,7 @@
 				F5E342105F5DFFC300929CC4 /* ClipboardMigrationTests.swift in Sources */,
 				900E818E852CF81ADDA6AF59 /* ClipboardStoreTests.swift in Sources */,
 				936CA7D5140136362CCC2A7F /* ImageTransformEngineTests.swift in Sources */,
+				F78D19D80E53738596A57E48 /* MarketplaceLibraryTests.swift in Sources */,
 				03C597758ADA30CAFD6EF574 /* MarketplaceTransformTests.swift in Sources */,
 				3C9715A9ADD898F8DEC1AB62 /* SmokeTests.swift in Sources */,
 				EDF035328BBEDB29F970782E /* TextTransformEngineTests.swift in Sources */,
@@ -510,6 +517,7 @@
 				55309C6144D563297EA066CD /* LaunchAtLoginManager.swift in Sources */,
 				0C21964B09654F5C2666C05E /* LegacyClipboardItem.swift in Sources */,
 				8FE01F40B1F461B734E36421 /* ListTransforms.swift in Sources */,
+				6376DACF5122CF18585AF517 /* MarketplaceLibrary.swift in Sources */,
 				AAA1B05850C4715A0A3CB018 /* MarketplaceTransform.swift in Sources */,
 				3537F0CBF436C85F70FA9288 /* MenuBarManager.swift in Sources */,
 				E472EAE697693B03E5F8549C /* ModelContainer+Hotstash.swift in Sources */,
