@@ -22,6 +22,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Run as a menubar-only (accessory) app — no Dock icon.
         NSApp.setActivationPolicy(.accessory)
 
+        // Install the main menu so standard editing shortcuts (⌘X/⌘C/⌘V/⌘A,
+        // ⌘Z) work in Settings/marketplace text fields.
+        AppMenu.install()
+
         // Migrate legacy UserDefaults history into SwiftData, then boot the pipeline.
         ClipboardMigration.runIfNeeded(context: ClipboardStore.shared.modelContextForMigration)
         ClipboardMonitor.shared.start()

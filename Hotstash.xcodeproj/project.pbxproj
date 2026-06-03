@@ -58,6 +58,7 @@
 		8FA487FFE047E607F10E4F32 /* Transform.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5C42098CBDBF783A7B887BE /* Transform.swift */; };
 		8FE01F40B1F461B734E36421 /* ListTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA61738337E4369F78AAFB73 /* ListTransforms.swift */; };
 		900E818E852CF81ADDA6AF59 /* ClipboardStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 883C0E0540370662D042B67A /* ClipboardStoreTests.swift */; };
+		91C27525A3CF0734841A71D6 /* AppMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7B98406979879E055F31A11 /* AppMenu.swift */; };
 		9281E15530C2905396A38C57 /* TransformRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = B75544001AF733AFAAA0014D /* TransformRegistry.swift */; };
 		936CA7D5140136362CCC2A7F /* ImageTransformEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC2101067B68235A22AFF739 /* ImageTransformEngineTests.swift */; };
 		989AD24250841C51BA711B55 /* CodeTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8C1302B2401F121B1FB4F20 /* CodeTransforms.swift */; };
@@ -182,6 +183,7 @@
 		EB5DED6941ED7289980445CB /* SupabaseMarketplaceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseMarketplaceService.swift; sourceTree = "<group>"; };
 		EE7D757B59297C1B161FDF63 /* MarketplaceViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketplaceViewModel.swift; sourceTree = "<group>"; };
 		F4D2DE5FC790AED434083F8D /* AuthenticationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AuthenticationServices.framework; path = System/Library/Frameworks/AuthenticationServices.framework; sourceTree = SDKROOT; };
+		F7B98406979879E055F31A11 /* AppMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppMenu.swift; sourceTree = "<group>"; };
 		F8758C63AA816832764F2043 /* ServiceManagement.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ServiceManagement.framework; path = System/Library/Frameworks/ServiceManagement.framework; sourceTree = SDKROOT; };
 		FF8673C62891F86C722E27A1 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		FF87284D296313E0AF446761 /* MyTransformsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyTransformsView.swift; sourceTree = "<group>"; };
@@ -412,6 +414,7 @@
 			isa = PBXGroup;
 			children = (
 				D4EA3F63C439EEFEB230985C /* AppDelegate.swift */,
+				F7B98406979879E055F31A11 /* AppMenu.swift */,
 				22D1F8CFB59A151FB042BEB6 /* main.swift */,
 				0F5A0B2DFE8E78A0497DE0A4 /* Notifications.swift */,
 			);
@@ -570,6 +573,7 @@
 			files = (
 				211BDD99F886E7590BE13A8E /* AboutSettingsView.swift in Sources */,
 				C264F3358E4C5D089B3F4937 /* AppDelegate.swift in Sources */,
+				91C27525A3CF0734841A71D6 /* AppMenu.swift in Sources */,
 				3FFAFC4391134C9910E0B837 /* AppRouter.swift in Sources */,
 				8D78EB453A7732480992825A /* AuthManager.swift in Sources */,
 				4FB1C238201EF23819C7576F /* CaseTransforms.swift in Sources */,
