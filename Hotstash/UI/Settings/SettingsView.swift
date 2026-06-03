@@ -16,11 +16,16 @@ struct SettingsRootView: View {
                     Label("Transforms", systemImage: "wand.and.stars")
                 }
 
+            MarketplaceSettingsView()
+                .tabItem {
+                    Label("Marketplace", systemImage: "bag")
+                }
+
             AboutSettingsView()
                 .tabItem {
                     Label("About", systemImage: "info.circle")
                 }
         }
-        .frame(width: 480, height: 360)
+        .frame(width: 560, height: 560)
     }
 }

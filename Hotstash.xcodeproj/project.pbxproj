@@ -10,6 +10,7 @@
 		019AA94D2FAAED3567E2FE72 /* SupabaseConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52E9247C196BF78780D32FC7 /* SupabaseConfig.swift */; };
 		03BD1322CEA0EA3C206792D8 /* GeneralSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86BB9B94B395BE9C2266BF2F /* GeneralSettingsView.swift */; };
 		03C597758ADA30CAFD6EF574 /* MarketplaceTransformTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC4832A1C57AB402DB2E5F91 /* MarketplaceTransformTests.swift */; };
+		0509B7A4616F9BB6C58D70AA /* MarketplaceSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F05E9860C6E8A23F6B52816 /* MarketplaceSettingsView.swift */; };
 		07405893A82C7CDCA8614347 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AB8722D370AD74770468379D /* Assets.xcassets */; };
 		09BEA4DFFF8E7C8581BF1C08 /* TransformBuilderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4254E2682F24510FFF3BD96E /* TransformBuilderView.swift */; };
 		0C21964B09654F5C2666C05E /* LegacyClipboardItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D31AEF245A8500967FD8ABB /* LegacyClipboardItem.swift */; };
@@ -71,6 +72,7 @@
 		C005ACD88EE6E2CB845C0710 /* OnboardingWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE0FA158D27BCC877128B1AC /* OnboardingWindowController.swift */; };
 		C1FDA11266C0844176389BF2 /* ClipboardPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D31B6CA4813B599061AE43C /* ClipboardPanel.swift */; };
 		C264F3358E4C5D089B3F4937 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4EA3F63C439EEFEB230985C /* AppDelegate.swift */; };
+		CA8E5D96757839E263BEEA20 /* MyTransformsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF87284D296313E0AF446761 /* MyTransformsView.swift */; };
 		CDF55ADC901E389DC4FB6295 /* MarketplaceModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = D694B7901653C7BA740C2AEF /* MarketplaceModels.swift */; };
 		CE5F686F1E974854CBC9A6F6 /* TransformManifestCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BB7F14A2532ED233E9E50D1 /* TransformManifestCodec.swift */; };
 		CF210BA00EABB53C3D0BDF80 /* EncodingTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55953DA19505ACD1E2B0551A /* EncodingTransforms.swift */; };
@@ -147,6 +149,7 @@
 		98EA024BCCA190660DE36CE0 /* ClipboardMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardMonitor.swift; sourceTree = "<group>"; };
 		9C81123429DA8F08940306AC /* LaunchAtLoginManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLoginManager.swift; sourceTree = "<group>"; };
 		9DA7DEADB4144664958C7845 /* JSONTransforms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONTransforms.swift; sourceTree = "<group>"; };
+		9F05E9860C6E8A23F6B52816 /* MarketplaceSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketplaceSettingsView.swift; sourceTree = "<group>"; };
 		AA61738337E4369F78AAFB73 /* ListTransforms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListTransforms.swift; sourceTree = "<group>"; };
 		AB8722D370AD74770468379D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B75544001AF733AFAAA0014D /* TransformRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransformRegistry.swift; sourceTree = "<group>"; };
@@ -175,6 +178,7 @@
 		EE7D757B59297C1B161FDF63 /* MarketplaceViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketplaceViewModel.swift; sourceTree = "<group>"; };
 		F8758C63AA816832764F2043 /* ServiceManagement.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ServiceManagement.framework; path = System/Library/Frameworks/ServiceManagement.framework; sourceTree = SDKROOT; };
 		FF8673C62891F86C722E27A1 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
+		FF87284D296313E0AF446761 /* MyTransformsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyTransformsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -223,8 +227,10 @@
 		0ECAFF12B6FC20C00F9CF0FC /* Marketplace */ = {
 			isa = PBXGroup;
 			children = (
+				9F05E9860C6E8A23F6B52816 /* MarketplaceSettingsView.swift */,
 				6D7C5E5D0D0EA1C85E709435 /* MarketplaceView.swift */,
 				EE7D757B59297C1B161FDF63 /* MarketplaceViewModel.swift */,
+				FF87284D296313E0AF446761 /* MyTransformsView.swift */,
 				4254E2682F24510FFF3BD96E /* TransformBuilderView.swift */,
 				DAC24B15D15F460CE84F90F2 /* TransformDetailView.swift */,
 			);
@@ -579,6 +585,7 @@
 				CDF55ADC901E389DC4FB6295 /* MarketplaceModels.swift in Sources */,
 				5562EF3A9E681FEB4CBB7EC5 /* MarketplaceService.swift in Sources */,
 				7BBE57EABCA62066D8FA12DD /* MarketplaceServiceProvider.swift in Sources */,
+				0509B7A4616F9BB6C58D70AA /* MarketplaceSettingsView.swift in Sources */,
 				AAA1B05850C4715A0A3CB018 /* MarketplaceTransform.swift in Sources */,
 				8CF7C01C48E0C5426C73611C /* MarketplaceView.swift in Sources */,
 				7B8D6E6DE233F5CF1DA7183B /* MarketplaceViewModel.swift in Sources */,
@@ -586,6 +593,7 @@
 				5216C4AC86F4D8A68EFFA8C5 /* MockMarketplaceService.swift in Sources */,
 				E472EAE697693B03E5F8549C /* ModelContainer+Hotstash.swift in Sources */,
 				F89BE5C9121D3392040BB4C9 /* MultiPastePanel.swift in Sources */,
+				CA8E5D96757839E263BEEA20 /* MyTransformsView.swift in Sources */,
 				1DC62D1D2745328DB77C4421 /* Notifications.swift in Sources */,
 				C005ACD88EE6E2CB845C0710 /* OnboardingWindowController.swift in Sources */,
 				80A0153929730092F80F58BD /* PasteEngine.swift in Sources */,
