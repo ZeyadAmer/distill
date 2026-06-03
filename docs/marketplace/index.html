@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hotstash Marketplace — Community Transforms</title>
+  <meta name="description" content="Browse and install community-built clipboard transforms for Hotstash. Search, filter by category, and sort by most installed or newest." />
+  <meta property="og:title" content="Hotstash Marketplace" />
+  <meta property="og:description" content="Browse and install community-built clipboard transforms for Hotstash." />
+  <meta property="og:type" content="website" />
+  <link rel="stylesheet" href="marketplace.css" />
+</head>
+<body>
+
+  <nav class="nav" aria-label="Main navigation">
+    <a class="nav-brand" href="../index.html">
+      <span class="flame" aria-hidden="true">🔥</span> Hotstash
+    </a>
+    <div class="nav-links">
+      <a href="index.html" aria-current="page">Marketplace</a>
+      <a href="account.html">Authors</a>
+      <a href="../index.html">Docs</a>
+    </div>
+  </nav>
+
+  <main class="container">
+
+    <header class="page-head">
+      <p class="section-label">Marketplace</p>
+      <h1>Community transforms for Hotstash</h1>
+      <p>Reshape your clipboard with transforms built by the community. Browse, then open any one in Hotstash to install. Using transforms requires Hotstash Pro.</p>
+    </header>
+
+    <!-- Featured -->
+    <section aria-labelledby="featured-heading" id="featured-section" class="hidden">
+      <p class="section-label" id="featured-heading">Featured</p>
+      <div class="featured-rail" id="featured-rail"></div>
+    </section>
+
+    <!-- Toolbar -->
+    <section aria-label="Browse controls" style="padding-top:24px">
+      <form class="toolbar" id="controls" role="search" onsubmit="return false">
+        <div class="field search-grow">
+          <label for="q">Search</label>
+          <input type="search" id="q" name="q" placeholder="Search transforms…" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label for="category">Category</label>
+          <select id="category" name="category">
+            <option value="">All categories</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="sort">Sort</label>
+          <select id="sort" name="sort">
+            <option value="installs">Most installed</option>
+            <option value="newest">Newest</option>
+          </select>
+        </div>
+      </form>
+    </section>
+
+    <!-- Results -->
+    <section aria-labelledby="browse-heading" style="padding-top:8px;padding-bottom:24px">
+      <h2 id="browse-heading" class="section-label">All transforms</h2>
+
+      <div id="loading" class="state">
+        <div class="spinner" aria-hidden="true"></div>
+        Loading transforms…
+      </div>
+
+      <div id="empty" class="state hidden">
+        <h3>No transforms found</h3>
+        <p>Try a different search or category.</p>
+      </div>
+
+      <div id="error" class="state error hidden" role="alert">
+        <h3>Couldn't load the marketplace</h3>
+        <p id="error-msg">Please try again in a moment.</p>
+      </div>
+
+      <div id="grid" class="grid hidden"></div>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>Made with <span style="color:#e5484d">♥</span> by Zeyad Amer · <a href="../index.html">Hotstash Docs</a></p>
+  </footer>
+
+  <script type="module">
+    import {
+      fetchLive, fetchFeatured, search, isConfigured,
+      formatCount, starString, escapeHtml,
+    } from "./marketplace.js";
+
+    // Categories mirror the app's TransformCategory raw values (spec §1.1).
+    const CATEGORIES = ["Case", "Whitespace", "Encoding", "JSON", "Cleanup", "Image"];
+
+    const els = {
+      loading: document.getElementById("loading"),
+      empty: document.getElementById("empty"),
+      error: document.getElementById("error"),
+      errorMsg: document.getElementById("error-msg"),
+      grid: document.getElementById("grid"),
+      featuredSection: document.getElementById("featured-section"),
+      featuredRail: document.getElementById("featured-rail"),
+      q: document.getElementById("q"),
+      category: document.getElementById("category"),
+      sort: document.getElementById("sort"),
+    };
+
+    for (const c of CATEGORIES) {
+      const opt = document.createElement("option");
+      opt.value = c; opt.textContent = c;
+      els.category.appendChild(opt);
+    }
+
+    function show(el) { el.classList.remove("hidden"); }
+    function hide(el) { el.classList.add("hidden"); }
+    function showOnly(target) {
+      for (const el of [els.loading, els.empty, els.error, els.grid]) hide(el);
+      show(target);
+    }
+
+    function cardHtml(t) {
+      const cat = t.category ? `<span class="badge badge-cat">${escapeHtml(t.category)}</span>` : "";
+      const kind = `<span class="badge badge-kind">${t.kind === "image" ? "Image" : "Text"}</span>`;
+      const author = t.author?.display_name ? escapeHtml(t.author.display_name) : "Unknown author";
+      return `
+        <a class="tcard" href="transform.html?slug=${encodeURIComponent(t.slug)}">
+          <div class="tcard-top">
+            <div class="tcard-icon" aria-hidden="true">✨</div>
+            <div>
+              <h3>${escapeHtml(t.name)}</h3>
+              <div class="author">by ${author}</div>
+            </div>
+          </div>
+          <p class="desc">${escapeHtml(t.description || "")}</p>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">${cat}${kind}</div>
+          <div class="tcard-meta">
+            <span title="${t.rating_count || 0} ratings"><span class="stars">${starString(t.rating_avg)}</span></span>
+            <span>${formatCount(t.install_count)} installs</span>
+          </div>
+        </a>`;
+    }
+
+    function renderGrid(list) {
+      if (!list.length) { showOnly(els.empty); return; }
+      els.grid.innerHTML = list.map(cardHtml).join("");
+      showOnly(els.grid);
+    }
+
+    function renderFeatured(list) {
+      if (!list.length) return;
+      els.featuredRail.innerHTML = list.map(cardHtml).join("");
+      show(els.featuredSection);
+    }
+
+    async function load() {
+      showOnly(els.loading);
+      try {
+        const term = els.q.value.trim();
+        let list;
+        if (term) {
+          list = await search(term);
+          // Client-side category + sort refinement on search results.
+          if (els.category.value) list = list.filter((t) => t.category === els.category.value);
+          if (els.sort.value === "newest") {
+            list.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+          }
+        } else {
+          list = await fetchLive({ category: els.category.value || null, sort: els.sort.value });
+        }
+        renderGrid(list);
+      } catch (e) {
+        els.errorMsg.textContent = e.message || "Unknown error.";
+        showOnly(els.error);
+      }
+    }
+
+    function debounce(fn, ms) {
+      let h; return (...a) => { clearTimeout(h); h = setTimeout(() => fn(...a), ms); };
+    }
+
+    if (!isConfigured()) {
+      els.errorMsg.textContent =
+        "Marketplace is not configured yet (set SUPABASE_URL and SUPABASE_ANON_KEY in marketplace.js).";
+      showOnly(els.error);
+    } else {
+      els.q.addEventListener("input", debounce(load, 250));
+      els.category.addEventListener("change", load);
+      els.sort.addEventListener("change", load);
+      fetchFeatured().then(renderFeatured).catch(() => { /* featured is best-effort */ });
+      load();
+    }
+  </script>
+</body>
+</html>

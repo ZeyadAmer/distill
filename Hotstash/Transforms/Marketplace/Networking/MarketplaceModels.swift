@@ -1,0 +1,130 @@
+import Foundation
+
+// MARK: - List Item
+
+/// A lightweight transform row for browse/featured lists. Mirrors the columns
+/// selected from the Supabase `transforms` table (plus the joined author name).
+struct TransformListItem: Identifiable, Codable, Equatable {
+    let id: UUID
+    let slug: String
+    let name: String
+    let authorName: String?
+    let kind: TransformKind
+    let category: String
+    let installCount: Int
+    let ratingAvg: Double
+    let ratingCount: Int
+    let isFeatured: Bool
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case slug
+        case name
+        case authorName = "author_name"
+        case kind
+        case category
+        case installCount = "install_count"
+        case ratingAvg = "rating_avg"
+        case ratingCount = "rating_count"
+        case isFeatured = "is_featured"
+    }
+}
+
+// MARK: - Detail
+
+/// Full transform detail: all list fields plus the description, current version,
+/// and the executable body assembled from the latest `transform_versions` row.
+struct TransformDetail: Identifiable, Codable, Equatable {
+    let id: UUID
+    let slug: String
+    let name: String
+    let authorName: String?
+    let kind: TransformKind
+    let category: String
+    let installCount: Int
+    let ratingAvg: Double
+    let ratingCount: Int
+    let isFeatured: Bool
+    let description: String
+    let version: Int
+    let body: TransformBody
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case slug
+        case name
+        case authorName = "author_name"
+        case kind
+        case category
+        case installCount = "install_count"
+        case ratingAvg = "rating_avg"
+        case ratingCount = "rating_count"
+        case isFeatured = "is_featured"
+        case description
+        case version
+        case body
+    }
+
+    /// Builds a `TransformManifest` suitable for local install/execution.
+    func toManifest() -> TransformManifest {
+        TransformManifest(
+            id: id,
+            slug: slug,
+            version: version,
+            kind: kind,
+            name: name,
+            description: description,
+            icon: kind == .image ? "photo" : "textformat",
+            category: category,
+            authorName: authorName,
+            body: body
+        )
+    }
+}
+
+// MARK: - Review
+
+/// A free-text review row joined with its author's display name.
+struct MarketplaceReview: Identifiable, Codable, Equatable {
+    let id: UUID
+    let authorName: String?
+    let stars: Int?
+    let body: String
+    let createdAt: Date
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case authorName = "author_name"
+        case stars
+        case body
+        case createdAt = "created_at"
+    }
+}
+
+// MARK: - Sort
+
+/// Browse sort order, mapped to PostgREST `order=` clauses by the service.
+enum MarketplaceSort: String {
+    case mostInstalled
+    case newest
+}
+
+// MARK: - Submit Result
+
+/// Result returned by the `submit` Edge Function. `status` is one of
+/// `pending` | `live` | `rejected`; `reason` is populated when rejected.
+struct SubmitResult: Codable, Equatable {
+    let status: String
+    let reason: String?
+}
+
+// MARK: - Errors
+
+/// Errors surfaced by the marketplace networking layer.
+enum MarketplaceError: Error, Equatable {
+    case notConfigured
+    case notSignedIn
+    case http(Int)
+    case decoding
+    case message(String)
+}

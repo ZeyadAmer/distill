@@ -1,0 +1,68 @@
+# =============================================================================
+# Hotstash Transforms Marketplace — Supabase project config
+# =============================================================================
+# Minimal config for `supabase` CLI (db push, functions deploy, local dev).
+# Replace `project_id` with your real ref when linking: `supabase link`.
+# Secrets are NEVER stored here — use `supabase secrets set` (see README).
+# =============================================================================
+
+# Placeholder. After `supabase init`/`supabase link`, this becomes your project
+# ref (e.g. "abcdefghijklmnopqrst").
+project_id = "<SET_PROJECT_REF>"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323
+
+[auth]
+enabled = true
+# Public site/app URL used in auth redirects (website discovery pages).
+site_url = "https://hotstash.app"
+# Allowed redirect URLs for OAuth + the app deep link.
+additional_redirect_urls = [
+  "https://hotstash.app",
+  "hotstash://auth-callback",
+]
+jwt_expiry = 3600
+enable_signup = true
+
+# ---- Sign in with Apple — the ONLY identity provider (spec §2.1) ------------
+[auth.external.apple]
+enabled = true
+# TODO(human): Apple "Services ID" (client id), e.g. app.hotstash.web
+client_id = "<SET_APPLE_CLIENT_ID>"
+# The signing secret is a short-lived JWT generated from your Apple .p8 key.
+# Stored as a secret, referenced by env var (do NOT inline it here).
+secret = "env(SUPABASE_AUTH_EXTERNAL_APPLE_SECRET)"
+# Native Sign in with Apple from the macOS app uses the app bundle id as an
+# additional audience. Add your app's bundle id here.
+# TODO(human): set to the macOS app bundle id, e.g. app.hotstash.mac
+# (comma-separate web + native client ids if both are used)
+
+# All other providers are disabled — Apple only.
+[auth.email]
+enable_signup = false
+enable_confirmations = false
+
+# =============================================================================
+# Edge Functions
+# =============================================================================
+# verify_jwt = true is the default; `submit` verifies the JWT itself, and
+# `notify-owner` is called by the service role / DB webhook (no end-user JWT),
+# so JWT verification is disabled for it and gated by NOTIFY_SHARED_SECRET.
+[functions.submit]
+verify_jwt = true
+
+[functions.notify-owner]
+verify_jwt = false
