@@ -65,6 +65,7 @@ targets:
       - sdk: StoreKit.framework
       - sdk: CoreGraphics.framework
       - sdk: JavaScriptCore.framework
+      - sdk: AuthenticationServices.framework
 
     entitlements:
       path: Hotstash/Resources/Hotstash.entitlements
@@ -76,6 +77,8 @@ targets:
           - iCloud.com.zeyadamer.hotstash
         com.apple.developer.icloud-services:
           - CloudKit
+        com.apple.developer.applesignin:
+          - Default
 
   HotstashTests:
     type: bundle.unit-test

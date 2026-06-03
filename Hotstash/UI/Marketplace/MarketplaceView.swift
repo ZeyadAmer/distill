@@ -8,9 +8,9 @@ struct MarketplaceView: View {
 
     @StateObject private var viewModel = MarketplaceViewModel()
     @State private var selectedItem: TransformListItem?
+    @ObservedObject private var router = AppRouter.shared
 
     /// Optional signed-in token passed through to the detail sheet.
-    /// Sourced from `AuthManager.shared.accessToken` (stub until S4).
     var accessToken: String?
 
     var body: some View {
@@ -20,8 +20,23 @@ struct MarketplaceView: View {
             resultsArea
         }
         .task { await viewModel.load() }
+        .task(id: router.pendingTransformSlug) { await openPendingTransformIfNeeded() }
         .sheet(item: $selectedItem) { item in
             TransformDetailView(item: item, viewModel: viewModel, accessToken: accessToken)
+        }
+    }
+
+    /// Opens the detail sheet for a slug delivered via deep link.
+    private func openPendingTransformIfNeeded() async {
+        guard let slug = router.pendingTransformSlug else { return }
+        router.pendingTransformSlug = nil
+        // Prefer an already-loaded list item; otherwise fetch detail to build one.
+        if let existing = (viewModel.featured + viewModel.results).first(where: { $0.slug == slug }) {
+            selectedItem = existing
+            return
+        }
+        if let item = await viewModel.lookup(slug: slug) {
+            selectedItem = item
         }
     }
 

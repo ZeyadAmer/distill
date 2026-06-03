@@ -47,6 +47,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             object: nil
         )
 
+        // Register the URL-scheme handler for hotstash:// deep links.
+        NSAppleEventManager.shared().setEventHandler(
+            self,
+            andSelector: #selector(handleGetURLEvent(_:withReplyEvent:)),
+            forEventClass: AEEventClass(kInternetEventClass),
+            andEventID: AEEventID(kAEGetURL)
+        )
+
         // Start the trial countdown and purchase listener.
         TrialManager.shared.start()
         PurchaseManager.shared.listenForTransactions()
@@ -77,6 +85,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Task { @MainActor in
             MultiPastePanel.shared.show()
         }
+    }
+
+    // MARK: - Deep links
+
+    /// Handles `hotstash://transform/<slug>` URLs: opens Settings, switches to
+    /// the Marketplace tab, and routes to the transform's detail.
+    @objc private func handleGetURLEvent(_ event: NSAppleEventDescriptor,
+                                         withReplyEvent reply: NSAppleEventDescriptor) {
+        guard
+            let urlString = event.paramDescriptor(forKeyword: AEKeyword(keyDirectObject))?.stringValue,
+            let url = URL(string: urlString),
+            url.scheme == "hotstash"
+        else { return }
+
+        // hotstash://transform/<slug>  → host "transform", first path component is the slug.
+        guard url.host == "transform" else { return }
+        let slug = url.pathComponents.first(where: { $0 != "/" }) ?? ""
+        guard !slug.isEmpty else { return }
+
+        AppRouter.shared.openTransform(slug: slug)
+        SettingsWindowController.shared.show()
     }
 
     // MARK: - Onboarding

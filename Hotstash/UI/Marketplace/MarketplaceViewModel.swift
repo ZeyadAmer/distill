@@ -97,6 +97,23 @@ final class MarketplaceViewModel: ObservableObject {
         installedSlugs.contains(slug)
     }
 
+    /// Resolves a slug (e.g. from a deep link) to a list item by fetching its
+    /// detail. Returns nil if not found / unavailable.
+    func lookup(slug: String) async -> TransformListItem? {
+        do {
+            let detail = try await service.detail(slug: slug)
+            return TransformListItem(
+                id: detail.id, slug: detail.slug, name: detail.name,
+                authorName: detail.authorName, kind: detail.kind, category: detail.category,
+                installCount: detail.installCount, ratingAvg: detail.ratingAvg,
+                ratingCount: detail.ratingCount, isFeatured: detail.isFeatured
+            )
+        } catch {
+            errorMessage = Self.describe(error)
+            return nil
+        }
+    }
+
     // MARK: Helpers
 
     /// Re-read installed slugs from the local library.

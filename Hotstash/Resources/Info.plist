@@ -34,5 +34,16 @@
     <string>NSApplication</string>
     <key>LSApplicationCategoryType</key>
     <string>public.app-category.productivity</string>
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleURLName</key>
+            <string>com.zeyadamer.hotstash.transform</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>hotstash</string>
+            </array>
+        </dict>
+    </array>
 </dict>
 </plist>
