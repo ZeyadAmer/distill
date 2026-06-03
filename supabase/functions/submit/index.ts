@@ -394,11 +394,25 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // No-op if body unchanged.
+    // Body unchanged: still apply metadata edits (name/description/icon/category)
+    // without creating a new version. body_hash only covers the executable body.
     if (existing.body_hash === bodyHash) {
+      const { error: metaErr } = await admin
+        .from("transforms")
+        .update({
+          kind,
+          name: manifest.name,
+          description: manifest.description ?? "",
+          icon: manifest.icon ?? "textformat",
+          category: manifest.category ?? "cleanup",
+        })
+        .eq("id", existing.id);
+      if (metaErr) {
+        return json({ status: "rejected", reason: "failed to update metadata" }, 500);
+      }
       return json({
         status: existing.status,
-        reason: "no changes (identical body)",
+        reason: "metadata updated (body unchanged)",
         transformId: existing.id,
         version: existing.latest_version,
       });

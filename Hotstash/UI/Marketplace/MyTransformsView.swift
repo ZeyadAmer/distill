@@ -75,9 +75,14 @@ struct MyTransformsView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
             List {
-                if !drafts.isEmpty {
+                // Local drafts NOT yet on the server (published ones live under
+                // "Published by you" to avoid showing the same transform twice).
+                let unpublished = drafts.filter { draft in
+                    !published.contains { $0.slug == draft.slug }
+                }
+                if !unpublished.isEmpty {
                     Section("Drafts") {
-                        ForEach(drafts, id: \.slug) { row in draftRow(row) }
+                        ForEach(unpublished, id: \.slug) { row in draftRow(row) }
                     }
                 }
                 if !published.isEmpty {
