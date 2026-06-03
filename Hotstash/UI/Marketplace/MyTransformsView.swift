@@ -15,8 +15,7 @@ struct MyTransformsView: View {
 
     @State private var drafts: [StoredTransform] = []
     @State private var installed: [StoredTransform] = []
-    @State private var editingManifest: TransformManifest?
-    @State private var showingBuilder = false
+    @State private var builderMode: BuilderMode?
     @State private var statusMessage: String?
 
     init(accessToken: String? = nil, service: MarketplaceService = MarketplaceServiceProvider.shared) {
@@ -37,8 +36,8 @@ struct MyTransformsView: View {
             }
         }
         .onAppear(perform: reload)
-        .sheet(isPresented: $showingBuilder, onDismiss: reload) {
-            TransformBuilderView(editing: editingManifest)
+        .sheet(item: $builderMode, onDismiss: reload) { mode in
+            TransformBuilderView(editing: mode.manifest)
         }
     }
 
@@ -47,8 +46,7 @@ struct MyTransformsView: View {
     private var toolbar: some View {
         HStack {
             Button {
-                editingManifest = nil
-                showingBuilder = true
+                builderMode = .new
             } label: {
                 Label("New Transform", systemImage: "plus")
             }
@@ -92,13 +90,12 @@ struct MyTransformsView: View {
 
     private func draftRow(_ row: StoredTransform) -> some View {
         HStack(spacing: 10) {
-            rowLabel(row, status: row.isPublished ? "published" : "draft")
+            rowLabel(row, status: row.isPublished ? "submitted · in review" : "draft")
             Spacer()
             Button("Edit") {
-                editingManifest = row.manifest
-                showingBuilder = true
+                if let manifest = row.manifest { builderMode = .edit(manifest) }
             }
-            Button(row.isPublished ? "Published" : "Publish") {
+            Button(row.isPublished ? "Submitted" : "Publish") {
                 Task { await publish(row) }
             }
             .disabled(row.isPublished)
@@ -183,6 +180,30 @@ struct MyTransformsView: View {
             }
         } catch {
             statusMessage = "Publish failed."
+        }
+    }
+}
+
+// MARK: - BuilderMode
+
+/// Drives the builder sheet via `.sheet(item:)` so the correct manifest is
+/// always passed (avoids the stale-capture bug of a separate isPresented flag).
+enum BuilderMode: Identifiable {
+    case new
+    case edit(TransformManifest)
+
+    var id: String {
+        switch self {
+        case .new: return "new"
+        case .edit(let manifest): return manifest.id.uuidString
+        }
+    }
+
+    /// The manifest to edit, or nil for a new transform.
+    var manifest: TransformManifest? {
+        switch self {
+        case .new: return nil
+        case .edit(let manifest): return manifest
         }
     }
 }
