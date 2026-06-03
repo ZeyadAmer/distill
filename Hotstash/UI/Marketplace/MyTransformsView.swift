@@ -8,7 +8,7 @@ import UniformTypeIdentifiers
 struct MyTransformsView: View {
 
     /// Optional signed-in token. Publish requires one; nil → prompt to sign in.
-    /// Wired to `AuthManager.shared.accessToken` in Commit 5.
+    /// Sourced from `AuthManager.shared.accessToken` (stub until S4).
     var accessToken: String?
 
     let service: MarketplaceService

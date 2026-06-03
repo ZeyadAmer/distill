@@ -10,7 +10,7 @@ struct TransformDetailView: View {
     @ObservedObject var viewModel: MarketplaceViewModel
 
     /// Optional signed-in access token. When nil, auth-gated controls are hidden.
-    /// Wired to `AuthManager.shared.accessToken` in Commit 5.
+    /// Sourced from `AuthManager.shared.accessToken` (stub until S4).
     let accessToken: String?
 
     @Environment(\.dismiss) private var dismiss

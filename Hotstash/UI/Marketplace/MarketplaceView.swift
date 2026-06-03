@@ -10,7 +10,7 @@ struct MarketplaceView: View {
     @State private var selectedItem: TransformListItem?
 
     /// Optional signed-in token passed through to the detail sheet.
-    /// Wired to `AuthManager.shared.accessToken` in Commit 5.
+    /// Sourced from `AuthManager.shared.accessToken` (stub until S4).
     var accessToken: String?
 
     var body: some View {

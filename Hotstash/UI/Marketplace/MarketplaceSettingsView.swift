@@ -13,8 +13,11 @@ struct MarketplaceSettingsView: View {
 
     @State private var tab: Tab = .browse
 
-    /// Signed-in token passed to both surfaces. Wired in Commit 5.
-    var accessToken: String?
+    /// Signed-in token passed to both surfaces. Hidden while nil.
+    /// TODO(S4): `AuthManager` is a stub until real Sign in with Apple lands.
+    @ObservedObject private var auth = AuthManager.shared
+
+    private var accessToken: String? { auth.accessToken }
 
     var body: some View {
         VStack(spacing: 0) {
