@@ -43,29 +43,29 @@ struct WhatsNewView: View {
 
     private let items: [ChangeItem] = [
         ChangeItem(
-            icon: "pin.circle.fill",
-            title: "Pinned & Recents tabs",
-            detail: "Browse your pinned and recent clips in separate tabs — no more scrolling past a long pinned list."
+            icon: "bag.fill",
+            title: "Transforms Marketplace",
+            detail: "Create your own text and image transforms, share them with the community, and install ones others made — right inside the app."
+        ),
+        ChangeItem(
+            icon: "icloud.fill",
+            title: "iCloud sync",
+            detail: "Your clipboard history and installed transforms now sync across all your Macs and survive reinstalls. Everything stays in your private iCloud."
+        ),
+        ChangeItem(
+            icon: "infinity",
+            title: "Unlimited history",
+            detail: "No more cap — keep and search your entire clipboard history."
         ),
         ChangeItem(
             icon: "keyboard",
-            title: "⌘1–⌘9 instant paste",
-            detail: "Press ⌘1–⌘9 to paste any item by position the moment the panel opens — no click required."
+            title: "Editable Multi-paste shortcut",
+            detail: "Set your own shortcut for multi-paste, alongside the main Open Hotstash shortcut."
         ),
         ChangeItem(
-            icon: "cursorarrow.click",
-            title: "Click to copy, double-click to close",
-            detail: "Single click copies an item to your clipboard. Double-click copies and dismisses the panel."
-        ),
-        ChangeItem(
-            icon: "photo.badge.arrow.down.fill",
-            title: "More image transforms",
-            detail: "Convert images to WebP, PNG, Grayscale, resize to 50%, flip horizontally, or rotate 90°."
-        ),
-        ChangeItem(
-            icon: "text.badge.checkmark",
-            title: "Smarter Trim Whitespace",
-            detail: "Trim Whitespace now also collapses extra spaces between words, not just leading and trailing edges."
+            icon: "lock.shield.fill",
+            title: "Password-safe by default",
+            detail: "Copies from password managers and other concealed content are never captured into your history."
         ),
     ]
 
@@ -83,7 +83,7 @@ struct WhatsNewView: View {
                     .font(.largeTitle)
                     .fontWeight(.bold)
 
-                Text("Version 3.0")
+                Text("Version 4.0")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
