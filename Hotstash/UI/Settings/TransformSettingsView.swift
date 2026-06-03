@@ -44,6 +44,10 @@ struct TransformSettingsView: View {
                 }
             }
             .listStyle(.inset)
+            // Reload each time the tab appears so newly installed / renamed
+            // marketplace transforms show their current name (the @State was
+            // otherwise captured once and went stale).
+            .onAppear { transforms = Self.loadRows() }
 
             Divider()
 
