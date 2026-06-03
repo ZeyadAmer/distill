@@ -8,7 +8,7 @@
 
 # Placeholder. After `supabase init`/`supabase link`, this becomes your project
 # ref (e.g. "abcdefghijklmnopqrst").
-project_id = "<SET_PROJECT_REF>"
+project_id = "ycudbindrobthnpoaevr"
 
 [api]
 enabled = true
@@ -19,7 +19,7 @@ max_rows = 1000
 
 [db]
 port = 54322
-major_version = 15
+major_version = 17
 
 [studio]
 enabled = true
