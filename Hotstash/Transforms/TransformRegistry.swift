@@ -12,6 +12,40 @@ final class TransformRegistry {
     static let shared = TransformRegistry()
     private init() {}
 
+    /// Test-only initializer that injects a custom-transforms provider without
+    /// touching the shared singleton. Production always uses `shared`.
+    internal init(customProvider: @escaping () -> [any Transform]) {
+        self.customProvider = customProvider
+    }
+
+    // MARK: Custom Transform Source
+
+    /// Provides installed/custom transforms to merge with the built-ins.
+    /// Defaults to the marketplace library; overridable in tests.
+    ///
+    /// All registry accessors run on the main thread (every call site is
+    /// main-thread UI), so reading the `@MainActor` library via
+    /// `MainActor.assumeIsolated` is safe here and keeps the accessors free of
+    /// actor annotations.
+    var customProvider: () -> [any Transform] = {
+        MainActor.assumeIsolated { MarketplaceLibrary.shared.customTransforms() }
+    }
+
+    // MARK: Merge
+
+    /// Merges built-in and custom transforms. On id/slug collision the built-in wins
+    /// (the custom one is dropped) so a community transform can never shadow a built-in.
+    static func merge(builtIn: [any Transform], custom: [any Transform]) -> [any Transform] {
+        let builtInIDs = Set(builtIn.map { $0.id })
+        let safeCustom = custom.filter { !builtInIDs.contains($0.id) }
+        return builtIn + safeCustom
+    }
+
+    /// Built-ins plus installed/custom transforms, with built-ins taking precedence.
+    private var allMerged: [any Transform] {
+        Self.merge(builtIn: all, custom: customProvider())
+    }
+
     // MARK: All Transforms
 
     /// The complete ordered list of all registered transforms.
@@ -71,15 +105,18 @@ final class TransformRegistry {
 
     // MARK: Custom-Ordered Transforms
 
-    /// All transforms in the user's custom order (falls back to default order).
+    /// All transforms (built-in + installed/custom) in the user's custom order
+    /// (falls back to default order). Newly installed transforms not yet in the
+    /// saved order are appended at the end.
     var orderedAll: [any Transform] {
+        let merged = allMerged
         let customOrder = UserDefaults.standard.stringArray(forKey: "transformOrder") ?? []
-        guard !customOrder.isEmpty else { return all }
-        let byID = all.reduce(into: [String: any Transform]()) { $0[$1.id] = $1 }
+        guard !customOrder.isEmpty else { return merged }
+        let byID = merged.reduce(into: [String: any Transform]()) { $0[$1.id] = $1 }
         var result: [any Transform] = customOrder.compactMap { byID[$0] }
-        // Append any transforms added after the order was last saved.
+        // Append any transforms added (or installed) after the order was last saved.
         let knownIDs = Set(customOrder)
-        result += all.filter { !knownIDs.contains($0.id) }
+        result += merged.filter { !knownIDs.contains($0.id) }
         return result
     }
 
