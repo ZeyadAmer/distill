@@ -26,8 +26,8 @@ export const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 export const DEEP_LINK_SCHEME = "hotstash";
 
 // Where "Download Hotstash" sends people who don't have the app.
-// TODO: point at the App Store / main download URL.
-export const DOWNLOAD_URL = "../index.html";
+// Region-neutral App Store link (Apple redirects to the visitor's storefront).
+export const DOWNLOAD_URL = "https://apps.apple.com/app/id6771842605";
 
 // ─── Schema assumptions (reconcile with backend, spec §2.2) ───
 // transforms: id, slug(unique), owner_id, kind('text'|'image'),
