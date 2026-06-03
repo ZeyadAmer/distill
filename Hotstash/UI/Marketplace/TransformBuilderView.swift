@@ -227,7 +227,9 @@ struct TransformBuilderView: View {
             : .image(steps: steps.map { $0.toImageStep() })
         return TransformManifest(
             id: editing?.id ?? UUID(),
-            slug: Self.slug(from: trimmedName),
+            // Preserve the slug when editing — it's the stable identity used by the
+            // registry, local library, and server. Only new transforms derive it.
+            slug: editing?.slug ?? Self.slug(from: trimmedName),
             version: (editing?.version ?? 0) + 1,
             kind: kind,
             name: trimmedName,
