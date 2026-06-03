@@ -95,6 +95,20 @@ struct MyTransformsView: View {
         }
     }
 
+    /// Real status for a local draft: prefer the authoritative server status
+    /// (from "Published by you"), else local draft/submitted state.
+    private func statusLabel(for row: StoredTransform) -> String {
+        if let serverStatus = published.first(where: { $0.slug == row.slug })?.status {
+            switch serverStatus {
+            case "pending": return "in review"
+            case "live":    return "live"
+            case "removed": return "removed"
+            default:        return serverStatus
+            }
+        }
+        return row.isPublished ? "submitted" : "draft"
+    }
+
     /// A transform the signed-in user owns on the server (survives local delete).
     private func publishedRow(_ item: TransformListItem) -> some View {
         HStack(spacing: 10) {
@@ -125,15 +139,15 @@ struct MyTransformsView: View {
 
     private func draftRow(_ row: StoredTransform) -> some View {
         HStack(spacing: 10) {
-            rowLabel(row, status: row.isPublished ? "submitted · in review" : "draft")
+            rowLabel(row, status: statusLabel(for: row))
             Spacer()
             Button("Edit") {
                 if let manifest = row.manifest { builderMode = .edit(manifest) }
             }
-            Button(row.isPublished ? "Submitted" : "Publish") {
+            // Always allow (re)publishing: returning authors push updates as new versions.
+            Button(row.isPublished ? "Update" : "Publish") {
                 Task { await publish(row) }
             }
-            .disabled(row.isPublished)
             Button(role: .destructive) {
                 MarketplaceLibrary.shared.delete(slug: row.slug)
                 reload()
