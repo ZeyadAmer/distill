@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Marketplace backend config. Fill these in to enable the live Supabase
+  marketplace; while they remain "<SET_ME>" the app uses the offline mock.
+  SupabaseURL    = your project URL, e.g. https://abcd.supabase.co
+  SupabaseAnonKey = the public anon key (safe to ship; RLS guards data)
+-->
+<plist version="1.0">
+<dict>
+	<key>SupabaseURL</key>
+	<string>&lt;SET_ME&gt;</string>
+	<key>SupabaseAnonKey</key>
+	<string>&lt;SET_ME&gt;</string>
+</dict>
+</plist>

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		019AA94D2FAAED3567E2FE72 /* SupabaseConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52E9247C196BF78780D32FC7 /* SupabaseConfig.swift */; };
 		03BD1322CEA0EA3C206792D8 /* GeneralSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86BB9B94B395BE9C2266BF2F /* GeneralSettingsView.swift */; };
 		03C597758ADA30CAFD6EF574 /* MarketplaceTransformTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC4832A1C57AB402DB2E5F91 /* MarketplaceTransformTests.swift */; };
 		07405893A82C7CDCA8614347 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AB8722D370AD74770468379D /* Assets.xcassets */; };
@@ -28,8 +29,10 @@
 		4852AE51BAB98172933F36AF /* CleanupTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206650306DE75178F63F72E5 /* CleanupTransforms.swift */; };
 		49CB8CA419F5BD520AF6E9AD /* TransformManifestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70D7A178D07506F1EDAB47E3 /* TransformManifestTests.swift */; };
 		4FB1C238201EF23819C7576F /* CaseTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 405816998C0516ABD02E3EA5 /* CaseTransforms.swift */; };
+		5216C4AC86F4D8A68EFFA8C5 /* MockMarketplaceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F8DCE25CBC81614DCDCB19D /* MockMarketplaceService.swift */; };
 		5332EC427A7577BC774CBC30 /* JSONTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DA7DEADB4144664958C7845 /* JSONTransforms.swift */; };
 		55309C6144D563297EA066CD /* LaunchAtLoginManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C81123429DA8F08940306AC /* LaunchAtLoginManager.swift */; };
+		5562EF3A9E681FEB4CBB7EC5 /* MarketplaceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4004EA1EFAA637E984B2B46F /* MarketplaceService.swift */; };
 		5998260E55D8972C44C92CBA /* TextTransformEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BA74CF4DAB850A3D52A491 /* TextTransformEngine.swift */; };
 		5C4E8677C90D38DCE7AD5D59 /* ClipboardStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07A94AD7A9C0604D08B842FA /* ClipboardStore.swift */; };
 		6376DACF5122CF18585AF517 /* MarketplaceLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721A38B2C4233F9BBF04D1C1 /* MarketplaceLibrary.swift */; };
@@ -40,9 +43,12 @@
 		6F2F5F32E018AFDCF7D9E2A6 /* WhatsNewWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61E8D2209E6F7B00DD9FE504 /* WhatsNewWindowController.swift */; };
 		7147B0DE54461C7B0ABE6A54 /* TransformBodyHash.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14BA343EC9CF6C24495915FF /* TransformBodyHash.swift */; };
 		78E82A9CC6B74427C7004D83 /* TransformRegistryMergeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 134A56F8386E88E7AEE5711E /* TransformRegistryMergeTests.swift */; };
+		7BBE57EABCA62066D8FA12DD /* MarketplaceServiceProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFBBF49E2E15523321B54C21 /* MarketplaceServiceProvider.swift */; };
 		7CC8C7921B547CD879CC6744 /* TransformPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E14B176F759EFA9AB5D42406 /* TransformPickerView.swift */; };
+		7FA8AA9C4D7BDBA2CB1D88EC /* Supabase.plist in Resources */ = {isa = PBXBuildFile; fileRef = CC8FB1830314EEBFD6E62E5A /* Supabase.plist */; };
 		80A0153929730092F80F58BD /* PasteEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36695DA641B3C931651BFDEC /* PasteEngine.swift */; };
 		814F3AE3D4CD42F0264120D2 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF5340A319DAF64664A96A32 /* JavaScriptCore.framework */; };
+		89A95240C300DE0785F6D454 /* SupabaseMarketplaceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB5DED6941ED7289980445CB /* SupabaseMarketplaceService.swift */; };
 		8FA487FFE047E607F10E4F32 /* Transform.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5C42098CBDBF783A7B887BE /* Transform.swift */; };
 		8FE01F40B1F461B734E36421 /* ListTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA61738337E4369F78AAFB73 /* ListTransforms.swift */; };
 		900E818E852CF81ADDA6AF59 /* ClipboardStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 883C0E0540370662D042B67A /* ClipboardStoreTests.swift */; };
@@ -61,11 +67,13 @@
 		C005ACD88EE6E2CB845C0710 /* OnboardingWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE0FA158D27BCC877128B1AC /* OnboardingWindowController.swift */; };
 		C1FDA11266C0844176389BF2 /* ClipboardPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D31B6CA4813B599061AE43C /* ClipboardPanel.swift */; };
 		C264F3358E4C5D089B3F4937 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4EA3F63C439EEFEB230985C /* AppDelegate.swift */; };
+		CDF55ADC901E389DC4FB6295 /* MarketplaceModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = D694B7901653C7BA740C2AEF /* MarketplaceModels.swift */; };
 		CE5F686F1E974854CBC9A6F6 /* TransformManifestCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BB7F14A2532ED233E9E50D1 /* TransformManifestCodec.swift */; };
 		CF210BA00EABB53C3D0BDF80 /* EncodingTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55953DA19505ACD1E2B0551A /* EncodingTransforms.swift */; };
 		D4B0E830A7AE62BBCB66C1D5 /* PurchaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ECB321F90AFA8FD509986C0 /* PurchaseManager.swift */; };
 		D62305E0FB7754EB04A3C68A /* TransformManifest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B88FF4244587A52947EA560 /* TransformManifest.swift */; };
 		E472EAE697693B03E5F8549C /* ModelContainer+Hotstash.swift in Sources */ = {isa = PBXBuildFile; fileRef = B995C407D9121B04B8DE1694 /* ModelContainer+Hotstash.swift */; };
+		E9D3A6BDD4477263376064CD /* MarketplaceServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D6A56A294F14A08140AF93F /* MarketplaceServiceTests.swift */; };
 		EDF035328BBEDB29F970782E /* TextTransformEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CC810AA2F7272A184F0AC9A /* TextTransformEngineTests.swift */; };
 		F3F821A1D7B0A1C0EA4689FF /* ClipboardItemCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6A9D0726BB159ACE3620C30 /* ClipboardItemCell.swift */; };
 		F5E342105F5DFFC300929CC4 /* ClipboardMigrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51880DC40FE10900391A63EB /* ClipboardMigrationTests.swift */; };
@@ -87,6 +95,7 @@
 		07A94AD7A9C0604D08B842FA /* ClipboardStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardStore.swift; sourceTree = "<group>"; };
 		0C6A59EE77E7406B797E74A2 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		0CC810AA2F7272A184F0AC9A /* TextTransformEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextTransformEngineTests.swift; sourceTree = "<group>"; };
+		0D6A56A294F14A08140AF93F /* MarketplaceServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketplaceServiceTests.swift; sourceTree = "<group>"; };
 		0F5A0B2DFE8E78A0497DE0A4 /* Notifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notifications.swift; sourceTree = "<group>"; };
 		11BA74CF4DAB850A3D52A491 /* TextTransformEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextTransformEngine.swift; sourceTree = "<group>"; };
 		134A56F8386E88E7AEE5711E /* TransformRegistryMergeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransformRegistryMergeTests.swift; sourceTree = "<group>"; };
@@ -105,17 +114,20 @@
 		3BB7F14A2532ED233E9E50D1 /* TransformManifestCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransformManifestCodec.swift; sourceTree = "<group>"; };
 		3DAB0717E7F75E3FF9B30BBE /* ClipboardPanelVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardPanelVC.swift; sourceTree = "<group>"; };
 		3ECB321F90AFA8FD509986C0 /* PurchaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PurchaseManager.swift; sourceTree = "<group>"; };
+		4004EA1EFAA637E984B2B46F /* MarketplaceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketplaceService.swift; sourceTree = "<group>"; };
 		405816998C0516ABD02E3EA5 /* CaseTransforms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaseTransforms.swift; sourceTree = "<group>"; };
 		497B06AB9E1C80977587F03C /* SettingsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWindowController.swift; sourceTree = "<group>"; };
 		4D31AEF245A8500967FD8ABB /* LegacyClipboardItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacyClipboardItem.swift; sourceTree = "<group>"; };
 		4F6E7D0DCEC47B20359A28A1 /* ClipboardItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardItem.swift; sourceTree = "<group>"; };
 		51880DC40FE10900391A63EB /* ClipboardMigrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardMigrationTests.swift; sourceTree = "<group>"; };
+		52E9247C196BF78780D32FC7 /* SupabaseConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseConfig.swift; sourceTree = "<group>"; };
 		54B0C95B0A5D95C2B037025D /* StoredTransform.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoredTransform.swift; sourceTree = "<group>"; };
 		55953DA19505ACD1E2B0551A /* EncodingTransforms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncodingTransforms.swift; sourceTree = "<group>"; };
 		5AAC8B5CB7445D1E6B14899B /* SmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeTests.swift; sourceTree = "<group>"; };
 		5ADB0D8C46670B9E8F1B67A8 /* HotkeyRecorderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeyRecorderView.swift; sourceTree = "<group>"; };
 		5D31B6CA4813B599061AE43C /* ClipboardPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardPanel.swift; sourceTree = "<group>"; };
 		61E8D2209E6F7B00DD9FE504 /* WhatsNewWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhatsNewWindowController.swift; sourceTree = "<group>"; };
+		6F8DCE25CBC81614DCDCB19D /* MockMarketplaceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockMarketplaceService.swift; sourceTree = "<group>"; };
 		70D7A178D07506F1EDAB47E3 /* TransformManifestTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransformManifestTests.swift; sourceTree = "<group>"; };
 		71A0B6F31FE22C5044C273B5 /* ImageTransformEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageTransformEngine.swift; sourceTree = "<group>"; };
 		721A38B2C4233F9BBF04D1C1 /* MarketplaceLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketplaceLibrary.swift; sourceTree = "<group>"; };
@@ -142,13 +154,17 @@
 		C4E93D6391F5289AC2057ED1 /* MarketplaceTransform.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketplaceTransform.swift; sourceTree = "<group>"; };
 		CADE6965A34882FA76B8FE89 /* ImageTransforms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageTransforms.swift; sourceTree = "<group>"; };
 		CC4832A1C57AB402DB2E5F91 /* MarketplaceTransformTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketplaceTransformTests.swift; sourceTree = "<group>"; };
+		CC8FB1830314EEBFD6E62E5A /* Supabase.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Supabase.plist; sourceTree = "<group>"; };
 		D4EA3F63C439EEFEB230985C /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		D5C42098CBDBF783A7B887BE /* Transform.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Transform.swift; sourceTree = "<group>"; };
+		D694B7901653C7BA740C2AEF /* MarketplaceModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketplaceModels.swift; sourceTree = "<group>"; };
 		D8C1302B2401F121B1FB4F20 /* CodeTransforms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeTransforms.swift; sourceTree = "<group>"; };
+		DFBBF49E2E15523321B54C21 /* MarketplaceServiceProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketplaceServiceProvider.swift; sourceTree = "<group>"; };
 		E14B176F759EFA9AB5D42406 /* TransformPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransformPickerView.swift; sourceTree = "<group>"; };
 		E5FFE6B9EEFA88A4AD43F0B8 /* HotstashJSCore.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HotstashJSCore.h; sourceTree = "<group>"; };
 		E6A9D0726BB159ACE3620C30 /* ClipboardItemCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardItemCell.swift; sourceTree = "<group>"; };
 		EB283CDF3A9539DCDA1A2214 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = System/Library/Frameworks/Carbon.framework; sourceTree = SDKROOT; };
+		EB5DED6941ED7289980445CB /* SupabaseMarketplaceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseMarketplaceService.swift; sourceTree = "<group>"; };
 		F8758C63AA816832764F2043 /* ServiceManagement.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ServiceManagement.framework; path = System/Library/Frameworks/ServiceManagement.framework; sourceTree = SDKROOT; };
 		FF8673C62891F86C722E27A1 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
@@ -296,6 +312,7 @@
 		8A38177833964239FF6039EA /* Marketplace */ = {
 			isa = PBXGroup;
 			children = (
+				A7E96D68D1AE711C55B8540D /* Networking */,
 				E5FFE6B9EEFA88A4AD43F0B8 /* HotstashJSCore.h */,
 				71A0B6F31FE22C5044C273B5 /* ImageTransformEngine.swift */,
 				721A38B2C4233F9BBF04D1C1 /* MarketplaceLibrary.swift */,
@@ -337,8 +354,22 @@
 			isa = PBXGroup;
 			children = (
 				AB8722D370AD74770468379D /* Assets.xcassets */,
+				CC8FB1830314EEBFD6E62E5A /* Supabase.plist */,
 			);
 			path = Resources;
+			sourceTree = "<group>";
+		};
+		A7E96D68D1AE711C55B8540D /* Networking */ = {
+			isa = PBXGroup;
+			children = (
+				D694B7901653C7BA740C2AEF /* MarketplaceModels.swift */,
+				4004EA1EFAA637E984B2B46F /* MarketplaceService.swift */,
+				DFBBF49E2E15523321B54C21 /* MarketplaceServiceProvider.swift */,
+				6F8DCE25CBC81614DCDCB19D /* MockMarketplaceService.swift */,
+				52E9247C196BF78780D32FC7 /* SupabaseConfig.swift */,
+				EB5DED6941ED7289980445CB /* SupabaseMarketplaceService.swift */,
+			);
+			path = Networking;
 			sourceTree = "<group>";
 		};
 		D3DD8DBD7F343AAE346DE8C1 /* App */ = {
@@ -370,6 +401,7 @@
 				883C0E0540370662D042B67A /* ClipboardStoreTests.swift */,
 				BC2101067B68235A22AFF739 /* ImageTransformEngineTests.swift */,
 				29837DBAE622A1F825377A73 /* MarketplaceLibraryTests.swift */,
+				0D6A56A294F14A08140AF93F /* MarketplaceServiceTests.swift */,
 				CC4832A1C57AB402DB2E5F91 /* MarketplaceTransformTests.swift */,
 				5AAC8B5CB7445D1E6B14899B /* SmokeTests.swift */,
 				0CC810AA2F7272A184F0AC9A /* TextTransformEngineTests.swift */,
@@ -472,6 +504,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				07405893A82C7CDCA8614347 /* Assets.xcassets in Resources */,
+				7FA8AA9C4D7BDBA2CB1D88EC /* Supabase.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -486,6 +519,7 @@
 				900E818E852CF81ADDA6AF59 /* ClipboardStoreTests.swift in Sources */,
 				936CA7D5140136362CCC2A7F /* ImageTransformEngineTests.swift in Sources */,
 				F78D19D80E53738596A57E48 /* MarketplaceLibraryTests.swift in Sources */,
+				E9D3A6BDD4477263376064CD /* MarketplaceServiceTests.swift in Sources */,
 				03C597758ADA30CAFD6EF574 /* MarketplaceTransformTests.swift in Sources */,
 				3C9715A9ADD898F8DEC1AB62 /* SmokeTests.swift in Sources */,
 				EDF035328BBEDB29F970782E /* TextTransformEngineTests.swift in Sources */,
@@ -522,8 +556,12 @@
 				0C21964B09654F5C2666C05E /* LegacyClipboardItem.swift in Sources */,
 				8FE01F40B1F461B734E36421 /* ListTransforms.swift in Sources */,
 				6376DACF5122CF18585AF517 /* MarketplaceLibrary.swift in Sources */,
+				CDF55ADC901E389DC4FB6295 /* MarketplaceModels.swift in Sources */,
+				5562EF3A9E681FEB4CBB7EC5 /* MarketplaceService.swift in Sources */,
+				7BBE57EABCA62066D8FA12DD /* MarketplaceServiceProvider.swift in Sources */,
 				AAA1B05850C4715A0A3CB018 /* MarketplaceTransform.swift in Sources */,
 				3537F0CBF436C85F70FA9288 /* MenuBarManager.swift in Sources */,
+				5216C4AC86F4D8A68EFFA8C5 /* MockMarketplaceService.swift in Sources */,
 				E472EAE697693B03E5F8549C /* ModelContainer+Hotstash.swift in Sources */,
 				F89BE5C9121D3392040BB4C9 /* MultiPastePanel.swift in Sources */,
 				1DC62D1D2745328DB77C4421 /* Notifications.swift in Sources */,
@@ -533,6 +571,8 @@
 				464AB6DC1E4AA9F3EF0229F4 /* SettingsView.swift in Sources */,
 				639937388E0DA8F8A87D17B5 /* SettingsWindowController.swift in Sources */,
 				BD8F3225DD1766113A735285 /* StoredTransform.swift in Sources */,
+				019AA94D2FAAED3567E2FE72 /* SupabaseConfig.swift in Sources */,
+				89A95240C300DE0785F6D454 /* SupabaseMarketplaceService.swift in Sources */,
 				5998260E55D8972C44C92CBA /* TextTransformEngine.swift in Sources */,
 				8FA487FFE047E607F10E4F32 /* Transform.swift in Sources */,
 				7147B0DE54461C7B0ABE6A54 /* TransformBodyHash.swift in Sources */,
