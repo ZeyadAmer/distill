@@ -160,10 +160,17 @@ Deno.serve(async (req: Request) => {
     return json({ ok: false, reason: "method not allowed" }, 405);
   }
 
-  // Optional shared-secret gate (set NOTIFY_SHARED_SECRET to enable).
-  if (NOTIFY_SHARED_SECRET) {
+  // Auth gate. This endpoint must never be open: an unauthenticated caller
+  // could flood the owner's inbox. Accept EITHER the shared secret (if set) OR
+  // the service-role bearer token that `submit` sends. If neither is configured
+  // nor presented, reject.
+  {
     const provided = req.headers.get("x-notify-secret") ?? "";
-    if (provided !== NOTIFY_SHARED_SECRET) {
+    const auth = req.headers.get("authorization") ?? "";
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    const secretOK = NOTIFY_SHARED_SECRET.length > 0 && provided === NOTIFY_SHARED_SECRET;
+    const bearerOK = serviceKey.length > 0 && auth === `Bearer ${serviceKey}`;
+    if (!secretOK && !bearerOK) {
       return json({ ok: false, reason: "unauthorized" }, 401);
     }
   }

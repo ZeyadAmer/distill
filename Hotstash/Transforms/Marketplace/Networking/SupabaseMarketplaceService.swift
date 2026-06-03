@@ -169,9 +169,18 @@ struct SupabaseMarketplaceService: MarketplaceService {
         }
     }
 
-    /// PostgREST value escaping for the query string (commas/parens are special).
+    /// Strict escaping for PostgREST filter values. `.urlQueryAllowed` leaves
+    /// `(`, `)`, `,`, `&`, `*`, `=` unencoded — all structurally meaningful in
+    /// PostgREST syntax — which would let a crafted search term/slug inject
+    /// extra filter params. Encode everything except RFC 3986 unreserved chars.
+    private static let postgrestSafeChars: CharacterSet = {
+        var cs = CharacterSet.alphanumerics
+        cs.insert(charactersIn: "-._~")
+        return cs
+    }()
+
     private func escape(_ value: String) -> String {
-        value.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? value
+        value.addingPercentEncoding(withAllowedCharacters: Self.postgrestSafeChars) ?? value
     }
 
     /// Extracts the `sub` (user id) claim from a JWT without verifying it

@@ -52,7 +52,10 @@ enum ImageTransformEngine {
 
         // Resolve target dimensions from either `scale` or `maxDim`.
         let target: (width: Int, height: Int)
-        if let scale = step.params["scale"]?.doubleValue, scale > 0 {
+        if let rawScale = step.params["scale"]?.doubleValue, rawScale > 0 {
+            // Cap scale to mirror the server's validation (<= 10) so a manifest
+            // can't blow up memory with an enormous upscale.
+            let scale = min(rawScale, 10.0)
             target = (
                 max(1, Int((Double(width) * scale).rounded())),
                 max(1, Int((Double(height) * scale).rounded()))
