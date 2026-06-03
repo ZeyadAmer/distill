@@ -75,19 +75,21 @@ struct MyTransformsView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
             List {
-                // Local drafts NOT yet on the server (published ones live under
-                // "Published by you" to avoid showing the same transform twice).
-                let unpublished = drafts.filter { draft in
-                    !published.contains { $0.slug == draft.slug }
-                }
-                if !unpublished.isEmpty {
-                    Section("Drafts") {
-                        ForEach(unpublished, id: \.slug) { row in draftRow(row) }
+                // Local copies (drafts + edits-in-progress of published ones).
+                // These carry the Edit/Update buttons.
+                if !drafts.isEmpty {
+                    Section("Drafts & edits") {
+                        ForEach(drafts, id: \.slug) { row in draftRow(row) }
                     }
                 }
-                if !published.isEmpty {
+                // Published transforms you have NO local copy of (Edit one to pull
+                // it into a local copy you can change + re-publish).
+                let serverOnly = published.filter { item in
+                    !drafts.contains { $0.slug == item.slug }
+                }
+                if !serverOnly.isEmpty {
                     Section("Published by you") {
-                        ForEach(published) { item in publishedRow(item) }
+                        ForEach(serverOnly) { item in publishedRow(item) }
                     }
                 }
                 if !installed.isEmpty {
