@@ -28,6 +28,20 @@ final class ClipboardStore {
     /// Context used by one-time migration at launch.
     var modelContextForMigration: ModelContext { context }
 
+    // MARK: History limit
+
+    /// Maximum number of non-pinned items to retain. `nil` means unlimited.
+    /// Stored in UserDefaults as a positive Int; 0 → unlimited.
+    var maxHistoryItems: Int? {
+        get {
+            let v = UserDefaults.standard.integer(forKey: "historyLimit")
+            return v > 0 ? v : nil
+        }
+        set {
+            UserDefaults.standard.set(newValue ?? 0, forKey: "historyLimit")
+        }
+    }
+
     // MARK: Image budget constants
 
     /// Keep at most this many image items.
@@ -100,6 +114,7 @@ final class ClipboardStore {
         context.insert(item)
         save()
         if item.hasImage { enforceImageBudget() }
+        enforceHistoryLimit()
     }
 
     func pin(id: UUID) {
@@ -177,6 +192,21 @@ final class ClipboardStore {
             changed = true
         }
         if changed { save() }
+    }
+
+    /// Deletes the oldest non-pinned items when the count exceeds `maxHistoryItems`.
+    func enforceHistoryLimit() {
+        guard let limit = maxHistoryItems else { return }
+        let excess = recentCount - limit
+        guard excess > 0 else { return }
+        var descriptor = FetchDescriptor<ClipboardItem>(
+            predicate: #Predicate { !$0.isPinned },
+            sortBy: [SortDescriptor(\.timestamp)]   // oldest first
+        )
+        descriptor.fetchLimit = excess
+        let toDelete = fetch(descriptor)
+        toDelete.forEach { context.delete($0) }
+        if !toDelete.isEmpty { save() }
     }
 
     // MARK: Private helpers
