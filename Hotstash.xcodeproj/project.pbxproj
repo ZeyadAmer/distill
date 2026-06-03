@@ -50,6 +50,7 @@
 		80A0153929730092F80F58BD /* PasteEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36695DA641B3C931651BFDEC /* PasteEngine.swift */; };
 		814F3AE3D4CD42F0264120D2 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF5340A319DAF64664A96A32 /* JavaScriptCore.framework */; };
 		89A95240C300DE0785F6D454 /* SupabaseMarketplaceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB5DED6941ED7289980445CB /* SupabaseMarketplaceService.swift */; };
+		8CF7C01C48E0C5426C73611C /* MarketplaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D7C5E5D0D0EA1C85E709435 /* MarketplaceView.swift */; };
 		8FA487FFE047E607F10E4F32 /* Transform.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5C42098CBDBF783A7B887BE /* Transform.swift */; };
 		8FE01F40B1F461B734E36421 /* ListTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA61738337E4369F78AAFB73 /* ListTransforms.swift */; };
 		900E818E852CF81ADDA6AF59 /* ClipboardStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 883C0E0540370662D042B67A /* ClipboardStoreTests.swift */; };
@@ -58,6 +59,7 @@
 		989AD24250841C51BA711B55 /* CodeTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8C1302B2401F121B1FB4F20 /* CodeTransforms.swift */; };
 		A716C9D9EA74A355B3A21704 /* TransformSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 745DE6446393891754A48B11 /* TransformSettingsView.swift */; };
 		AAA1B05850C4715A0A3CB018 /* MarketplaceTransform.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4E93D6391F5289AC2057ED1 /* MarketplaceTransform.swift */; };
+		B06187387ED2CA7401FBB3B9 /* TransformDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAC24B15D15F460CE84F90F2 /* TransformDetailView.swift */; };
 		B2E1CFEF13F2C256B9BF84B1 /* ContentDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DC86C0A994B73FB8009A7EA /* ContentDetector.swift */; };
 		B551B4E62A7FA5D33AD53681 /* ClipboardPanelVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DAB0717E7F75E3FF9B30BBE /* ClipboardPanelVC.swift */; };
 		B807F2D9B5F520D1C1EC3C46 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 83A92FB48CB294E715B02806 /* CoreGraphics.framework */; };
@@ -128,6 +130,7 @@
 		5ADB0D8C46670B9E8F1B67A8 /* HotkeyRecorderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeyRecorderView.swift; sourceTree = "<group>"; };
 		5D31B6CA4813B599061AE43C /* ClipboardPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardPanel.swift; sourceTree = "<group>"; };
 		61E8D2209E6F7B00DD9FE504 /* WhatsNewWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhatsNewWindowController.swift; sourceTree = "<group>"; };
+		6D7C5E5D0D0EA1C85E709435 /* MarketplaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketplaceView.swift; sourceTree = "<group>"; };
 		6F8DCE25CBC81614DCDCB19D /* MockMarketplaceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockMarketplaceService.swift; sourceTree = "<group>"; };
 		70D7A178D07506F1EDAB47E3 /* TransformManifestTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransformManifestTests.swift; sourceTree = "<group>"; };
 		71A0B6F31FE22C5044C273B5 /* ImageTransformEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageTransformEngine.swift; sourceTree = "<group>"; };
@@ -160,6 +163,7 @@
 		D5C42098CBDBF783A7B887BE /* Transform.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Transform.swift; sourceTree = "<group>"; };
 		D694B7901653C7BA740C2AEF /* MarketplaceModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketplaceModels.swift; sourceTree = "<group>"; };
 		D8C1302B2401F121B1FB4F20 /* CodeTransforms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeTransforms.swift; sourceTree = "<group>"; };
+		DAC24B15D15F460CE84F90F2 /* TransformDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransformDetailView.swift; sourceTree = "<group>"; };
 		DFBBF49E2E15523321B54C21 /* MarketplaceServiceProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketplaceServiceProvider.swift; sourceTree = "<group>"; };
 		E14B176F759EFA9AB5D42406 /* TransformPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransformPickerView.swift; sourceTree = "<group>"; };
 		E5FFE6B9EEFA88A4AD43F0B8 /* HotstashJSCore.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HotstashJSCore.h; sourceTree = "<group>"; };
@@ -217,7 +221,9 @@
 		0ECAFF12B6FC20C00F9CF0FC /* Marketplace */ = {
 			isa = PBXGroup;
 			children = (
+				6D7C5E5D0D0EA1C85E709435 /* MarketplaceView.swift */,
 				EE7D757B59297C1B161FDF63 /* MarketplaceViewModel.swift */,
+				DAC24B15D15F460CE84F90F2 /* TransformDetailView.swift */,
 			);
 			path = Marketplace;
 			sourceTree = "<group>";
@@ -571,6 +577,7 @@
 				5562EF3A9E681FEB4CBB7EC5 /* MarketplaceService.swift in Sources */,
 				7BBE57EABCA62066D8FA12DD /* MarketplaceServiceProvider.swift in Sources */,
 				AAA1B05850C4715A0A3CB018 /* MarketplaceTransform.swift in Sources */,
+				8CF7C01C48E0C5426C73611C /* MarketplaceView.swift in Sources */,
 				7B8D6E6DE233F5CF1DA7183B /* MarketplaceViewModel.swift in Sources */,
 				3537F0CBF436C85F70FA9288 /* MenuBarManager.swift in Sources */,
 				5216C4AC86F4D8A68EFFA8C5 /* MockMarketplaceService.swift in Sources */,
@@ -588,6 +595,7 @@
 				5998260E55D8972C44C92CBA /* TextTransformEngine.swift in Sources */,
 				8FA487FFE047E607F10E4F32 /* Transform.swift in Sources */,
 				7147B0DE54461C7B0ABE6A54 /* TransformBodyHash.swift in Sources */,
+				B06187387ED2CA7401FBB3B9 /* TransformDetailView.swift in Sources */,
 				D62305E0FB7754EB04A3C68A /* TransformManifest.swift in Sources */,
 				CE5F686F1E974854CBC9A6F6 /* TransformManifestCodec.swift in Sources */,
 				7CC8C7921B547CD879CC6744 /* TransformPickerView.swift in Sources */,
