@@ -43,6 +43,7 @@
 		6F2F5F32E018AFDCF7D9E2A6 /* WhatsNewWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61E8D2209E6F7B00DD9FE504 /* WhatsNewWindowController.swift */; };
 		7147B0DE54461C7B0ABE6A54 /* TransformBodyHash.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14BA343EC9CF6C24495915FF /* TransformBodyHash.swift */; };
 		78E82A9CC6B74427C7004D83 /* TransformRegistryMergeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 134A56F8386E88E7AEE5711E /* TransformRegistryMergeTests.swift */; };
+		7B8D6E6DE233F5CF1DA7183B /* MarketplaceViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE7D757B59297C1B161FDF63 /* MarketplaceViewModel.swift */; };
 		7BBE57EABCA62066D8FA12DD /* MarketplaceServiceProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFBBF49E2E15523321B54C21 /* MarketplaceServiceProvider.swift */; };
 		7CC8C7921B547CD879CC6744 /* TransformPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E14B176F759EFA9AB5D42406 /* TransformPickerView.swift */; };
 		7FA8AA9C4D7BDBA2CB1D88EC /* Supabase.plist in Resources */ = {isa = PBXBuildFile; fileRef = CC8FB1830314EEBFD6E62E5A /* Supabase.plist */; };
@@ -165,6 +166,7 @@
 		E6A9D0726BB159ACE3620C30 /* ClipboardItemCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardItemCell.swift; sourceTree = "<group>"; };
 		EB283CDF3A9539DCDA1A2214 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = System/Library/Frameworks/Carbon.framework; sourceTree = SDKROOT; };
 		EB5DED6941ED7289980445CB /* SupabaseMarketplaceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseMarketplaceService.swift; sourceTree = "<group>"; };
+		EE7D757B59297C1B161FDF63 /* MarketplaceViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketplaceViewModel.swift; sourceTree = "<group>"; };
 		F8758C63AA816832764F2043 /* ServiceManagement.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ServiceManagement.framework; path = System/Library/Frameworks/ServiceManagement.framework; sourceTree = SDKROOT; };
 		FF8673C62891F86C722E27A1 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
@@ -210,6 +212,14 @@
 				988A1610603A4F3DABC25478 /* TrialManager.swift */,
 			);
 			path = Monetization;
+			sourceTree = "<group>";
+		};
+		0ECAFF12B6FC20C00F9CF0FC /* Marketplace */ = {
+			isa = PBXGroup;
+			children = (
+				EE7D757B59297C1B161FDF63 /* MarketplaceViewModel.swift */,
+			);
+			path = Marketplace;
 			sourceTree = "<group>";
 		};
 		154D48E800EE4016575727CD /* Panel */ = {
@@ -265,6 +275,7 @@
 		4D3131D43A5ABE7EF1A1AF5A /* UI */ = {
 			isa = PBXGroup;
 			children = (
+				0ECAFF12B6FC20C00F9CF0FC /* Marketplace */,
 				3E4633A6FF76F87B2C7D8BD9 /* MenuBar */,
 				6B0BC0B57DF03492FFC54AF7 /* MultiPaste */,
 				FBD55B39EBD15F62FCEB3A54 /* Onboarding */,
@@ -560,6 +571,7 @@
 				5562EF3A9E681FEB4CBB7EC5 /* MarketplaceService.swift in Sources */,
 				7BBE57EABCA62066D8FA12DD /* MarketplaceServiceProvider.swift in Sources */,
 				AAA1B05850C4715A0A3CB018 /* MarketplaceTransform.swift in Sources */,
+				7B8D6E6DE233F5CF1DA7183B /* MarketplaceViewModel.swift in Sources */,
 				3537F0CBF436C85F70FA9288 /* MenuBarManager.swift in Sources */,
 				5216C4AC86F4D8A68EFFA8C5 /* MockMarketplaceService.swift in Sources */,
 				E472EAE697693B03E5F8549C /* ModelContainer+Hotstash.swift in Sources */,
