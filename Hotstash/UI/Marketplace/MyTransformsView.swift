@@ -15,6 +15,7 @@ struct MyTransformsView: View {
 
     @State private var drafts: [StoredTransform] = []
     @State private var installed: [StoredTransform] = []
+    @State private var published: [TransformListItem] = []   // owned on the server
     @State private var builderMode: BuilderMode?
     @State private var statusMessage: String?
 
@@ -36,6 +37,7 @@ struct MyTransformsView: View {
             }
         }
         .onAppear(perform: reload)
+        .task(id: accessToken) { await loadPublished() }
         .sheet(item: $builderMode, onDismiss: reload) { mode in
             TransformBuilderView(editing: mode.manifest)
         }
@@ -64,7 +66,7 @@ struct MyTransformsView: View {
 
     @ViewBuilder
     private var list: some View {
-        if drafts.isEmpty && installed.isEmpty {
+        if drafts.isEmpty && installed.isEmpty && published.isEmpty {
             VStack(spacing: 8) {
                 Image(systemName: "tray").font(.largeTitle).foregroundStyle(.secondary)
                 Text("No transforms yet. Create or import one.")
@@ -78,6 +80,11 @@ struct MyTransformsView: View {
                         ForEach(drafts, id: \.slug) { row in draftRow(row) }
                     }
                 }
+                if !published.isEmpty {
+                    Section("Published by you") {
+                        ForEach(published) { item in publishedRow(item) }
+                    }
+                }
                 if !installed.isEmpty {
                     Section("Installed") {
                         ForEach(installed, id: \.slug) { row in installedRow(row) }
@@ -86,6 +93,34 @@ struct MyTransformsView: View {
             }
             .listStyle(.inset)
         }
+    }
+
+    /// A transform the signed-in user owns on the server (survives local delete).
+    private func publishedRow(_ item: TransformListItem) -> some View {
+        HStack(spacing: 10) {
+            rowLabelText(name: item.name, status: item.status ?? "live")
+            Spacer()
+            Button("Edit") { Task { await editPublished(item) } }
+        }
+    }
+
+    private func editPublished(_ item: TransformListItem) async {
+        do {
+            let detail = try await service.detail(slug: item.slug)
+            builderMode = .edit(detail.toManifest())
+        } catch {
+            // detail() only returns live rows; for pending/removed, edit the local draft if present.
+            if let local = MarketplaceLibrary.shared.stored(slug: item.slug)?.manifest {
+                builderMode = .edit(local)
+            } else {
+                statusMessage = "Can't edit \(item.name) yet (status: \(item.status ?? "unknown"))."
+            }
+        }
+    }
+
+    private func loadPublished() async {
+        guard let token = accessToken else { published = []; return }
+        published = (try? await service.myTransforms(accessToken: token)) ?? []
     }
 
     private func draftRow(_ row: StoredTransform) -> some View {
@@ -133,11 +168,22 @@ struct MyTransformsView: View {
         }
     }
 
+    private func rowLabelText(name: String, status: String) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: "icloud").foregroundStyle(.secondary).frame(width: 20)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(name).font(.body)
+                Text(status).font(.caption).foregroundStyle(.tertiary)
+            }
+        }
+    }
+
     // MARK: Actions
 
     private func reload() {
         drafts = MarketplaceLibrary.shared.localDrafts()
         installed = MarketplaceLibrary.shared.installed()
+        Task { await loadPublished() }
     }
 
     private func importTransform() {

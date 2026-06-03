@@ -58,6 +58,22 @@ final class AuthManager: NSObject, ObservableObject {
         // Keep the cached display name; Apple only returns the name on first sign-in.
     }
 
+    /// Sets the user's public display name (shown as the author on published
+    /// transforms). Apple only returns the real name on first consent, so this
+    /// lets users fix a blank/"Anonymous" name.
+    func updateDisplayName(_ name: String) async {
+        guard let token = accessToken else { return }
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        do {
+            try await MarketplaceServiceProvider.shared.setDisplayName(trimmed, accessToken: token)
+            displayName = trimmed
+            UserDefaults.standard.set(trimmed, forKey: Self.displayNameKey)
+        } catch {
+            errorMessage = "Couldn't update display name."
+        }
+    }
+
     /// Reads the signed-in user's `is_admin` flag (profiles are publicly readable
     /// via RLS). Best-effort; failure simply leaves `isAdmin == false`.
     private func refreshIsAdmin(config: SupabaseConfig, token: String) async {

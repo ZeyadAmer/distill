@@ -30,6 +30,12 @@ protocol MarketplaceService {
     /// File an abuse report against a transform or review.
     func report(targetType: String, targetID: UUID, reason: String, accessToken: String) async throws
 
+    /// Transforms owned by the signed-in user, any status (for "My Transforms").
+    func myTransforms(accessToken: String) async throws -> [TransformListItem]
+
+    /// Update the signed-in user's public display name.
+    func setDisplayName(_ name: String, accessToken: String) async throws
+
     // MARK: Admin (require is_admin server-side; RLS/RPCs enforce it)
 
     /// Transforms awaiting review (admin only — RLS returns these only to admins).

@@ -49,7 +49,7 @@ struct TransformDetailView: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(item.name).font(.title3).bold()
-                if let author = item.authorName {
+                if let author = detail?.authorName ?? item.authorName {
                     Text("by \(author)").font(.caption).foregroundStyle(.secondary)
                 }
             }

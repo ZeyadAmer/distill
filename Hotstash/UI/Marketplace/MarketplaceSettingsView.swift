@@ -13,6 +13,7 @@ struct MarketplaceSettingsView: View {
     }
 
     @State private var tab: Tab = .browse
+    @State private var nameDraft: String = ""
 
     /// Signed-in session for the marketplace. Auth-gated controls (publish,
     /// rate, review, report) are hidden until `accessToken` is non-nil.
@@ -58,6 +59,8 @@ struct MarketplaceSettingsView: View {
         .onChange(of: auth.isAdmin) { _ in
             if !availableTabs.contains(tab) { tab = .browse }
         }
+        .onAppear { nameDraft = auth.displayName ?? "" }
+        .onChange(of: auth.displayName) { newValue in nameDraft = newValue ?? "" }
     }
 
     @ViewBuilder
@@ -66,8 +69,13 @@ struct MarketplaceSettingsView: View {
             Image(systemName: auth.isSignedIn ? "person.crop.circle.fill" : "person.crop.circle")
                 .foregroundStyle(auth.isSignedIn ? .green : .secondary)
             if auth.isSignedIn {
-                Text(auth.displayName ?? "Signed in")
-                    .font(.callout)
+                TextField("Display name", text: $nameDraft)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(width: 180)
+                Button("Save") { Task { await auth.updateDisplayName(nameDraft) } }
+                    .controlSize(.small)
+                    .disabled(nameDraft.trimmingCharacters(in: .whitespaces).isEmpty
+                              || nameDraft == auth.displayName)
                 Spacer()
                 Button("Sign Out") { auth.signOut() }
                     .controlSize(.small)

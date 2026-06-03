@@ -15,6 +15,17 @@ struct TransformListItem: Identifiable, Codable, Equatable {
     let ratingAvg: Double
     let ratingCount: Int
     let isFeatured: Bool
+    /// Server status (pending|live|removed). Populated for "my transforms"; nil for public lists.
+    let status: String?
+
+    init(id: UUID, slug: String, name: String, authorName: String?, kind: TransformKind,
+         category: String, installCount: Int, ratingAvg: Double, ratingCount: Int,
+         isFeatured: Bool, status: String? = nil) {
+        self.id = id; self.slug = slug; self.name = name; self.authorName = authorName
+        self.kind = kind; self.category = category; self.installCount = installCount
+        self.ratingAvg = ratingAvg; self.ratingCount = ratingCount
+        self.isFeatured = isFeatured; self.status = status
+    }
 
     private enum CodingKeys: String, CodingKey {
         case id
@@ -27,6 +38,7 @@ struct TransformListItem: Identifiable, Codable, Equatable {
         case ratingAvg = "rating_avg"
         case ratingCount = "rating_count"
         case isFeatured = "is_featured"
+        case status
     }
 }
 
@@ -63,6 +75,17 @@ struct TransformDetail: Identifiable, Codable, Equatable {
         case description
         case version
         case body
+    }
+
+    /// Returns a copy with the author name set (the detail query fills this in
+    /// from the owner's profile after the main fetch).
+    func withAuthor(_ name: String) -> TransformDetail {
+        TransformDetail(
+            id: id, slug: slug, name: self.name, authorName: name, kind: kind,
+            category: category, installCount: installCount, ratingAvg: ratingAvg,
+            ratingCount: ratingCount, isFeatured: isFeatured, description: description,
+            version: version, body: body
+        )
     }
 
     /// Builds a `TransformManifest` suitable for local install/execution.

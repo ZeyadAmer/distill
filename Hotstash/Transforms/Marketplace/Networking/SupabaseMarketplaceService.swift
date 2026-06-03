@@ -48,11 +48,48 @@ struct SupabaseMarketplaceService: MarketplaceService {
     func detail(slug: String) async throws -> TransformDetail {
         // Fetch the row + its newest version body in a single embedded query.
         let q = "transforms?slug=eq.\(escape(slug))&status=eq.live"
-            + "&select=id,slug,name,description,kind,category,latest_version,install_count,rating_avg,rating_count,is_featured,transform_versions(version,body)"
+            + "&select=id,slug,name,description,kind,category,owner_id,latest_version,install_count,rating_avg,rating_count,is_featured,transform_versions(version,body)"
             + "&transform_versions.order=version.desc&transform_versions.limit=1"
         let rows: [DetailRow] = try await get(q)
-        guard let row = rows.first, let detail = row.toDetail() else { throw MarketplaceError.decoding }
+        guard let row = rows.first, var detail = row.toDetail() else { throw MarketplaceError.decoding }
+        // Best-effort author name (profiles are publicly readable).
+        if let name = try? await displayName(ownerID: row.owner_id), !name.isEmpty {
+            detail = detail.withAuthor(name)
+        }
         return detail
+    }
+
+    private func displayName(ownerID: UUID) async throws -> String? {
+        let req = try request(path: "/rest/v1/profiles?id=eq.\(ownerID.uuidString)&select=display_name",
+                              method: "GET", token: config.anonKey)
+        let (data, response) = try await session.data(for: req)
+        try Self.checkStatus(response)
+        struct Row: Decodable { let display_name: String? }
+        let rows = (try? Self.decoder.decode([Row].self, from: data)) ?? []
+        return rows.first?.display_name
+    }
+
+    func myTransforms(accessToken: String) async throws -> [TransformListItem] {
+        guard let uid = Self.subject(fromJWT: accessToken) else { throw MarketplaceError.notSignedIn }
+        let req = try request(
+            path: "/rest/v1/transforms?owner_id=eq.\(uid)&select=\(Self.listColumns),status&order=updated_at.desc",
+            method: "GET", token: accessToken
+        )
+        let (data, response) = try await session.data(for: req)
+        try Self.checkStatus(response)
+        guard let decoded = try? Self.decoder.decode([TransformListItem].self, from: data) else {
+            throw MarketplaceError.decoding
+        }
+        return decoded
+    }
+
+    func setDisplayName(_ name: String, accessToken: String) async throws {
+        guard let uid = Self.subject(fromJWT: accessToken) else { throw MarketplaceError.notSignedIn }
+        var req = try request(path: "/rest/v1/profiles?id=eq.\(uid)", method: "PATCH", token: accessToken)
+        req.setValue("return=minimal", forHTTPHeaderField: "Prefer")
+        req.httpBody = try? JSONSerialization.data(withJSONObject: ["display_name": name])
+        let (_, response) = try await session.data(for: req)
+        try Self.checkStatus(response)
     }
 
     func recordInstall(transformID: UUID) async throws {
@@ -234,6 +271,7 @@ private struct DetailRow: Decodable {
     let description: String
     let kind: TransformKind
     let category: String
+    let owner_id: UUID
     let latest_version: Int
     let install_count: Int
     let rating_avg: Double

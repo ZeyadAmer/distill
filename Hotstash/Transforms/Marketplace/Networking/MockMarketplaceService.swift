@@ -80,6 +80,16 @@ struct MockMarketplaceService: MarketplaceService {
     func postReview(transformID: UUID, body: String, accessToken: String) async throws {}
     func report(targetType: String, targetID: UUID, reason: String, accessToken: String) async throws {}
 
+    func myTransforms(accessToken: String) async throws -> [TransformListItem] {
+        [TransformListItem(
+            id: Self.slugifyID, slug: "slugify", name: "Slugify", authorName: "you",
+            kind: .text, category: "Cleanup", installCount: 1280, ratingAvg: 4.7,
+            ratingCount: 64, isFeatured: true, status: "live"
+        )]
+    }
+
+    func setDisplayName(_ name: String, accessToken: String) async throws {}
+
     func pendingReview(accessToken: String) async throws -> [TransformListItem] {
         [TransformListItem(
             id: UUID(), slug: "pending-sample", name: "Pending Sample", authorName: "someone",
