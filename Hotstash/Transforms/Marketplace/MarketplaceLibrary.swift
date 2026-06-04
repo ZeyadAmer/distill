@@ -113,6 +113,28 @@ final class MarketplaceLibrary {
         return row
     }
 
+    /// Refreshes installed transforms from the backend so ones the author has
+    /// since renamed, recategorised, or updated reflect their current manifest.
+    ///
+    /// Only `origin == "installed"` rows are touched — locally-authored drafts
+    /// are edited in-app and remain authoritative. A row is rewritten only when
+    /// its server version or name actually differs, to avoid pointless CloudKit
+    /// writes. Network failures for a single slug are skipped, never fatal.
+    /// Returns `true` if any row was updated.
+    @discardableResult
+    func syncInstalled(using service: MarketplaceService) async -> Bool {
+        var changed = false
+        for row in installed() {
+            guard let detail = try? await service.detail(slug: row.slug) else { continue }
+            let newManifest = detail.toManifest()
+            let nameChanged = newManifest.name != row.manifest?.name
+            guard detail.version != row.installedVersion || nameChanged else { continue }
+            upsert(manifest: newManifest, origin: "installed", installedVersion: detail.version)
+            changed = true
+        }
+        return changed
+    }
+
     /// Deletes the stored row for `slug`, if present.
     func delete(slug: String) {
         guard let row = stored(slug: slug) else { return }

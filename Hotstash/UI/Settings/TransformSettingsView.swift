@@ -46,8 +46,12 @@ struct TransformSettingsView: View {
             .listStyle(.inset)
             // Reload each time the tab appears so newly installed / renamed
             // marketplace transforms show their current name (the @State was
-            // otherwise captured once and went stale).
-            .onAppear { transforms = Self.loadRows() }
+            // otherwise captured once and went stale). Also pull any updated
+            // manifests from the backend, then reload again if anything changed.
+            .onAppear {
+                transforms = Self.loadRows()
+                syncFromMarketplace()
+            }
 
             Divider()
 
@@ -61,6 +65,19 @@ struct TransformSettingsView: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 8)
+        }
+    }
+
+    // MARK: - Marketplace sync
+
+    /// Pulls fresh manifests for installed transforms from the backend and
+    /// reloads the rows if any changed. No-op when no backend is configured.
+    private func syncFromMarketplace() {
+        guard MarketplaceServiceProvider.isConfigured else { return }
+        let service = MarketplaceServiceProvider.shared
+        Task { @MainActor in
+            let changed = await MarketplaceLibrary.shared.syncInstalled(using: service)
+            if changed { transforms = Self.loadRows() }
         }
     }
 
