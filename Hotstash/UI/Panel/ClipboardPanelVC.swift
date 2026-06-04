@@ -594,6 +594,20 @@ final class ClipboardPanelVC: NSViewController {
         selectFirstItem()
     }
 
+    /// Switches to the given tab (0 = Recents, 1 = Pinned) and refreshes the list.
+    private func switchTab(to index: Int) {
+        guard index != currentTab, index >= 0, index < tabControl.segmentCount else { return }
+        currentTab = index
+        tabControl.selectedSegment = index
+        applySearch(query: searchField.stringValue)
+        selectFirstItem()
+    }
+
+    /// Toggles between Recents and Pinned (bound to Tab / Shift-Tab).
+    private func toggleTab() {
+        switchTab(to: currentTab == 0 ? 1 : 0)
+    }
+
     @objc private func handleClose() {
         ClipboardPanel.shared.dismiss()
     }
@@ -782,6 +796,8 @@ final class ClipboardPanelVC: NSViewController {
             moveSelection(by: +1)
         case 126: // Up arrow
             moveSelection(by: -1)
+        case 48: // Tab
+            toggleTab()
         default:
             super.keyDown(with: event)
         }
@@ -964,6 +980,10 @@ extension ClipboardPanelVC: NSSearchFieldDelegate {
             return true
         case #selector(NSResponder.insertNewline(_:)):
             if selectedItem != nil { pasteSelected() }
+            return true
+        case #selector(NSResponder.insertTab(_:)),
+             #selector(NSResponder.insertBacktab(_:)):
+            toggleTab()
             return true
         default:
             return false

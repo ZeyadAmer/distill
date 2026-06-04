@@ -105,6 +105,13 @@ final class ClipboardMonitor {
             NotificationCenter.default.post(name: .clipboardDidUpdate, object: nil)
             return
         }
+        // Re-copying a pinned item must not spawn a duplicate. If the content
+        // already exists as a pinned item (and no unpinned copy), keep the single
+        // pinned entry rather than inserting a new row.
+        if store.existingPinned(content: content) != nil {
+            NotificationCenter.default.post(name: .clipboardDidUpdate, object: nil)
+            return
+        }
 
         let type = ContentDetector.detect(content)
         let item = ClipboardItem(content: content, contentType: type)

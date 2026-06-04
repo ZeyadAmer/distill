@@ -108,6 +108,15 @@ final class ClipboardStore {
         return fetch(descriptor).first
     }
 
+    /// Returns the existing pinned item with exactly this content, if any.
+    func existingPinned(content: String) -> ClipboardItem? {
+        var descriptor = FetchDescriptor<ClipboardItem>(
+            predicate: #Predicate { $0.isPinned && $0.content == content }
+        )
+        descriptor.fetchLimit = 1
+        return fetch(descriptor).first
+    }
+
     // MARK: Mutations
 
     func add(item: ClipboardItem) {
