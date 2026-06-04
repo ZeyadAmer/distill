@@ -651,7 +651,10 @@ final class ClipboardPanelVC: NSViewController {
         guard tableView.clickedRow >= 0,
               tableView.clickedRow < rows.count,
               case .item = rows[tableView.clickedRow] else { return }
-        ClipboardPanel.shared.dismiss()
+        // Select the double-clicked row, then paste it straight into the app
+        // that was focused before Hotstash opened.
+        tableView.selectRowIndexes(IndexSet(integer: tableView.clickedRow), byExtendingSelection: false)
+        pasteSelected()
     }
 
 
@@ -946,5 +949,24 @@ extension ClipboardPanelVC: NSSearchFieldDelegate {
     func controlTextDidChange(_ obj: Notification) {
         guard let sf = obj.object as? NSSearchField else { return }
         applySearch(query: sf.stringValue)
+    }
+
+    /// Routes ↑/↓ to list selection and Return to paste while the search field
+    /// keeps first-responder focus — so typing filters but the arrows move the
+    /// list selection rather than the text caret.
+    func control(_ control: NSControl, textView: NSTextView, doCommandBy commandSelector: Selector) -> Bool {
+        switch commandSelector {
+        case #selector(NSResponder.moveDown(_:)):
+            moveSelection(by: +1)
+            return true
+        case #selector(NSResponder.moveUp(_:)):
+            moveSelection(by: -1)
+            return true
+        case #selector(NSResponder.insertNewline(_:)):
+            if selectedItem != nil { pasteSelected() }
+            return true
+        default:
+            return false
+        }
     }
 }

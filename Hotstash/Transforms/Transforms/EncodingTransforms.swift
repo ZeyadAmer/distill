@@ -20,7 +20,7 @@ struct Base64EncodeTransform: Transform {
 struct Base64DecodeTransform: Transform {
     let id       = "base64_decode"
     let name     = "Base64 Decode"
-    let icon     = "lock.open.doc"
+    let icon     = "lock.open"
     let category = TransformCategory.encoding
 
     let applicableTo: [ContentType] = []

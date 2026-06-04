@@ -43,29 +43,24 @@ struct WhatsNewView: View {
 
     private let items: [ChangeItem] = [
         ChangeItem(
-            icon: "bag.fill",
-            title: "Transforms Marketplace",
-            detail: "Create your own text and image transforms, share them with the community, and install ones others made — right inside the app."
+            icon: "return",
+            title: "Press Return to paste",
+            detail: "Pick an item with the ↑/↓ arrows and hit Return — or double-click — to paste it straight into the app you were just using. No more switching back and pressing ⌘V."
         ),
         ChangeItem(
-            icon: "icloud.fill",
-            title: "iCloud sync",
-            detail: "Your clipboard history and installed transforms now sync across all your Macs and survive reinstalls. Everything stays in your private iCloud."
+            icon: "arrow.up.arrow.down",
+            title: "Arrow-key navigation",
+            detail: "After the hotkey, the arrows move through your history while you keep typing to search."
         ),
         ChangeItem(
-            icon: "infinity",
-            title: "Unlimited history",
-            detail: "No more cap — keep and search your entire clipboard history."
+            icon: "wand.and.stars",
+            title: "Quick Transform shortcuts",
+            detail: "Map up to five global shortcuts to a transform — e.g. ⌘G to paste in UPPERCASE. Copy, press the key, done."
         ),
         ChangeItem(
-            icon: "keyboard",
-            title: "Editable Multi-paste shortcut",
-            detail: "Set your own shortcut for multi-paste, alongside the main Open Hotstash shortcut."
-        ),
-        ChangeItem(
-            icon: "lock.shield.fill",
-            title: "Password-safe by default",
-            detail: "Copies from password managers and other concealed content are never captured into your history."
+            icon: "arrow.down.circle",
+            title: "Update reminders",
+            detail: "Hotstash now tells you when a new version is available on the App Store."
         ),
     ]
 
@@ -83,7 +78,7 @@ struct WhatsNewView: View {
                     .font(.largeTitle)
                     .fontWeight(.bold)
 
-                Text("Version 4.0")
+                Text("Version 5.0")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }

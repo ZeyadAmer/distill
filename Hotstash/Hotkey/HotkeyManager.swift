@@ -66,12 +66,17 @@ final class HotkeyManager {
     private var multiPasteHotKeyRef: EventHotKeyRef?
     private var eventHandlerRef: EventHandlerRef?
 
+    /// Quick-transform hotkeys use Carbon ids `quickTransformBaseID + slotIndex`.
+    static let quickTransformBaseID: UInt32 = 3
+    private var quickHotKeyRefs: [Int: EventHotKeyRef] = [:]
+
     // MARK: - Lifecycle
 
     func start() {
         installEventHandler()
         registerHotKey()
         registerMultiPasteHotKey()
+        registerQuickTransforms()
     }
 
     /// Replaces the main hotkey and immediately re-registers it.
@@ -147,6 +152,13 @@ final class HotkeyManager {
                         NotificationCenter.default.post(name: .hotstashHotkeyPressed, object: nil)
                     } else if id == 2 {
                         NotificationCenter.default.post(name: .hotstashMultiPastePressed, object: nil)
+                    } else if id >= HotkeyManager.quickTransformBaseID {
+                        let slot = Int(id - HotkeyManager.quickTransformBaseID)
+                        NotificationCenter.default.post(
+                            name: .hotstashQuickTransform,
+                            object: nil,
+                            userInfo: ["slot": slot]
+                        )
                     }
                 }
                 return noErr
@@ -187,6 +199,30 @@ final class HotkeyManager {
             UnregisterEventHotKey(ref)
             multiPasteHotKeyRef = nil
         }
+    }
+
+    // MARK: - Quick transforms
+
+    /// Re-registers every active quick-transform slot. Safe to call repeatedly;
+    /// it tears down the previous registrations first.
+    func registerQuickTransforms() {
+        unregisterQuickTransforms()
+        for slot in QuickTransformStore.shared.slots where slot.isActive {
+            let id = EventHotKeyID(
+                signature: fourCharCode("HOTS"),
+                id: Self.quickTransformBaseID + UInt32(slot.id)
+            )
+            var ref: EventHotKeyRef?
+            RegisterEventHotKey(slot.keyCode, slot.modifiers, id, GetApplicationEventTarget(), 0, &ref)
+            if let ref { quickHotKeyRefs[slot.id] = ref }
+        }
+    }
+
+    private func unregisterQuickTransforms() {
+        for ref in quickHotKeyRefs.values {
+            UnregisterEventHotKey(ref)
+        }
+        quickHotKeyRefs.removeAll()
     }
 }
 

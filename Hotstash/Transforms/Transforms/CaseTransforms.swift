@@ -5,7 +5,7 @@ import Foundation
 struct ToUppercaseTransform: Transform {
     let id       = "to_uppercase"
     let name     = "UPPERCASE"
-    let icon     = "textformat.uppercase"
+    let icon     = "characters.uppercase"
     let category = TransformCategory.casing
 
     /// Works on all content types — no restriction.
@@ -21,7 +21,7 @@ struct ToUppercaseTransform: Transform {
 struct ToLowercaseTransform: Transform {
     let id       = "to_lowercase"
     let name     = "lowercase"
-    let icon     = "textformat.lowercase"
+    let icon     = "characters.lowercase"
     let category = TransformCategory.casing
 
     let applicableTo: [ContentType] = []

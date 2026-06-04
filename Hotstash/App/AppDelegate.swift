@@ -51,6 +51,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             name: .hotstashMultiPastePressed,
             object: nil
         )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleQuickTransformNotification(_:)),
+            name: .hotstashQuickTransform,
+            object: nil
+        )
 
         // Register the URL-scheme handler for hotstash:// deep links.
         NSAppleEventManager.shared().setEventHandler(
@@ -68,6 +74,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         showOnboardingIfNeeded()
         showWhatsNewIfNeeded()
         showSignInPromptIfNeeded()
+
+        // Check the App Store for a newer version (prompts at most once per
+        // version). Deferred so it never competes with launch windows.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            UpdateChecker.checkOnLaunch()
+        }
     }
 
     /// Invites the user to sign in to the marketplace on first launch and after
@@ -100,6 +112,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func handleMultiPasteNotification() {
         Task { @MainActor in
             MultiPastePanel.shared.show()
+        }
+    }
+
+    @objc private func handleQuickTransformNotification(_ note: Notification) {
+        guard let slot = note.userInfo?["slot"] as? Int else { return }
+        Task { @MainActor in
+            QuickTransformRunner.run(slotIndex: slot)
         }
     }
 

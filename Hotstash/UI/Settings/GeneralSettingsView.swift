@@ -19,6 +19,7 @@ struct GeneralSettingsView: View {
     @State private var multiPasteModifiers: UInt32 = HotkeyManager.shared.multiPasteModifiers
     @State private var panelPosition: PanelPosition = PanelPosition.current
     @State private var showingClearConfirmation = false
+    @State private var accessibilityTrusted: Bool = AutoPasteService.isTrusted
 
     @State private var historyLimitOption: HistoryLimitOption = {
         switch UserDefaults.standard.integer(forKey: "historyLimit") {
@@ -68,6 +69,33 @@ struct GeneralSettingsView: View {
                 Text("Keyboard Shortcuts")
             } footer: {
                 Text("Click a shortcut field, then press your desired key combination.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            // MARK: Quick transforms
+
+            QuickTransformsSettingsView()
+
+            // MARK: Direct paste
+
+            Section {
+                LabeledContent("Paste into focused app") {
+                    if accessibilityTrusted {
+                        Label("Enabled", systemImage: "checkmark.circle.fill")
+                            .foregroundStyle(.green)
+                            .labelStyle(.titleAndIcon)
+                    } else {
+                        Button("Enable\u{2026}") {
+                            _ = AutoPasteService.requestPermissionIfNeeded()
+                            AutoPasteService.openAccessibilitySettings()
+                        }
+                    }
+                }
+            } header: {
+                Text("Direct Paste")
+            } footer: {
+                Text("When enabled, pressing Return or double-clicking an item pastes it straight into the app you were using. This needs Accessibility permission in System Settings → Privacy & Security.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -134,6 +162,7 @@ struct GeneralSettingsView: View {
         }
         .formStyle(.grouped)
         .padding(.vertical, 8)
+        .onAppear { accessibilityTrusted = AutoPasteService.isTrusted }
     }
 
     // MARK: - Helpers

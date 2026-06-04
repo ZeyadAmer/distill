@@ -25,7 +25,7 @@ struct SortAZTransform: Transform {
 struct SortZATransform: Transform {
     let id       = "sort_za"
     let name     = "Sort Z → A"
-    let icon     = "arrow.down.and.up.text.horizontal"
+    let icon     = "line.3.horizontal.decrease"
     let category = TransformCategory.lists
 
     let applicableTo: [ContentType] = [.list]

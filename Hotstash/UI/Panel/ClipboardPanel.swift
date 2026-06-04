@@ -27,6 +27,10 @@ final class ClipboardPanel: NSPanel {
     private var localKeyMonitor: Any?
     private let contentVC = ClipboardPanelVC()
 
+    /// The app that was frontmost just before the panel opened. Used to restore
+    /// focus and paste directly into it. Captured in `show()` before we activate.
+    private(set) var previousApp: NSRunningApplication?
+
     // MARK: Init
 
     private init() {
@@ -146,6 +150,10 @@ final class ClipboardPanel: NSPanel {
 
     /// Positions and fades in the panel according to the stored position preference.
     func show() {
+        // Capture the app currently in front BEFORE we activate, so paste can
+        // restore focus to it and inject ⌘V there.
+        previousApp = NSWorkspace.shared.frontmostApplication
+
         switch PanelPosition.current {
         case .cursor:  positionNearCursor()
         case .menuBar: positionNearMenuBar()

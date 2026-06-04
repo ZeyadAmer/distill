@@ -12,4 +12,8 @@ extension Notification.Name {
 
     /// Posted when the CMD+Shift+L multi-paste hotkey is pressed.
     static let hotstashMultiPastePressed = Notification.Name("com.zeyadamer.hotstash.multiPastePressed")
+
+    /// Posted when a quick-transform hotkey is pressed. `userInfo["slot"]` carries
+    /// the 0-based slot index.
+    static let hotstashQuickTransform = Notification.Name("com.zeyadamer.hotstash.quickTransform")
 }

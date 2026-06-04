@@ -35,15 +35,22 @@ enum PasteEngine {
         }
     }
 
-    /// Puts `text` on the pasteboard and dismisses the panel.
+    /// Puts `text` on the pasteboard, dismisses the panel, and pastes it directly
+    /// into the app that was focused before Hotstash opened (when Accessibility is
+    /// granted; otherwise the content is left on the pasteboard for a manual ⌘V).
     static func hotstashedPaste(_ text: String) {
         hotstashedCopy(text)
+        let target = ClipboardPanel.shared.previousApp
         ClipboardPanel.shared.dismiss()
+        AutoPasteService.paste(restoringFocusTo: target)
     }
 
-    /// Puts image `data` on the pasteboard and dismisses the panel.
+    /// Puts image `data` on the pasteboard, dismisses the panel, and pastes it
+    /// directly into the previously-focused app (see `hotstashedPaste`).
     static func hotstashedPasteImage(_ data: Data) {
         hotstashedCopyImage(data)
+        let target = ClipboardPanel.shared.previousApp
         ClipboardPanel.shared.dismiss()
+        AutoPasteService.paste(restoringFocusTo: target)
     }
 }
