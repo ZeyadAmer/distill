@@ -678,6 +678,13 @@ final class ClipboardPanelVC: NSViewController {
         guard tableView.clickedRow >= 0,
               tableView.clickedRow < rows.count,
               case .item = rows[tableView.clickedRow] else { return }
+        // ⌘/⇧-clicks build a multi-selection (paste stack) — don't overwrite
+        // the clipboard while the user is still picking items.
+        let mods = NSApp.currentEvent?.modifierFlags ?? []
+        if mods.contains(.command) || mods.contains(.shift)
+            || tableView.selectedRowIndexes.count > 1 {
+            return
+        }
         copySelected()
     }
 
@@ -1006,7 +1013,8 @@ extension ClipboardPanelVC: NSTableViewDelegate {
         let cell = (tableView.makeView(withIdentifier: ClipboardItemCell.reuseIdentifier, owner: nil) as? ClipboardItemCell)
             ?? ClipboardItemCell()
         cell.identifier = ClipboardItemCell.reuseIdentifier
-        let isSelected = tableView.selectedRow == row
+        // isRowSelected (not selectedRow) so every ⌘-clicked row highlights.
+        let isSelected = tableView.isRowSelected(row)
         let isHovered  = hoveredRow == row && !isSelected
 
         var itemCount = 0

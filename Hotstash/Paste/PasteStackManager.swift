@@ -63,32 +63,46 @@ final class PasteStackManager {
         }
         queue = []
         nextIndex = 0
+        awaitingKeyUp = false
         NotificationCenter.default.post(name: .pasteStackChanged, object: nil)
     }
 
     // MARK: - Advancing
 
-    /// Called from the event tap whenever the user presses ⌘V system-wide.
-    /// The event passes through untouched (the frontmost app pastes the staged
-    /// item); we then stage the next one.
-    fileprivate func userDidPaste() {
+    /// Set when a ⌘V key-down is seen; the matching key-up advances the stack.
+    /// The paste happens on key-down, so by key-up the frontmost app has read
+    /// the pasteboard and the next item can be staged immediately — no timer,
+    /// no race with a fast follow-up ⌘V.
+    private var awaitingKeyUp = false
+
+    /// Called from the event tap on ⌘V key-down. Records that a paste started.
+    fileprivate func userPasteBegan() {
         // Ignore the app's own synthesized ⌘V (direct paste / quick transforms).
         if Date.now.timeIntervalSince(AutoPasteService.lastSyntheticPaste) < 0.3 { return }
+        guard isActive else { return }
+        awaitingKeyUp = true
+    }
+
+    /// Called from the event tap on the V key-up that ends the paste keystroke.
+    fileprivate func userPasteEnded() {
+        guard awaitingKeyUp else { return }
+        awaitingKeyUp = false
         guard isActive else { return }
 
         nextIndex += 1
         if nextIndex < queue.count {
-            // Small delay so the frontmost app finishes reading the current
-            // pasteboard contents before we replace them.
-            let index = nextIndex
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
-                self?.stage(itemAt: index)
-                NotificationCenter.default.post(name: .pasteStackChanged, object: nil)
-            }
+            stage(itemAt: nextIndex)
+            NotificationCenter.default.post(name: .pasteStackChanged, object: nil)
         } else {
             NSSound(named: "Pop")?.play()
             stop()
         }
+    }
+
+    /// macOS disables taps it considers unresponsive; turn ours back on.
+    fileprivate func reenableTap() {
+        guard let tap = eventTap else { return }
+        CGEvent.tapEnable(tap: tap, enable: true)
     }
 
     private func stage(itemAt index: Int) {
@@ -100,21 +114,35 @@ final class PasteStackManager {
 
     private func installEventTap() -> Bool {
         let mask = CGEventMask(1 << CGEventType.keyDown.rawValue)
+                 | CGEventMask(1 << CGEventType.keyUp.rawValue)
         guard let tap = CGEvent.tapCreate(
             tap: .cgAnnotatedSessionEventTap,
             place: .tailAppendEventTap,
             options: .listenOnly,
             eventsOfInterest: mask,
             callback: { _, type, event, _ in
-                if type == .keyDown,
-                   event.getIntegerValueField(.keyboardEventKeycode) == Int64(kVK_ANSI_V),
-                   event.flags.contains(.maskCommand),
-                   !event.flags.contains(.maskAlternate),
-                   !event.flags.contains(.maskShift),
-                   !event.flags.contains(.maskControl) {
-                    Task { @MainActor in
-                        PasteStackManager.shared.userDidPaste()
+                switch type {
+                case .tapDisabledByTimeout, .tapDisabledByUserInput:
+                    Task { @MainActor in PasteStackManager.shared.reenableTap() }
+                case .keyDown:
+                    if event.getIntegerValueField(.keyboardEventKeycode) == Int64(kVK_ANSI_V),
+                       event.getIntegerValueField(.keyboardEventAutorepeat) == 0,
+                       event.flags.contains(.maskCommand),
+                       !event.flags.contains(.maskAlternate),
+                       !event.flags.contains(.maskShift),
+                       !event.flags.contains(.maskControl) {
+                        Task { @MainActor in
+                            PasteStackManager.shared.userPasteBegan()
+                        }
                     }
+                case .keyUp:
+                    if event.getIntegerValueField(.keyboardEventKeycode) == Int64(kVK_ANSI_V) {
+                        Task { @MainActor in
+                            PasteStackManager.shared.userPasteEnded()
+                        }
+                    }
+                default:
+                    break
                 }
                 return Unmanaged.passUnretained(event)
             },
