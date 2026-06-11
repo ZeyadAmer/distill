@@ -4,14 +4,17 @@ A fast, lightweight clipboard history manager for macOS. Lives in your menu bar 
 
 ## Features
 
-- **Clipboard history** — automatically saves everything you copy: text, links, code, images
+- **Clipboard history** — automatically saves everything you copy: text (with formatting), links, code, images, and files
 - **Instant access** — global hotkey opens your history from anywhere
-- **Quick copy** — select any item and press Return to copy it back, then ⌘V to paste
-- **Search** — filter history as you type
+- **Direct paste** — Return or double-click pastes straight into the app you were using; ⇧Return pastes as plain text
+- **Paste Stack** — ⌘-click several items, then every ⌘V pastes the next one in sequence
+- **Search everything** — including text inside copied screenshots (OCR) and page titles of copied links
 - **Pin items** — keep important clips at the top permanently
-- **Transform** — uppercase, lowercase, trim, and other text transforms before copying
+- **Transform** — uppercase, lowercase, trim, JSON formatting, and a community marketplace of transforms
 - **Multi-paste** — combine multiple recent items and copy them joined inline or on new lines
-- **Privacy-first** — all data stays on your Mac, nothing is sent anywhere
+- **Excluded apps** — never record copies from apps you choose (password managers are skipped automatically)
+- **Drag out** — drag any history item straight into another app
+- **iCloud sync** — history follows you across your Macs (private database)
 
 ## Requirements
 

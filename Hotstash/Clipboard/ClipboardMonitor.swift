@@ -78,7 +78,21 @@ final class ClipboardMonitor {
         // (passwords from password managers, one-time codes, etc.).
         if containsSensitiveType(pasteboard) { return }
 
-        // Try image first.
+        // Respect the user's per-app exclusion list (Terminal, banking apps, …).
+        if let frontmost = NSWorkspace.shared.frontmostApplication?.bundleIdentifier,
+           ExclusionList.shared.isExcluded(bundleID: frontmost) {
+            return
+        }
+
+        // Finder file copies take precedence over the file *icon* image data
+        // that rides along on the same pasteboard.
+        if let item = fileItemFromPasteboard(pasteboard) {
+            ClipboardStore.shared.add(item: item)
+            NotificationCenter.default.post(name: .clipboardDidUpdate, object: nil)
+            return
+        }
+
+        // Try image next.
         if let image = imageFromPasteboard(pasteboard) {
             let item = ClipboardItem(
                 content: "[Image]",
@@ -86,11 +100,12 @@ final class ClipboardMonitor {
                 imageData: thumbnailData(from: image)
             )
             ClipboardStore.shared.add(item: item)
+            ItemEnricher.shared.enrich(item)
             NotificationCenter.default.post(name: .clipboardDidUpdate, object: nil)
             return
         }
 
-        // Fall back to plain-string content.
+        // Fall back to string content, keeping rich representations alongside.
         guard let content = pasteboard.string(forType: .string),
               !content.isEmpty else { return }
 
@@ -114,9 +129,47 @@ final class ClipboardMonitor {
         }
 
         let type = ContentDetector.detect(content)
-        let item = ClipboardItem(content: content, contentType: type)
+        let item = ClipboardItem(
+            content: content,
+            contentType: type,
+            rtfData: pasteboard.data(forType: .rtf),
+            htmlData: pasteboard.data(forType: .html)
+        )
         store.add(item: item)
+        ItemEnricher.shared.enrich(item)
         NotificationCenter.default.post(name: .clipboardDidUpdate, object: nil)
+    }
+
+    // MARK: - File helpers
+
+    /// Builds a `.file` item when the pasteboard carries Finder file URLs.
+    /// Security-scoped bookmarks are stored so the files can be re-pasted
+    /// from the sandbox in later launches.
+    private func fileItemFromPasteboard(_ pasteboard: NSPasteboard) -> ClipboardItem? {
+        guard let urls = pasteboard.readObjects(
+            forClasses: [NSURL.self],
+            options: [.urlReadingFileURLsOnly: true]
+        ) as? [URL], !urls.isEmpty else { return nil }
+
+        let files = urls.map { url in
+            CopiedFile(
+                name: url.lastPathComponent,
+                path: url.path,
+                bookmark: try? url.bookmarkData(
+                    options: .withSecurityScope,
+                    includingResourceValuesForKeys: nil,
+                    relativeTo: nil
+                )
+            )
+        }
+        guard let data = try? JSONEncoder().encode(files) else { return nil }
+
+        let names = files.map(\.name).joined(separator: ", ")
+        return ClipboardItem(
+            content: names,
+            contentType: .file,
+            fileInfoData: data
+        )
     }
 
     /// Pasteboard marker types used by password managers and ephemeral copies.

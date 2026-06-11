@@ -179,6 +179,8 @@ final class TransformRegistry {
             #else
             suggestedIDs = []
             #endif
+        case .file:
+            suggestedIDs = []
         case .plainText:
             suggestedIDs = [
                 TrimWhitespaceTransform().id,

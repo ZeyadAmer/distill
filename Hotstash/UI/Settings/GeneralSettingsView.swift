@@ -20,6 +20,7 @@ struct GeneralSettingsView: View {
     @State private var panelPosition: PanelPosition = PanelPosition.current
     @State private var showingClearConfirmation = false
     @State private var accessibilityTrusted: Bool = AutoPasteService.isTrusted
+    @State private var alwaysPlainText: Bool = UserDefaults.standard.bool(forKey: "alwaysPastePlainText")
 
     @State private var historyLimitOption: HistoryLimitOption = {
         switch UserDefaults.standard.integer(forKey: "historyLimit") {
@@ -99,6 +100,25 @@ struct GeneralSettingsView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+
+            // MARK: Pasting
+
+            Section {
+                Toggle("Always paste as plain text", isOn: $alwaysPlainText)
+                    .onChange(of: alwaysPlainText) { newValue in
+                        PasteEngine.alwaysPastePlainText = newValue
+                    }
+            } header: {
+                Text("Pasting")
+            } footer: {
+                Text("Off: items paste with their original formatting; hold ⇧ and press Return to paste one item as plain text. On: formatting is always stripped.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            // MARK: Excluded apps
+
+            ExcludedAppsSettingsSection()
 
             // MARK: Panel position
 

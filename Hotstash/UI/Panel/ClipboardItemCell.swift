@@ -232,7 +232,10 @@ final class ClipboardItemCell: NSTableCellView {
         textBadgeTopConstraint.isActive     = true
 
         let maxChars = 120
-        let raw = item.content
+        // URL items with a fetched page title show "Title — url".
+        let raw = item.contentType == .url && !item.linkTitle.isEmpty
+            ? "\(item.linkTitle) — \(item.content)"
+            : item.content
         let truncated = raw.count > maxChars
             ? String(raw.prefix(maxChars)) + "…"
             : raw
@@ -255,6 +258,7 @@ final class ClipboardItemCell: NSTableCellView {
         case .code:      symbolName = "chevron.left.forwardslash.chevron.right"
         case .list:      symbolName = "list.bullet"
         case .image:     symbolName = "photo"
+        case .file:      symbolName = "doc.on.doc"
         case .plainText: symbolName = "doc.text"
         }
 

@@ -20,6 +20,10 @@ enum AutoPasteService {
     /// Physical key code for the "V" key on a US layout (kVK_ANSI_V).
     private static let vKeyCode: CGKeyCode = 9
 
+    /// When the last synthetic ⌘V was posted. PasteStackManager uses this to
+    /// ignore the app's own keystrokes in its event tap.
+    private(set) static var lastSyntheticPaste: Date = .distantPast
+
     /// Delay before posting ⌘V when we first reactivate another app — gives the
     /// window server time to move key focus back to the target app.
     private static let focusRestoreDelay: TimeInterval = 0.12
@@ -75,6 +79,7 @@ enum AutoPasteService {
     // MARK: - Private
 
     private static func postCommandV() {
+        lastSyntheticPaste = .now
         let source = CGEventSource(stateID: .combinedSessionState)
         let down = CGEvent(keyboardEventSource: source, virtualKey: vKeyCode, keyDown: true)
         let up   = CGEvent(keyboardEventSource: source, virtualKey: vKeyCode, keyDown: false)

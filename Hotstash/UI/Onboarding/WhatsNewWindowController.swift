@@ -43,24 +43,24 @@ struct WhatsNewView: View {
 
     private let items: [ChangeItem] = [
         ChangeItem(
-            icon: "return",
-            title: "Press Return to paste",
-            detail: "Pick an item with the ↑/↓ arrows and hit Return — or double-click — to paste it straight into the app you were just using. No more switching back and pressing ⌘V."
+            icon: "square.stack.3d.up",
+            title: "Paste Stack",
+            detail: "⌘-click several items, hit the stack button — then every ⌘V you press pastes the next one. Copy five things, paste five things."
         ),
         ChangeItem(
-            icon: "arrow.up.arrow.down",
-            title: "Arrow-key navigation",
-            detail: "After the hotkey, the arrows move through your history while you keep typing to search."
+            icon: "textformat",
+            title: "Formatting preserved",
+            detail: "Copied text keeps its bold, links, and colors. Hold ⇧ and press Return to paste any item as plain text — or flip one switch in Settings to always paste plain."
         ),
         ChangeItem(
-            icon: "wand.and.stars",
-            title: "Quick Transform shortcuts",
-            detail: "Map up to five global shortcuts to a transform — e.g. ⌘G to paste in UPPERCASE. Copy, press the key, done."
+            icon: "folder",
+            title: "Files, OCR & link titles",
+            detail: "Copied files now land in your history. Text inside screenshots is searchable. Copied links show their page title."
         ),
         ChangeItem(
-            icon: "arrow.down.circle",
-            title: "Update reminders",
-            detail: "Hotstash now tells you when a new version is available on the App Store."
+            icon: "hand.raised",
+            title: "Excluded apps & drag out",
+            detail: "Tell Hotstash to ignore certain apps entirely, and drag any item from the panel straight into another app."
         ),
     ]
 
@@ -78,7 +78,7 @@ struct WhatsNewView: View {
                     .font(.largeTitle)
                     .fontWeight(.bold)
 
-                Text("Version 5.0")
+                Text("Version 6.0")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }

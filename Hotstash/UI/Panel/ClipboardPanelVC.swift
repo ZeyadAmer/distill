@@ -89,6 +89,7 @@ final class ClipboardPanelVC: NSViewController {
         tv.selectionHighlightStyle = .none  // We draw our own.
         tv.focusRingType = .none
         tv.rowHeight = ClipboardItemCell.rowHeight
+        tv.allowsMultipleSelection = true   // ⌘-click builds a paste stack.
 
         let col = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("main"))
         col.isEditable = false
@@ -125,6 +126,19 @@ final class ClipboardPanelVC: NSViewController {
             .withSymbolConfiguration(cfg)
         btn.contentTintColor = .secondaryLabelColor
         btn.toolTip       = "Paste Multiple Items (⌘⇧L)"
+        btn.translatesAutoresizingMaskIntoConstraints = false
+        return btn
+    }()
+
+    private let stackButton: NSButton = {
+        let btn = NSButton(title: "", target: nil, action: nil)
+        btn.bezelStyle    = .circular
+        btn.isBordered    = false
+        let cfg           = NSImage.SymbolConfiguration(pointSize: 14, weight: .regular)
+        btn.image         = NSImage(systemSymbolName: "square.stack.3d.up", accessibilityDescription: "Paste Stack")?
+            .withSymbolConfiguration(cfg)
+        btn.contentTintColor = .secondaryLabelColor
+        btn.toolTip       = "Paste Stack — ⌘-click several items, then every ⌘V pastes the next one"
         btn.translatesAutoresizingMaskIntoConstraints = false
         return btn
     }()
@@ -342,6 +356,8 @@ final class ClipboardPanelVC: NSViewController {
         tableView.dataSource = self
         tableView.registerForDraggedTypes([.hotstashDragRow])
         tableView.setDraggingSourceOperationMask(.move, forLocal: true)
+        // Allow dragging items out of the panel into other apps.
+        tableView.setDraggingSourceOperationMask(.copy, forLocal: false)
         scrollView.documentView = tableView
 
         // ── Toolbar row ───────────────────────────────────────────────────────
@@ -349,7 +365,7 @@ final class ClipboardPanelVC: NSViewController {
         toolbarRow.translatesAutoresizingMaskIntoConstraints = false
         toolbarRow.heightAnchor.constraint(equalToConstant: Layout.toolbarRowHeight).isActive = true
 
-        let toolbarStack = NSStackView(views: [pasteButton, transformButton, multiPasteButton])
+        let toolbarStack = NSStackView(views: [pasteButton, transformButton, multiPasteButton, stackButton])
         toolbarStack.spacing     = 6
         toolbarStack.orientation = .horizontal
         toolbarStack.translatesAutoresizingMaskIntoConstraints = false
@@ -436,6 +452,9 @@ final class ClipboardPanelVC: NSViewController {
 
         multiPasteButton.target = self
         multiPasteButton.action = #selector(handleMultiPaste)
+
+        stackButton.target      = self
+        stackButton.action      = #selector(handlePasteStack)
 
         pinButton.target       = self
         pinButton.action       = #selector(handlePin)
@@ -564,6 +583,7 @@ final class ClipboardPanelVC: NSViewController {
         pasteButton.isEnabled      = hasSelection
         transformButton.isEnabled  = hasSelection && !isRestricted
         multiPasteButton.isEnabled = !isRestricted
+        stackButton.isEnabled      = !isRestricted
         pinButton.isEnabled       = hasSelection
         deleteButton.isEnabled    = hasSelection
         clearAllButton.isEnabled  = currentTab == 0 && ClipboardStore.shared.recentCount > 0
@@ -733,15 +753,12 @@ final class ClipboardPanelVC: NSViewController {
         if !item.isPinned {
             ClipboardStore.shared.moveToTop(id: item.id)
         }
-        if item.contentType == .image, let data = item.imageData {
-            PasteEngine.hotstashedCopyImage(data)
-        } else {
-            PasteEngine.hotstashedCopy(item.content)
-        }
+        PasteEngine.hotstashedCopy(item: item)
     }
 
-    /// Copies the selected item and dismisses the panel (optionally applying a transform).
-    func pasteSelected(with transform: (any Transform)? = nil) {
+    /// Copies the selected item and dismisses the panel (optionally applying a
+    /// transform). `plainTextOnly` strips rich representations (⇧Return).
+    func pasteSelected(with transform: (any Transform)? = nil, plainTextOnly: Bool = false) {
         guard let item = selectedItem else { return }
 
         ClipboardStore.shared.recordUse(id: item.id)
@@ -749,14 +766,44 @@ final class ClipboardPanelVC: NSViewController {
             ClipboardStore.shared.moveToTop(id: item.id)
         }
 
-        if item.contentType == .image, let data = item.imageData {
-            let outputData = transform?.applyToImageData(data) ?? data
-            PasteEngine.hotstashedPasteImage(outputData)
+        if item.contentType == .image, let data = item.imageData, let transform {
+            PasteEngine.hotstashedPasteImage(transform.applyToImageData(data) ?? data)
             return
         }
+        if let transform {
+            PasteEngine.hotstashedPaste(transform.apply(to: item.content))
+            return
+        }
+        PasteEngine.hotstashedPaste(item: item, plainTextOnly: plainTextOnly)
+    }
 
-        let text: String = transform?.apply(to: item.content) ?? item.content
-        PasteEngine.hotstashedPaste(text)
+    /// Items currently selected in the table, top-to-bottom (paste stack source).
+    private var selectedItems: [ClipboardItem] {
+        tableView.selectedRowIndexes.sorted().compactMap { row in
+            guard row < rows.count, case .item(let item) = rows[row] else { return nil }
+            return item
+        }
+    }
+
+    /// Starts a paste stack from the current multi-selection (⌘-click items).
+    @objc private func handlePasteStack() {
+        let items = selectedItems
+        guard items.count >= 2 else {
+            NSSound.beep()
+            return
+        }
+        guard PasteStackManager.shared.start(items: items) else {
+            let alert = NSAlert()
+            alert.messageText = "Accessibility Permission Needed"
+            alert.informativeText = "Paste Stack watches for your ⌘V presses so it can stage the next item. Grant Hotstash Accessibility access in System Settings, then try again."
+            alert.addButton(withTitle: "Open System Settings")
+            alert.addButton(withTitle: "Cancel")
+            if alert.runModal() == .alertFirstButtonReturn {
+                AutoPasteService.openAccessibilitySettings()
+            }
+            return
+        }
+        ClipboardPanel.shared.dismiss()
     }
 
     // MARK: - Position paste (⌘1–⌘9)
@@ -792,6 +839,8 @@ final class ClipboardPanelVC: NSViewController {
             return
         }
         switch event.keyCode {
+        case 36: // Return — ⇧Return pastes plain text
+            pasteSelected(plainTextOnly: event.modifierFlags.contains(.shift))
         case 125: // Down arrow
             moveSelection(by: +1)
         case 126: // Up arrow
@@ -839,9 +888,28 @@ extension ClipboardPanelVC: NSTableViewDataSource {
     }
 
     func tableView(_ tableView: NSTableView, pasteboardWriterForRow row: Int) -> (any NSPasteboardWriting)? {
-        guard currentTab == 1, case .item = rows[row] else { return nil }
+        guard case .item(let item) = rows[row] else { return nil }
         let pbItem = NSPasteboardItem()
-        pbItem.setString(String(row), forType: .hotstashDragRow)
+        // Internal reorder marker (pinned tab only).
+        if currentTab == 1 {
+            pbItem.setString(String(row), forType: .hotstashDragRow)
+        }
+        // Real content so the row can be dragged into other apps.
+        switch item.contentType {
+        case .image:
+            if let data = item.imageData,
+               let tiff = NSImage(data: data)?.tiffRepresentation {
+                pbItem.setData(tiff, forType: .tiff)
+            }
+        case .file:
+            if let first = item.copiedFiles.first {
+                pbItem.setString(URL(fileURLWithPath: first.path).absoluteString,
+                                 forType: .fileURL)
+            }
+            pbItem.setString(item.content, forType: .string)
+        default:
+            pbItem.setString(item.content, forType: .string)
+        }
         return pbItem
     }
 
@@ -979,7 +1047,11 @@ extension ClipboardPanelVC: NSSearchFieldDelegate {
             moveSelection(by: -1)
             return true
         case #selector(NSResponder.insertNewline(_:)):
-            if selectedItem != nil { pasteSelected() }
+            if selectedItem != nil {
+                // ⇧Return pastes as plain text (strips RTF/HTML formatting).
+                let shiftHeld = NSApp.currentEvent?.modifierFlags.contains(.shift) ?? false
+                pasteSelected(plainTextOnly: shiftHeld)
+            }
             return true
         case #selector(NSResponder.insertTab(_:)),
              #selector(NSResponder.insertBacktab(_:)):

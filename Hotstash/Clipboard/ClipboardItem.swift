@@ -1,6 +1,8 @@
-import AppKit
 import Foundation
 import SwiftData
+#if canImport(AppKit)
+import AppKit
+#endif
 
 // ContentType is defined in Transforms/ContentDetector.swift.
 // This extension adds UI-facing computed properties.
@@ -14,10 +16,14 @@ extension ContentType {
         case .code:      return "Code"
         case .list:      return "List"
         case .image:     return "Image"
+        case .file:      return "File"
         case .plainText: return "Text"
         }
     }
+}
 
+#if canImport(AppKit)
+extension ContentType {
     /// Badge background colour used in the clipboard panel row.
     /// All colours are semantic/system colours so they adapt to light/dark mode automatically.
     var badgeColor: NSColor {
@@ -27,9 +33,21 @@ extension ContentType {
         case .code:      return NSColor.systemPurple
         case .list:      return NSColor.systemGreen
         case .image:     return NSColor.systemTeal
+        case .file:      return NSColor.systemBrown
         case .plainText: return NSColor.secondaryLabelColor
         }
     }
+}
+#endif
+
+// MARK: - CopiedFile
+
+/// One file reference captured from a Finder copy. The security-scoped
+/// bookmark lets the sandboxed app re-provide the file URL across launches.
+struct CopiedFile: Codable {
+    let name: String
+    let path: String
+    let bookmark: Data?
 }
 
 // MARK: - ClipboardItem
@@ -53,11 +71,27 @@ final class ClipboardItem {
     /// True when `imageData` is present. Sentinel so image queries avoid
     /// nil-comparison predicates (CloudKit-safe).
     var hasImage: Bool = false
+    /// RTF representation captured alongside `content`, preserved for rich paste.
+    @Attribute(.externalStorage) var rtfData: Data?
+    /// HTML representation captured alongside `content`, preserved for rich paste.
+    @Attribute(.externalStorage) var htmlData: Data?
+    /// JSON-encoded `[CopiedFile]` when this item is a Finder file copy.
+    @Attribute(.externalStorage) var fileInfoData: Data?
+    /// Text recognized inside `imageData` via Vision OCR. Searchable; empty when none.
+    var ocrText: String = ""
+    /// Page title fetched for URL items via LinkPresentation. Empty when none.
+    var linkTitle: String = ""
 
     /// Typed accessor over the persisted raw string.
     var contentType: ContentType {
         get { ContentType(rawValue: contentTypeRaw) ?? .plainText }
         set { contentTypeRaw = newValue.rawValue }
+    }
+
+    /// Decoded file references for `.file` items.
+    var copiedFiles: [CopiedFile] {
+        guard let data = fileInfoData else { return [] }
+        return (try? JSONDecoder().decode([CopiedFile].self, from: data)) ?? []
     }
 
     init(
@@ -68,7 +102,12 @@ final class ClipboardItem {
         isPinned: Bool = false,
         pinnedOrder: Int = 0,
         useCount: Int = 0,
-        imageData: Data? = nil
+        imageData: Data? = nil,
+        rtfData: Data? = nil,
+        htmlData: Data? = nil,
+        fileInfoData: Data? = nil,
+        ocrText: String = "",
+        linkTitle: String = ""
     ) {
         self.id = id
         self.content = content
@@ -79,5 +118,10 @@ final class ClipboardItem {
         self.useCount = useCount
         self.imageData = imageData
         self.hasImage = imageData != nil
+        self.rtfData = rtfData
+        self.htmlData = htmlData
+        self.fileInfoData = fileInfoData
+        self.ocrText = ocrText
+        self.linkTitle = linkTitle
     }
 }

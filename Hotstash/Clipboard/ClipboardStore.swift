@@ -88,11 +88,16 @@ final class ClipboardStore {
     // MARK: Search
 
     /// Case-insensitive substring match across the full history (capped for UI).
+    /// Matches item content, OCR text inside images, and fetched link titles.
     func search(query: String) -> [ClipboardItem] {
         let trimmed = query.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { return [] }
         var descriptor = FetchDescriptor<ClipboardItem>(
-            predicate: #Predicate { $0.content.localizedStandardContains(trimmed) },
+            predicate: #Predicate {
+                $0.content.localizedStandardContains(trimmed)
+                || $0.ocrText.localizedStandardContains(trimmed)
+                || $0.linkTitle.localizedStandardContains(trimmed)
+            },
             sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
         )
         descriptor.fetchLimit = 500
@@ -180,6 +185,22 @@ final class ClipboardStore {
         guard let item = item(id: id) else { return }
         item.useCount += 1
         save()
+    }
+
+    /// Stores OCR-recognized text for an image item (makes it searchable).
+    func setOCRText(id: UUID, text: String) {
+        guard let item = item(id: id) else { return }
+        item.ocrText = text
+        save()
+        NotificationCenter.default.post(name: .clipboardDidUpdate, object: nil)
+    }
+
+    /// Stores the fetched page title for a URL item.
+    func setLinkTitle(id: UUID, title: String) {
+        guard let item = item(id: id) else { return }
+        item.linkTitle = title
+        save()
+        NotificationCenter.default.post(name: .clipboardDidUpdate, object: nil)
     }
 
     // MARK: Image budget
