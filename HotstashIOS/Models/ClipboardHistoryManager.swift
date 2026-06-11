@@ -1,41 +1,79 @@
 import Foundation
+import CoreData
+import SwiftData
 import UIKit
 
-// Reads clipboard when app foregrounds, stores up to 50 items in App Group UserDefaults.
+// MARK: - ClipboardHistoryManager
+
+/// Clipboard history backed by the shared SwiftData store (app group +
+/// private CloudKit database), so items copied on the Mac appear here too.
+///
+/// Responsibilities:
+/// - Reads the system clipboard when the app foregrounds and persists new items.
+/// - Publishes pinned + recent items for the UI, refreshing when CloudKit
+///   imports land (`NSPersistentStoreRemoteChange`).
+/// - Mirrors the latest text items into the app-group UserDefaults so the
+///   keyboard extension can show them without opening the store.
 @MainActor
 final class ClipboardHistoryManager: ObservableObject {
 
     static let shared = ClipboardHistoryManager()
 
-    private let maxItems = 50
+    // MARK: Constants
+
+    private static let recentFetchLimit = 500
+    private static let searchFetchLimit = 500
+    private static let remoteRefreshDebounce: UInt64 = 300_000_000 // 300 ms
     private let changeCountKey = "hotstash.lastClipboardChangeCount"
 
-    private var lastSeenChangeCount: Int {
-        get { UserDefaults.standard.object(forKey: changeCountKey) as? Int ?? UIPasteboard.general.changeCount }
-        set { UserDefaults.standard.set(newValue, forKey: changeCountKey) }
-    }
+    // MARK: State
 
+    /// Pinned items first (by `pinnedOrder`), then recents newest-first.
     @Published private(set) var items: [ClipboardItem] = []
 
-    private init() {
-        load()
-        // Seed with current count so the first foreground after install
-        // doesn't trigger the paste permission dialog for pre-existing content.
+    private let container: ModelContainer
+    private var context: ModelContext { container.mainContext }
+    private var pendingRefresh: Task<Void, Never>?
+
+    // MARK: Init
+
+    init(container: ModelContainer = .hotstashIOS) {
+        self.container = container
+
+        // Seed with the current change count so the first foreground after
+        // install doesn't trigger the paste permission dialog for pre-existing
+        // clipboard content.
         if UserDefaults.standard.object(forKey: changeCountKey) == nil {
             UserDefaults.standard.set(UIPasteboard.general.changeCount, forKey: changeCountKey)
         }
+
+        refresh()
+
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(appDidBecomeActive),
             name: UIApplication.didBecomeActiveNotification,
             object: nil
         )
+        // Posted when CloudKit imports (or another process) change the store.
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(storeDidChangeRemotely),
+            name: .NSPersistentStoreRemoteChange,
+            object: nil
+        )
     }
 
     // MARK: - Clipboard polling
 
+    private var lastSeenChangeCount: Int {
+        get { UserDefaults.standard.object(forKey: changeCountKey) as? Int ?? UIPasteboard.general.changeCount }
+        set { UserDefaults.standard.set(newValue, forKey: changeCountKey) }
+    }
+
     @objc private func appDidBecomeActive() {
         checkClipboard()
+        refresh()
     }
 
     func checkClipboard() {
@@ -44,88 +82,171 @@ final class ClipboardHistoryManager: ObservableObject {
         guard current != lastSeenChangeCount else { return }
         lastSeenChangeCount = current
 
-        guard let text = board.string, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        guard let text = board.string,
+              !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        else { return }
 
-        // Skip if identical to most recent item
-        if let top = items.first(where: { !$0.isPinned }), top.content == text { return }
+        // Same content already in history → just bump it to the top.
+        if let existing = existingUnpinned(content: text) {
+            existing.timestamp = .now
+            save()
+            refresh()
+            return
+        }
+        guard existingPinned(content: text) == nil else { return }
 
-        let item = ClipboardItem(
-            content: text,
-            contentType: ContentDetector.detect(text)
-        )
-        add(item: item)
+        add(item: ClipboardItem(content: text, contentType: ContentDetector.detect(text)))
     }
 
     // MARK: - Mutations
 
     func add(item: ClipboardItem) {
-        items.insert(item, at: 0)
-        enforceLimit()
-        persist()
+        context.insert(item)
+        save()
+        refresh()
     }
 
     func remove(id: UUID) {
-        items.removeAll { $0.id == id }
-        persist()
+        guard let item = item(id: id) else { return }
+        context.delete(item)
+        save()
+        refresh()
     }
 
     func pin(id: UUID) {
-        guard let i = items.firstIndex(where: { $0.id == id }) else { return }
-        items[i].isPinned = true
-        persist()
+        guard let item = item(id: id), !item.isPinned else { return }
+        item.isPinned = true
+        item.pinnedOrder = (pinnedItems.map(\.pinnedOrder).max() ?? -1) + 1
+        save()
+        refresh()
     }
 
     func unpin(id: UUID) {
-        guard let i = items.firstIndex(where: { $0.id == id }) else { return }
-        items[i].isPinned = false
-        persist()
+        guard let item = item(id: id), item.isPinned else { return }
+        item.isPinned = false
+        save()
+        refresh()
     }
 
+    /// Deletes all non-pinned items.
     func clearUnpinned() {
-        items.removeAll { !$0.isPinned }
-        persist()
+        do {
+            try context.delete(model: ClipboardItem.self, where: #Predicate { !$0.isPinned })
+        } catch {
+            print("[ClipboardHistoryManager] clearUnpinned failed: \(error.localizedDescription)")
+        }
+        save()
+        refresh()
     }
 
     func copyToClipboard(_ item: ClipboardItem) {
-        UIPasteboard.general.string = item.content
-        lastSeenChangeCount = UIPasteboard.general.changeCount
-        // Increment use count
-        if let i = items.firstIndex(where: { $0.id == item.id }) {
-            items[i].useCount += 1
-            persist()
+        if item.hasImage, let data = item.imageData, let image = UIImage(data: data) {
+            UIPasteboard.general.image = image
+        } else {
+            UIPasteboard.general.string = item.content
         }
+        lastSeenChangeCount = UIPasteboard.general.changeCount
+        item.useCount += 1
+        save()
     }
 
     // MARK: - Search
 
+    /// Case-insensitive substring match over content, OCR text, and link titles.
     func search(query: String) -> [ClipboardItem] {
-        guard !query.trimmingCharacters(in: .whitespaces).isEmpty else { return items }
-        return items.filter {
-            $0.content.range(of: query, options: .caseInsensitive) != nil
+        let trimmed = query.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty else { return items }
+        var descriptor = FetchDescriptor<ClipboardItem>(
+            predicate: #Predicate {
+                $0.content.localizedStandardContains(trimmed)
+                || $0.ocrText.localizedStandardContains(trimmed)
+                || $0.linkTitle.localizedStandardContains(trimmed)
+            },
+            sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
+        )
+        descriptor.fetchLimit = Self.searchFetchLimit
+        return fetch(descriptor)
+    }
+
+    // MARK: - Refresh
+
+    /// Re-fetches the published list and updates the keyboard mirror.
+    func refresh() {
+        var recent = FetchDescriptor<ClipboardItem>(
+            predicate: #Predicate { !$0.isPinned },
+            sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
+        )
+        recent.fetchLimit = Self.recentFetchLimit
+        items = pinnedItems + fetch(recent)
+        mirrorToKeyboard()
+    }
+
+    @objc nonisolated private func storeDidChangeRemotely(_ note: Notification) {
+        Task { @MainActor [weak self] in self?.scheduleRefresh() }
+    }
+
+    /// Debounces bursts of remote-change notifications during CloudKit imports.
+    private func scheduleRefresh() {
+        pendingRefresh?.cancel()
+        pendingRefresh = Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: Self.remoteRefreshDebounce)
+            guard !Task.isCancelled else { return }
+            self?.refresh()
         }
     }
 
-    // MARK: - Private
+    // MARK: - Keyboard mirror
 
-    private func enforceLimit() {
-        var nonPinned = items.filter { !$0.isPinned }.sorted { $0.timestamp > $1.timestamp }
-        let pinned    = items.filter { $0.isPinned }
-        if nonPinned.count > maxItems {
-            nonPinned = Array(nonPinned.prefix(maxItems))
+    /// Mirrors the latest text items into the app group for the keyboard
+    /// extension (its only data source — see `KeyboardClipsMirror`).
+    private func mirrorToKeyboard() {
+        let clips = items
+            .filter { !$0.hasImage && $0.contentType != .file && !$0.content.isEmpty }
+            .prefix(KeyboardClipsMirror.maxClips)
+            .map { KeyboardClip(id: $0.id, content: $0.content, contentTypeRaw: $0.contentTypeRaw, isPinned: $0.isPinned) }
+        KeyboardClipsMirror.write(Array(clips))
+    }
+
+    // MARK: - Private helpers
+
+    private var pinnedItems: [ClipboardItem] {
+        fetch(FetchDescriptor<ClipboardItem>(
+            predicate: #Predicate { $0.isPinned },
+            sortBy: [SortDescriptor(\.pinnedOrder), SortDescriptor(\.timestamp, order: .reverse)]
+        ))
+    }
+
+    private func existingUnpinned(content: String) -> ClipboardItem? {
+        var descriptor = FetchDescriptor<ClipboardItem>(
+            predicate: #Predicate { !$0.isPinned && $0.content == content }
+        )
+        descriptor.fetchLimit = 1
+        return fetch(descriptor).first
+    }
+
+    private func existingPinned(content: String) -> ClipboardItem? {
+        var descriptor = FetchDescriptor<ClipboardItem>(
+            predicate: #Predicate { $0.isPinned && $0.content == content }
+        )
+        descriptor.fetchLimit = 1
+        return fetch(descriptor).first
+    }
+
+    private func item(id: UUID) -> ClipboardItem? {
+        var descriptor = FetchDescriptor<ClipboardItem>(predicate: #Predicate { $0.id == id })
+        descriptor.fetchLimit = 1
+        return fetch(descriptor).first
+    }
+
+    private func fetch(_ descriptor: FetchDescriptor<ClipboardItem>) -> [ClipboardItem] {
+        (try? context.fetch(descriptor)) ?? []
+    }
+
+    private func save() {
+        do {
+            try context.save()
+        } catch {
+            print("[ClipboardHistoryManager] SwiftData save failed: \(error.localizedDescription)")
         }
-        items = pinned + nonPinned
-    }
-
-    private func persist() {
-        guard let data = try? JSONEncoder().encode(items) else { return }
-        SharedDefaults.store.set(data, forKey: SharedDefaults.Keys.clipboardHistory)
-    }
-
-    private func load() {
-        guard
-            let data    = SharedDefaults.store.data(forKey: SharedDefaults.Keys.clipboardHistory),
-            let decoded = try? JSONDecoder().decode([ClipboardItem].self, from: data)
-        else { return }
-        items = decoded
     }
 }

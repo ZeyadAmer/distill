@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct HistoryRow: View {
 
@@ -10,11 +11,7 @@ struct HistoryRow: View {
         Button(action: onTap) {
             HStack(alignment: .top, spacing: 12) {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text(item.content)
-                        .font(.system(.subheadline, design: .monospaced))
-                        .lineLimit(3)
-                        .foregroundStyle(.primary)
-                        .multilineTextAlignment(.leading)
+                    preview
 
                     HStack(spacing: 8) {
                         ContentTypeBadge(type: item.contentType)
@@ -42,6 +39,35 @@ struct HistoryRow: View {
         }
         .buttonStyle(.plain)
         .padding(.vertical, 4)
+    }
+
+    // MARK: - Preview content
+
+    /// Text items show their content; image items show a thumbnail (synced
+    /// from the Mac); file items show the copied file names.
+    @ViewBuilder
+    private var preview: some View {
+        if item.hasImage, let data = item.imageData, let image = UIImage(data: data) {
+            Image(uiImage: image)
+                .resizable()
+                .scaledToFill()
+                .frame(width: 72, height: 56)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+        } else {
+            Text(previewText)
+                .font(.system(.subheadline, design: .monospaced))
+                .lineLimit(3)
+                .foregroundStyle(.primary)
+                .multilineTextAlignment(.leading)
+        }
+    }
+
+    private var previewText: String {
+        if item.contentType == .file {
+            let names = item.copiedFiles.map(\.name)
+            if !names.isEmpty { return names.joined(separator: ", ") }
+        }
+        return item.content.isEmpty ? item.contentType.displayName : item.content
     }
 }
 

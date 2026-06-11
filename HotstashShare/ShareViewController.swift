@@ -1,5 +1,6 @@
 import UIKit
 import SwiftUI
+import SwiftData
 import UniformTypeIdentifiers
 import Social
 
@@ -97,11 +98,9 @@ private struct ShareTransformView: View {
     @State private var copied           = false
     @State private var searchText       = ""
 
-    private var registry: TransformRegistry { .shared }
-
     private var filteredTransforms: [any Transform] {
-        guard !searchText.isEmpty else { return registry.all }
-        return registry.all.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
+        guard !searchText.isEmpty else { return IOSTransforms.all }
+        return IOSTransforms.all.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
     }
 
     var body: some View {
@@ -205,21 +204,20 @@ private struct ShareTransformView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { onDone() }
     }
 
+    /// Inserts the item into the shared SwiftData store (the main app exports
+    /// it to CloudKit the next time it runs) and updates the keyboard mirror.
     private func saveToSharedHistory(_ text: String) {
         let item = ClipboardItem(content: text, contentType: ContentDetector.detect(text))
-        var existing: [ClipboardItem] = loadHistory()
-        existing.insert(item, at: 0)
-        if existing.count > 50 { existing = Array(existing.prefix(50)) }
-        guard let data = try? JSONEncoder().encode(existing) else { return }
-        SharedDefaults.store.set(data, forKey: SharedDefaults.Keys.clipboardHistory)
-    }
-
-    private func loadHistory() -> [ClipboardItem] {
-        guard
-            let data  = SharedDefaults.store.data(forKey: SharedDefaults.Keys.clipboardHistory),
-            let items = try? JSONDecoder().decode([ClipboardItem].self, from: data)
-        else { return [] }
-        return items
+        let context = ModelContext(ModelContainer.hotstashIOSExtension)
+        context.insert(item)
+        do {
+            try context.save()
+        } catch {
+            print("[HotstashShare] SwiftData save failed: \(error.localizedDescription)")
+        }
+        KeyboardClipsMirror.prepend(
+            KeyboardClip(id: item.id, content: text, contentTypeRaw: item.contentTypeRaw, isPinned: false)
+        )
     }
 }
 

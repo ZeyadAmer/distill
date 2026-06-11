@@ -9,6 +9,7 @@ extension ContentType {
         case .code:      return .systemPurple
         case .list:      return .systemGreen
         case .image:     return .systemTeal
+        case .file:      return .systemBrown
         case .plainText: return .secondaryLabel
         }
     }

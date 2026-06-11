@@ -10,11 +10,9 @@ struct TransformView: View {
     @State private var searchText       = ""
     @FocusState private var inputFocused: Bool
 
-    private var registry: TransformRegistry { .shared }
-
     private var filteredTransforms: [any Transform] {
-        guard !searchText.isEmpty else { return registry.all }
-        return registry.all.filter {
+        guard !searchText.isEmpty else { return IOSTransforms.all }
+        return IOSTransforms.all.filter {
             $0.name.localizedCaseInsensitiveContains(searchText)
         }
     }
