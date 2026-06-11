@@ -1,16 +1,21 @@
 // Renders the Hotstash app icon (1024x1024) programmatically.
-// Usage: swift tools/render-icon.swift <output.png>
+// Usage: swift tools/render-icon.swift <output.png> [--ios]
+//   --ios: full-bleed opaque square (iOS icons reject transparency;
+//          the system applies its own corner mask)
 // Regenerate the full appiconset with tools/generate-icons.sh
 
 import AppKit
 
 // MARK: - Canvas constants
 
+let isIOS = CommandLine.arguments.contains("--ios")
+
 let canvas: CGFloat = 1024
-// Apple macOS icon grid: 824x824 squircle centered in 1024 canvas
-let tileOrigin: CGFloat = 100
-let tileSize: CGFloat = 824
-let tileCornerRadius: CGFloat = 185
+// Apple macOS icon grid: 824x824 squircle centered in 1024 canvas.
+// iOS: the artwork fills the whole square edge-to-edge.
+let tileOrigin: CGFloat = isIOS ? 0 : 100
+let tileSize: CGFloat = isIOS ? 1024 : 824
+let tileCornerRadius: CGFloat = isIOS ? 0 : 185
 
 // MARK: - Color helpers
 
@@ -61,12 +66,24 @@ func flamePath(scale: CGFloat, baseY: CGFloat, centerX: CGFloat, lean: CGFloat) 
 
 // MARK: - Render
 
-let image = NSImage(size: NSSize(width: canvas, height: canvas))
-image.lockFocus()
+// Render into an explicit 1024px bitmap: lockFocus() on a Retina host doubles
+// the pixel size (2048px), which iOS's actool rejects. iOS icons must also
+// have no alpha channel.
+guard let rep = NSBitmapImageRep(
+    bitmapDataPlanes: nil,
+    pixelsWide: Int(canvas), pixelsHigh: Int(canvas),
+    bitsPerSample: 8, samplesPerPixel: 4,
+    hasAlpha: true, isPlanar: false,
+    colorSpaceName: .calibratedRGB,
+    bytesPerRow: 0, bitsPerPixel: 0
+) else { fatalError("could not create bitmap") }
 
-guard let ctx = NSGraphicsContext.current?.cgContext else {
+NSGraphicsContext.saveGraphicsState()
+guard let gctx = NSGraphicsContext(bitmapImageRep: rep) else {
     fatalError("no graphics context")
 }
+NSGraphicsContext.current = gctx
+let ctx = gctx.cgContext
 
 // --- Squircle tile ---
 let tileRect = NSRect(x: tileOrigin, y: tileOrigin, width: tileSize, height: tileSize)
@@ -126,13 +143,27 @@ fillFlame(mid, top: rgb(0xFF9500), bottom: rgb(0xFFD60A))
 let core = flamePath(scale: 0.31, baseY: 366, centerX: 512, lean: 18)
 fillFlame(core, top: rgb(0xFFE066), bottom: rgb(0xFFF7CC))
 
-image.unlockFocus()
+NSGraphicsContext.restoreGraphicsState()
 
 // --- Write PNG ---
-let out = CommandLine.arguments.count > 1 ? CommandLine.arguments[1] : "icon-1024.png"
-guard let tiff = image.tiffRepresentation,
-      let rep = NSBitmapImageRep(data: tiff),
-      let png = rep.representation(using: .png, properties: [:]) else {
+// iOS icons must not carry an alpha channel — flatten through an RGBX context.
+func flattenedForIOS(_ source: NSBitmapImageRep) -> NSBitmapImageRep {
+    guard let cg = source.cgImage,
+          let space = CGColorSpace(name: CGColorSpace.sRGB),
+          let flat = CGContext(
+            data: nil, width: Int(canvas), height: Int(canvas),
+            bitsPerComponent: 8, bytesPerRow: 0, space: space,
+            bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue
+          )
+    else { fatalError("failed to flatten") }
+    flat.draw(cg, in: CGRect(x: 0, y: 0, width: canvas, height: canvas))
+    guard let flatImage = flat.makeImage() else { fatalError("failed to flatten") }
+    return NSBitmapImageRep(cgImage: flatImage)
+}
+
+let out = CommandLine.arguments.dropFirst().first { !$0.hasPrefix("--") } ?? "icon-1024.png"
+let finalRep = isIOS ? flattenedForIOS(rep) : rep
+guard let png = finalRep.representation(using: .png, properties: [:]) else {
     fatalError("failed to encode png")
 }
 try! png.write(to: URL(fileURLWithPath: out))

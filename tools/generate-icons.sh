@@ -23,4 +23,8 @@ scale 512  AppIcon-256@2x.png
 scale 512  AppIcon-512.png
 cp "$MASTER" "$ICONSET/AppIcon-512@2x.png"
 
-echo "iconset regenerated: $ICONSET"
+# iOS: single full-bleed opaque 1024 (system masks the corners itself)
+IOS_ICONSET="HotstashIOS/Assets.xcassets/AppIcon.appiconset"
+swift tools/render-icon.swift "$IOS_ICONSET/AppIcon-1024.png" --ios
+
+echo "iconsets regenerated: $ICONSET, $IOS_ICONSET"

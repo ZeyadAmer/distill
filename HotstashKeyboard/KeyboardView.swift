@@ -30,6 +30,15 @@ struct KeyboardView: View {
     /// chip inserts the transformed text and closes the strip.
     @State private var transformingClip: KeyboardClip?
 
+    /// 0 = Recents, 1 = Pinned.
+    @State private var tab = 0
+
+    private var visibleClips: [KeyboardClip] {
+        tab == 0
+            ? dataSource.clips.filter { !$0.isPinned }
+            : dataSource.clips.filter { $0.isPinned }
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             header
@@ -89,10 +98,12 @@ struct KeyboardView: View {
                     .frame(width: 36, height: 30)
             }
 
-            Label("Hotstash", systemImage: "doc.on.clipboard.fill")
-                .font(.footnote.weight(.semibold))
-                .foregroundStyle(.secondary)
-                .labelStyle(.titleAndIcon)
+            Picker("Section", selection: $tab) {
+                Text("Recents").tag(0)
+                Text("Pinned").tag(1)
+            }
+            .pickerStyle(.segmented)
+            .frame(maxWidth: 200)
 
             Spacer()
 
@@ -120,11 +131,13 @@ struct KeyboardView: View {
                 title: "Enable Full Access to see your clips",
                 detail: "Settings › General › Keyboard › Keyboards › Hotstash › Allow Full Access"
             )
-        } else if dataSource.clips.isEmpty {
+        } else if visibleClips.isEmpty {
             message(
-                icon: "clipboard",
-                title: "No clips yet",
-                detail: "Copy text in Hotstash (or on your Mac) and it will show up here."
+                icon: tab == 0 ? "clipboard" : "pin",
+                title: tab == 0 ? "No clips yet" : "No pinned clips",
+                detail: tab == 0
+                    ? "Copy text anywhere (or on your Mac) and it will show up here."
+                    : "Pin clips in the Hotstash app to keep them here."
             )
         } else {
             clipList
@@ -133,8 +146,10 @@ struct KeyboardView: View {
 
     private var clipList: some View {
         ScrollView {
-            LazyVStack(spacing: 6) {
-                ForEach(dataSource.clips) { clip in
+            // Plain VStack: LazyVStack mis-measures rows inside the keyboard's
+            // hosting controller (blank rows, jumpy scrolling); ≤50 rows is cheap.
+            VStack(spacing: 6) {
+                ForEach(visibleClips) { clip in
                     HStack(spacing: 6) {
                         Button {
                             onInsert(clip.content)
@@ -145,7 +160,10 @@ struct KeyboardView: View {
                                         .font(.caption2)
                                         .foregroundStyle(.orange)
                                 }
-                                Text(clip.content)
+                                // Trim so clips that start with blank lines don't
+                                // render as empty rows (lineLimit shows the
+                                // leading newlines otherwise).
+                                Text(clip.content.trimmingCharacters(in: .whitespacesAndNewlines))
                                     .font(.subheadline)
                                     .lineLimit(2)
                                     .multilineTextAlignment(.leading)

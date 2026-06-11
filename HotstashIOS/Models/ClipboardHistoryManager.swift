@@ -77,6 +77,8 @@ final class ClipboardHistoryManager: ObservableObject {
     }
 
     func checkClipboard() {
+        importPendingFromKeyboard()
+
         let board = UIPasteboard.general
         let current = board.changeCount
         guard current != lastSeenChangeCount else { return }
@@ -96,6 +98,23 @@ final class ClipboardHistoryManager: ObservableObject {
         guard existingPinned(content: text) == nil else { return }
 
         add(item: ClipboardItem(content: text, contentType: ContentDetector.detect(text)))
+    }
+
+    /// Turns texts captured by the keyboard extension into real history items
+    /// (which then sync to the Mac via CloudKit).
+    private func importPendingFromKeyboard() {
+        let pending = PendingImports.drain()
+        guard !pending.isEmpty else { return }
+        for text in pending {
+            if let existing = existingUnpinned(content: text) {
+                existing.timestamp = .now
+                continue
+            }
+            if existingPinned(content: text) != nil { continue }
+            context.insert(ClipboardItem(content: text, contentType: ContentDetector.detect(text)))
+        }
+        save()
+        refresh()
     }
 
     // MARK: - Mutations

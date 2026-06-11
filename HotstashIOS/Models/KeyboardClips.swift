@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 // MARK: - KeyboardClip
 
@@ -42,5 +43,64 @@ enum KeyboardClipsMirror {
         clips.removeAll { $0.content == clip.content }
         clips.insert(clip, at: 0)
         write(clips)
+    }
+}
+
+// MARK: - PendingImports
+
+/// Texts captured by the keyboard extension that the main app hasn't turned
+/// into real `ClipboardItem` records yet. The app drains this on foreground,
+/// inserting into the SwiftData store (which then syncs to the Mac).
+enum PendingImports {
+
+    private static let key = "ios.pendingImports"
+    private static let maxPending = 50
+
+    static func add(_ text: String) {
+        var current = SharedDefaults.store.stringArray(forKey: key) ?? []
+        current.removeAll { $0 == text }
+        current.append(text)
+        SharedDefaults.store.set(Array(current.suffix(maxPending)), forKey: key)
+    }
+
+    /// Returns all queued texts (oldest first) and clears the queue.
+    static func drain() -> [String] {
+        let current = SharedDefaults.store.stringArray(forKey: key) ?? []
+        SharedDefaults.store.removeObject(forKey: key)
+        return current
+    }
+}
+
+// MARK: - KeyboardCapture
+
+/// Lets the keyboard extension capture whatever is on the system pasteboard
+/// the moment the keyboard opens — the closest iOS allows to automatic
+/// capture (no app can read the clipboard in the background).
+enum KeyboardCapture {
+
+    private static let changeCountKey = "ios.keyboardSeenChangeCount"
+
+    /// Captures the current pasteboard string when it changed since the last
+    /// look: queues it for the app to import and surfaces it in the mirror
+    /// immediately so it shows in the keyboard right away.
+    @discardableResult
+    static func captureIfNew() -> Bool {
+        let pasteboard = UIPasteboard.general
+        let count = pasteboard.changeCount
+        guard count != SharedDefaults.store.integer(forKey: changeCountKey) else { return false }
+        SharedDefaults.store.set(count, forKey: changeCountKey)
+
+        guard let text = pasteboard.string,
+              !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        else { return false }
+
+        PendingImports.add(text)
+        KeyboardClipsMirror.prepend(KeyboardClip(
+            id: UUID(),
+            content: text,
+            contentTypeRaw: ContentDetector.detect(text).rawValue,
+            isPinned: false
+        ))
+        return true
     }
 }

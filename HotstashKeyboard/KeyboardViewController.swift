@@ -57,6 +57,11 @@ final class KeyboardViewController: UIInputViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        // Capture whatever was just copied so it appears in the keyboard
+        // immediately (and gets imported into history by the main app later).
+        if hasFullAccess {
+            KeyboardCapture.captureIfNew()
+        }
         dataSource.reload(hasFullAccess: hasFullAccess)
 
         if heightConstraint == nil {
