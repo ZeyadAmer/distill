@@ -13,8 +13,14 @@ enum IOSTransforms {
     /// and share extensions keep the empty default — no SwiftData there.
     static var extraProvider: () -> [any Transform] = { [] }
 
-    /// Built-ins plus any installed marketplace transforms.
-    static var all: [any Transform] { builtIns + extraProvider() }
+    /// Built-ins plus any installed marketplace transforms, deduplicated by
+    /// id (first occurrence wins — built-ins beat marketplace collisions, and
+    /// CloudKit sync can legitimately produce duplicate installed rows since
+    /// the store has no unique constraints).
+    static var all: [any Transform] {
+        var seen = Set<String>()
+        return (builtIns + extraProvider()).filter { seen.insert($0.id).inserted }
+    }
 
     /// The built-in list shipped with the app.
     static var builtIns: [any Transform] {
@@ -76,7 +82,7 @@ enum IOSTransformSettings {
     static func orderedAll() -> [any Transform] {
         let saved = SharedDefaults.store.stringArray(forKey: orderKey) ?? []
         let all = IOSTransforms.all
-        var remaining = Dictionary(uniqueKeysWithValues: all.map { ($0.id, $0) })
+        var remaining = Dictionary(all.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
         var result: [any Transform] = []
         for id in saved {
             if let transform = remaining.removeValue(forKey: id) {

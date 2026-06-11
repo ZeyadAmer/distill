@@ -55,8 +55,7 @@ struct TransformOrderView: View {
     private func refresh() {
         let ordered = IOSTransformSettings.orderedAll()
         rows = ordered.map { Row(id: $0.id, name: $0.name, icon: $0.icon) }
-        enabled = Dictionary(uniqueKeysWithValues: ordered.map {
-            ($0.id, IOSTransformSettings.isEnabled($0.id))
-        })
+        enabled = Dictionary(ordered.map { ($0.id, IOSTransformSettings.isEnabled($0.id)) },
+                             uniquingKeysWith: { first, _ in first })
     }
 }
