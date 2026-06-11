@@ -30,13 +30,67 @@ enum TextTransformEngine {
     /// - Parameters:
     ///   - js: Author source. Expected to define a global `transform(input)` function.
     ///   - input: The text passed to `transform`.
-    ///   - timeLimitMs: Hard wall-clock limit; longer-running scripts are terminated.
+    ///   - timeLimitMs: Hard wall-clock limit; longer-running scripts are terminated
+    ///     (macOS) or abandoned on a watchdog thread (iOS — the JSC time-limit C API
+    ///     is private there and App Store validation rejects it).
     ///   - maxOutputBytes: Maximum UTF-8 byte size of the returned string.
     static func run(
         js: String,
         input: String,
         timeLimitMs: Int = 250,
         maxOutputBytes: Int = 5_000_000
+    ) -> TextTransformResult {
+        #if os(macOS)
+        return execute(js: js, input: input, timeLimitMs: timeLimitMs, maxOutputBytes: maxOutputBytes)
+        #else
+        return runWithWatchdog(js: js, input: input, timeLimitMs: timeLimitMs, maxOutputBytes: maxOutputBytes)
+        #endif
+    }
+
+    #if !os(macOS)
+    /// iOS path: execute on a dedicated thread and wait up to the limit (plus
+    /// startup margin). On timeout the result is discarded and the thread is
+    /// abandoned — JSC offers no public termination API on iOS, and marketplace
+    /// scripts are server-moderated, so a runaway script is rare and bounded
+    /// to one background thread rather than a hung UI.
+    private static func runWithWatchdog(
+        js: String,
+        input: String,
+        timeLimitMs: Int,
+        maxOutputBytes: Int
+    ) -> TextTransformResult {
+        let failure = TextTransformResult(output: input, didError: true)
+
+        final class ResultBox: @unchecked Sendable {
+            private let lock = NSLock()
+            private var value: TextTransformResult?
+            func set(_ result: TextTransformResult) { lock.lock(); value = result; lock.unlock() }
+            func get() -> TextTransformResult? { lock.lock(); defer { lock.unlock() }; return value }
+        }
+
+        let box = ResultBox()
+        let semaphore = DispatchSemaphore(value: 0)
+
+        let thread = Thread {
+            box.set(execute(js: js, input: input, timeLimitMs: timeLimitMs, maxOutputBytes: maxOutputBytes))
+            semaphore.signal()
+        }
+        thread.qualityOfService = .userInitiated
+        thread.start()
+
+        // Generous margin over the nominal limit to absorb JSContext startup.
+        let deadline = DispatchTime.now() + .milliseconds(max(timeLimitMs, 0) + 750)
+        guard semaphore.wait(timeout: deadline) == .success else { return failure }
+        return box.get() ?? failure
+    }
+    #endif
+
+    /// Synchronous core shared by both platforms.
+    private static func execute(
+        js: String,
+        input: String,
+        timeLimitMs: Int,
+        maxOutputBytes: Int
     ) -> TextTransformResult {
         let failure = TextTransformResult(output: input, didError: true)
 
@@ -50,14 +104,17 @@ enum TextTransformEngine {
             didThrow = true
         }
 
+        #if os(macOS)
         // Hard execution-time limit on the context's group. The callback returning `true`
-        // terminates execution once the limit is exceeded, which protects against infinite loops.
+        // terminates execution once the limit is exceeded, which protects against infinite
+        // loops. This C API is private on iOS (App Store validation rejects the symbol),
+        // so it is macOS-only; iOS relies on the watchdog in `runWithWatchdog`.
         if let globalRef = context.jsGlobalContextRef {
             let group = JSContextGetGroup(globalRef)
             let seconds = Double(max(timeLimitMs, 0)) / 1000.0
-            // The callback returns `true` to terminate execution once the limit is exceeded.
             JSContextGroupSetExecutionTimeLimit(group, seconds, { _, _ in true }, nil)
         }
+        #endif
 
         // Provide the input as a global as a defensive fallback; we still prefer calling
         // `transform(input)` directly below.

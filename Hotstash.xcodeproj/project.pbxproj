@@ -1521,7 +1521,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.zeyadamer.hotstash;
 				PRODUCT_NAME = Hotstash;
 				SDKROOT = iphoneos;
-				SWIFT_OBJC_BRIDGING_HEADER = Hotstash/Transforms/Marketplace/HotstashJSCore.h;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_STRICT_CONCURRENCY = minimal;
 				SWIFT_VERSION = 5.9;
@@ -1703,7 +1702,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.zeyadamer.hotstash;
 				PRODUCT_NAME = Hotstash;
 				SDKROOT = iphoneos;
-				SWIFT_OBJC_BRIDGING_HEADER = Hotstash/Transforms/Marketplace/HotstashJSCore.h;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_STRICT_CONCURRENCY = minimal;
 				SWIFT_VERSION = 5.9;
