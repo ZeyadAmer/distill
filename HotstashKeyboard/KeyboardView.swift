@@ -107,15 +107,7 @@ struct KeyboardView: View {
 
             Spacer()
 
-            Button(action: onDelete) {
-                Image(systemName: "delete.left")
-                    .font(.body)
-                    .foregroundStyle(.primary)
-                    .frame(width: 44, height: 30)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Delete")
+            DeleteKey(onDelete: onDelete)
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 5)
@@ -221,6 +213,62 @@ struct KeyboardView: View {
         }
         .padding(.horizontal, 24)
         .frame(maxWidth: .infinity)
+    }
+}
+
+// MARK: - DeleteKey
+
+/// Backspace key with system-keyboard repeat: tap deletes one character,
+/// press-and-hold keeps deleting (short initial delay, then fast repeat).
+private struct DeleteKey: View {
+    let onDelete: () -> Void
+
+    @State private var isPressing = false
+    @State private var repeatTimer: Timer?
+
+    private static let initialDelay: TimeInterval = 0.45
+    private static let repeatInterval: TimeInterval = 0.08
+
+    var body: some View {
+        Image(systemName: "delete.left")
+            .font(.body)
+            .foregroundStyle(.primary)
+            .frame(width: 44, height: 30)
+            .contentShape(Rectangle())
+            .opacity(isPressing ? 0.4 : 1)
+            .accessibilityLabel("Delete")
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { _ in
+                        guard !isPressing else { return }
+                        isPressing = true
+                        beginDeleting()
+                    }
+                    .onEnded { _ in
+                        isPressing = false
+                        stopDeleting()
+                    }
+            )
+    }
+
+    private func beginDeleting() {
+        onDelete()
+        // After the initial delay, switch to fast auto-repeat.
+        repeatTimer = Timer.scheduledTimer(withTimeInterval: Self.initialDelay,
+                                           repeats: false) { _ in
+            DispatchQueue.main.async {
+                guard isPressing else { return }
+                repeatTimer = Timer.scheduledTimer(withTimeInterval: Self.repeatInterval,
+                                                   repeats: true) { _ in
+                    DispatchQueue.main.async { onDelete() }
+                }
+            }
+        }
+    }
+
+    private func stopDeleting() {
+        repeatTimer?.invalidate()
+        repeatTimer = nil
     }
 }
 
