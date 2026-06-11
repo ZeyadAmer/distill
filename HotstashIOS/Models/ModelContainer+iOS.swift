@@ -30,6 +30,9 @@ extension ModelContainer {
         }
     }()
 
+    /// Platform-neutral default used by shared code (`MarketplaceLibrary`).
+    static var hotstashDefault: ModelContainer { hotstashIOS }
+
     /// Extension container (share extension): opens the same app-group store
     /// WITHOUT CloudKit mirroring. Changes are recorded in persistent history
     /// and exported by the main app the next time it runs.

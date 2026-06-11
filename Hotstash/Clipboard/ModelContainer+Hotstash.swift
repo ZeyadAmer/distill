@@ -21,6 +21,10 @@ extension ModelContainer {
         }
     }()
 
+    /// Platform-neutral default used by shared code (`MarketplaceLibrary`).
+    /// iOS defines its own counterpart in ModelContainer+iOS.swift.
+    static var hotstashDefault: ModelContainer { hotstashShared }
+
     /// In-memory container for unit tests.
     static func hotstashInMemory() throws -> ModelContainer {
         let config = ModelConfiguration(isStoredInMemoryOnly: true)

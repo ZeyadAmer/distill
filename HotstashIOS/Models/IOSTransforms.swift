@@ -9,8 +9,15 @@ import Foundation
 /// JavaScriptCore marketplace stack into the iOS targets.
 enum IOSTransforms {
 
-    /// The complete ordered list of transforms shown on iOS.
-    static var all: [any Transform] {
+    /// Marketplace installs injected by the main app at launch. The keyboard
+    /// and share extensions keep the empty default — no SwiftData there.
+    static var extraProvider: () -> [any Transform] = { [] }
+
+    /// Built-ins plus any installed marketplace transforms.
+    static var all: [any Transform] { builtIns + extraProvider() }
+
+    /// The built-in list shipped with the app.
+    static var builtIns: [any Transform] {
         [
             // Case
             ToUppercaseTransform(),

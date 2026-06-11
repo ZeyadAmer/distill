@@ -41,6 +41,7 @@
 		23E8305A5D49348DDED051A4 /* ServiceManagement.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F8758C63AA816832764F2043 /* ServiceManagement.framework */; };
 		242F418C7F139225F563A36F /* ContentDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DC86C0A994B73FB8009A7EA /* ContentDetector.swift */; };
 		2575F95BEFBBB20BAB2C32CF /* ListTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA61738337E4369F78AAFB73 /* ListTransforms.swift */; };
+		267939F1B06958AB76A194D3 /* SupabaseMarketplaceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB5DED6941ED7289980445CB /* SupabaseMarketplaceService.swift */; };
 		268CB3EFC1CC8ABE363BF1EE /* IOSTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 333CB100009DEC016F64B5B8 /* IOSTransforms.swift */; };
 		2A52CED246A0C22D6A1D9A2E /* SnippetStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F109607BBCB25589E337DE9C /* SnippetStore.swift */; };
 		2D371A84589B7FDB06E70C8F /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0C6A59EE77E7406B797E74A2 /* Foundation.framework */; };
@@ -51,6 +52,7 @@
 		399E5BD7B54DB107FFB8AB01 /* ContentDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DC86C0A994B73FB8009A7EA /* ContentDetector.swift */; };
 		39AC95D543E5C81EA04D317E /* ClipboardHistoryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F778C47A68C7E62BD82B2EB0 /* ClipboardHistoryManager.swift */; };
 		39F5CDA001E915934120722F /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A98E09300889DCD8F69A0FB2 /* MainTabView.swift */; };
+		3C1E47A703D797192B08AA4D /* SupabaseConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52E9247C196BF78780D32FC7 /* SupabaseConfig.swift */; };
 		3C9715A9ADD898F8DEC1AB62 /* SmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AAC8B5CB7445D1E6B14899B /* SmokeTests.swift */; };
 		3C99D7E8F9BB2E8E8499D6BB /* ContentDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DC86C0A994B73FB8009A7EA /* ContentDetector.swift */; };
 		3FFAFC4391134C9910E0B837 /* AppRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73CF21CEDA1219A6A09F9833 /* AppRouter.swift */; };
@@ -62,8 +64,10 @@
 		464AB6DC1E4AA9F3EF0229F4 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9234AAFE290C57FDE0FB78F8 /* SettingsView.swift */; };
 		4803C5AE7EF82F03F32E6506 /* MultiPasteStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01EB86555EFEF0701F41EAFA /* MultiPasteStore.swift */; };
 		4852AE51BAB98172933F36AF /* CleanupTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206650306DE75178F63F72E5 /* CleanupTransforms.swift */; };
+		49617B8702E014D200568A3E /* Supabase.plist in Resources */ = {isa = PBXBuildFile; fileRef = CC8FB1830314EEBFD6E62E5A /* Supabase.plist */; };
 		4978E9C73C881F9EFA69EA30 /* WhitespaceTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC8FD990DF3BF88CE1E8B306 /* WhitespaceTransforms.swift */; };
 		49CB8CA419F5BD520AF6E9AD /* TransformManifestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70D7A178D07506F1EDAB47E3 /* TransformManifestTests.swift */; };
+		4B20BCC116F5F014FBE130DD /* MarketplaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE46F6B9B3D57DDE5909BCA0 /* MarketplaceView.swift */; };
 		4C03CF55D098F47123370763 /* HotstashControlsBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B298A4D51C077F952C4FAB9 /* HotstashControlsBundle.swift */; };
 		4CE8E045E1BBB1CC901354B3 /* UpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FAE3B7D5B105A8A54961BEC /* UpdateChecker.swift */; };
 		4CED30B3DFA993F9BE2FAFC7 /* KeyboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3230AEC3C48079A9B6B1C1E3 /* KeyboardView.swift */; };
@@ -104,8 +108,10 @@
 		80A0153929730092F80F58BD /* PasteEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36695DA641B3C931651BFDEC /* PasteEngine.swift */; };
 		80C6E2A81235F33588523747 /* ClipboardItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F6E7D0DCEC47B20359A28A1 /* ClipboardItem.swift */; };
 		814F3AE3D4CD42F0264120D2 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF5340A319DAF64664A96A32 /* JavaScriptCore.framework */; };
+		848C6BE67D88F0D00A01AC66 /* MarketplaceModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = D694B7901653C7BA740C2AEF /* MarketplaceModels.swift */; };
 		865B783CFED35AB4250DAC3A /* KeyboardClips.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A684417BC90E6000818DB0F /* KeyboardClips.swift */; };
 		870C8AA25D5CBAD6D08EABCD /* JSONTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DA7DEADB4144664958C7845 /* JSONTransforms.swift */; };
+		87BFD13A9D4FF422CC1FCD68 /* MarketplaceTransform.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4E93D6391F5289AC2057ED1 /* MarketplaceTransform.swift */; };
 		88971A5791DF5EAC87B14B54 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49F7D5B6958F46F13A84EEFC /* WidgetKit.framework */; };
 		89A95240C300DE0785F6D454 /* SupabaseMarketplaceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB5DED6941ED7289980445CB /* SupabaseMarketplaceService.swift */; };
 		8B32FF766BFAE0C7A14CF788 /* CaseTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 405816998C0516ABD02E3EA5 /* CaseTransforms.swift */; };
@@ -126,7 +132,9 @@
 		9D2CC8BBC6C172B7EFDFEEF6 /* IOSTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 333CB100009DEC016F64B5B8 /* IOSTransforms.swift */; };
 		9F9420B42D1738B43FAD691C /* HotstashApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D36E70DB0E58B065856B91 /* HotstashApp.swift */; };
 		A3B05C7B6329695BA146BF20 /* OpenHistoryControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42054CDB74C2A12D99482164 /* OpenHistoryControl.swift */; };
+		A3B7E4272EAD4191FB9FB5E6 /* MarketplaceLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721A38B2C4233F9BBF04D1C1 /* MarketplaceLibrary.swift */; };
 		A716C9D9EA74A355B3A21704 /* TransformSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 745DE6446393891754A48B11 /* TransformSettingsView.swift */; };
+		A95C9AABADAF344936023EBC /* TransformBodyHash.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14BA343EC9CF6C24495915FF /* TransformBodyHash.swift */; };
 		AAA1B05850C4715A0A3CB018 /* MarketplaceTransform.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4E93D6391F5289AC2057ED1 /* MarketplaceTransform.swift */; };
 		B0247E9EF8DDD631448064A2 /* MultiPasteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6721501D4E6FA93DD31DFFB /* MultiPasteView.swift */; };
 		B06187387ED2CA7401FBB3B9 /* TransformDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAC24B15D15F460CE84F90F2 /* TransformDetailView.swift */; };
@@ -136,6 +144,7 @@
 		B58258B902C41C48C9211BDB /* ContentType+iOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 913B0DC291755381EB1712B0 /* ContentType+iOS.swift */; };
 		B5D94A8EB0067EA90F8DDF7E /* TransformManifest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B88FF4244587A52947EA560 /* TransformManifest.swift */; };
 		B6238CFB819B661235D61F6E /* ExcludedAppsSettingsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A90BF984A455334596629A7 /* ExcludedAppsSettingsSection.swift */; };
+		B67550E897B432ADFAFD5051 /* MarketplaceViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE7D757B59297C1B161FDF63 /* MarketplaceViewModel.swift */; };
 		B807F2D9B5F520D1C1EC3C46 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 83A92FB48CB294E715B02806 /* CoreGraphics.framework */; };
 		B8C46A7AEE4E1000F04BD845 /* ExclusionList.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7FB5D41184EA099DF44B757 /* ExclusionList.swift */; };
 		BA546965705849A3E6777A8E /* PasteStackManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC6CCCC44FBB2378C5719A00 /* PasteStackManager.swift */; };
@@ -168,15 +177,19 @@
 		D70EDAD98EFE7D9313EB45C5 /* ModelContainer+iOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A3E04304FA75C1C157D8A7D /* ModelContainer+iOS.swift */; };
 		D74385145FCB4D381B64ACCE /* JSONTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DA7DEADB4144664958C7845 /* JSONTransforms.swift */; };
 		DBB67C245DF2A7982C8B01A5 /* CleanupTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206650306DE75178F63F72E5 /* CleanupTransforms.swift */; };
+		DDFB6F14B6CD4FACAAB65A94 /* MockMarketplaceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F8DCE25CBC81614DCDCB19D /* MockMarketplaceService.swift */; };
 		DE07CCD51BD9E8A6B3F9D615 /* HotstashControls.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = A867D783F8E944CFD9C96914 /* HotstashControls.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		DF11787D23BA9A97C40351E0 /* AuthenticationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F4D2DE5FC790AED434083F8D /* AuthenticationServices.framework */; };
 		DF59EA1054756C010B19E2F2 /* HistoryRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF8E8D7BDEE4360F02FE1574 /* HistoryRow.swift */; };
 		E472EAE697693B03E5F8549C /* ModelContainer+Hotstash.swift in Sources */ = {isa = PBXBuildFile; fileRef = B995C407D9121B04B8DE1694 /* ModelContainer+Hotstash.swift */; };
 		E69AE276F2E891536673B831 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CCB10F509A125CF2CF679280 /* Assets.xcassets */; };
+		E7C76C5AEB21B7E286D2A760 /* MarketplaceServiceProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFBBF49E2E15523321B54C21 /* MarketplaceServiceProvider.swift */; };
 		E9D3A6BDD4477263376064CD /* MarketplaceServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D6A56A294F14A08140AF93F /* MarketplaceServiceTests.swift */; };
+		EB2C413DB4DF96F716AD1A2C /* MarketplaceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4004EA1EFAA637E984B2B46F /* MarketplaceService.swift */; };
 		EDBE916CD269A81B6981C649 /* QuickTransformsSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB32CD15452BAD523DCE27D /* QuickTransformsSettingsView.swift */; };
 		EDF035328BBEDB29F970782E /* TextTransformEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CC810AA2F7272A184F0AC9A /* TextTransformEngineTests.swift */; };
 		EEC6DEC02CA65C812A02E76B /* StoredTransform.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B0C95B0A5D95C2B037025D /* StoredTransform.swift */; };
+		F2FB1A90EB5600121D275B8A /* TextTransformEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BA74CF4DAB850A3D52A491 /* TextTransformEngine.swift */; };
 		F3435673EBD82DF21C23BFD2 /* SaveClipboardIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 442BCB0040DA154A7E95E96F /* SaveClipboardIntent.swift */; };
 		F3F821A1D7B0A1C0EA4689FF /* ClipboardItemCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6A9D0726BB159ACE3620C30 /* ClipboardItemCell.swift */; };
 		F4F0FBF7D7AAFCEE4199D22E /* Transform.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5C42098CBDBF783A7B887BE /* Transform.swift */; };
@@ -353,6 +366,7 @@
 		D8C1302B2401F121B1FB4F20 /* CodeTransforms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeTransforms.swift; sourceTree = "<group>"; };
 		DAC24B15D15F460CE84F90F2 /* TransformDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransformDetailView.swift; sourceTree = "<group>"; };
 		DCB64F507F6BED0DB6322846 /* SignInPromptWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInPromptWindowController.swift; sourceTree = "<group>"; };
+		DE46F6B9B3D57DDE5909BCA0 /* MarketplaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketplaceView.swift; sourceTree = "<group>"; };
 		DFBBF49E2E15523321B54C21 /* MarketplaceServiceProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketplaceServiceProvider.swift; sourceTree = "<group>"; };
 		E14B176F759EFA9AB5D42406 /* TransformPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransformPickerView.swift; sourceTree = "<group>"; };
 		E36267480CBB5FE786DF7D08 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
@@ -537,6 +551,7 @@
 			isa = PBXGroup;
 			children = (
 				30BD9AE66D43598792FBA682 /* History */,
+				D7190327B9BDE3D7E29CC306 /* Marketplace */,
 				A8387E002E8AE9B0D1FDDB5D /* MultiPaste */,
 				5846B57EB28ED13BC107EDD1 /* Settings */,
 				EC87ECD38E724E7F32509CF9 /* Snippets */,
@@ -800,6 +815,14 @@
 			path = Transforms;
 			sourceTree = "<group>";
 		};
+		D7190327B9BDE3D7E29CC306 /* Marketplace */ = {
+			isa = PBXGroup;
+			children = (
+				DE46F6B9B3D57DDE5909BCA0 /* MarketplaceView.swift */,
+			);
+			path = Marketplace;
+			sourceTree = "<group>";
+		};
 		DB07D8298BBCF9665A797E0B /* Transform */ = {
 			isa = PBXGroup;
 			children = (
@@ -1033,6 +1056,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E69AE276F2E891536673B831 /* Assets.xcassets in Resources */,
+				49617B8702E014D200568A3E /* Supabase.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1204,6 +1228,14 @@
 				CCE1BA09582FE00F4E8DA54A /* KeyboardClips.swift in Sources */,
 				2575F95BEFBBB20BAB2C32CF /* ListTransforms.swift in Sources */,
 				39F5CDA001E915934120722F /* MainTabView.swift in Sources */,
+				A3B7E4272EAD4191FB9FB5E6 /* MarketplaceLibrary.swift in Sources */,
+				848C6BE67D88F0D00A01AC66 /* MarketplaceModels.swift in Sources */,
+				EB2C413DB4DF96F716AD1A2C /* MarketplaceService.swift in Sources */,
+				E7C76C5AEB21B7E286D2A760 /* MarketplaceServiceProvider.swift in Sources */,
+				87BFD13A9D4FF422CC1FCD68 /* MarketplaceTransform.swift in Sources */,
+				4B20BCC116F5F014FBE130DD /* MarketplaceView.swift in Sources */,
+				B67550E897B432ADFAFD5051 /* MarketplaceViewModel.swift in Sources */,
+				DDFB6F14B6CD4FACAAB65A94 /* MockMarketplaceService.swift in Sources */,
 				D70EDAD98EFE7D9313EB45C5 /* ModelContainer+iOS.swift in Sources */,
 				4803C5AE7EF82F03F32E6506 /* MultiPasteStore.swift in Sources */,
 				B0247E9EF8DDD631448064A2 /* MultiPasteView.swift in Sources */,
@@ -1217,7 +1249,11 @@
 				2A52CED246A0C22D6A1D9A2E /* SnippetStore.swift in Sources */,
 				678EE6464CBFE083DECDFF4B /* SnippetsView.swift in Sources */,
 				EEC6DEC02CA65C812A02E76B /* StoredTransform.swift in Sources */,
+				3C1E47A703D797192B08AA4D /* SupabaseConfig.swift in Sources */,
+				267939F1B06958AB76A194D3 /* SupabaseMarketplaceService.swift in Sources */,
+				F2FB1A90EB5600121D275B8A /* TextTransformEngine.swift in Sources */,
 				02A60340D3D9EA271C550220 /* Transform.swift in Sources */,
+				A95C9AABADAF344936023EBC /* TransformBodyHash.swift in Sources */,
 				76BCCE53AD39D43B293DFED2 /* TransformManifest.swift in Sources */,
 				012AF3CF927396A0C6AEC980 /* TransformManifestCodec.swift in Sources */,
 				52F2AA09B5D0050C2EB47299 /* TransformOrderView.swift in Sources */,
@@ -1485,6 +1521,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.zeyadamer.hotstash;
 				PRODUCT_NAME = Hotstash;
 				SDKROOT = iphoneos;
+				SWIFT_OBJC_BRIDGING_HEADER = Hotstash/Transforms/Marketplace/HotstashJSCore.h;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_STRICT_CONCURRENCY = minimal;
 				SWIFT_VERSION = 5.9;
@@ -1666,6 +1703,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.zeyadamer.hotstash;
 				PRODUCT_NAME = Hotstash;
 				SDKROOT = iphoneos;
+				SWIFT_OBJC_BRIDGING_HEADER = Hotstash/Transforms/Marketplace/HotstashJSCore.h;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_STRICT_CONCURRENCY = minimal;
 				SWIFT_VERSION = 5.9;

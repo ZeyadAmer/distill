@@ -27,7 +27,7 @@ final class MarketplaceLibrary {
     private let logger = Logger(subsystem: "com.zeyadamer.hotstash", category: "MarketplaceLibrary")
 
     /// Production uses the shared CloudKit container; tests inject in-memory.
-    init(container: ModelContainer = .hotstashShared) {
+    init(container: ModelContainer = .hotstashDefault) {
         self.container = container
     }
 

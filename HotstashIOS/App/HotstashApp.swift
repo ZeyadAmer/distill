@@ -12,6 +12,13 @@ struct HotstashApp: App {
     init() {
         TrialManager.shared.start()
         PurchaseManager.shared.listenForTransactions()
+        // Installed marketplace transforms join the built-ins in every picker.
+        // Image-kind transforms are macOS-only, so only text ones surface here.
+        IOSTransforms.extraProvider = {
+            MarketplaceLibrary.shared.customTransforms().filter {
+                ($0 as? MarketplaceTransform)?.manifest.kind != .image
+            }
+        }
     }
 
     var body: some Scene {

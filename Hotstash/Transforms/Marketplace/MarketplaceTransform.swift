@@ -18,7 +18,12 @@ struct MarketplaceTransform: Transform {
     }
 
     func applyToImageData(_ data: Data) -> Data? {
+        #if os(macOS)
         guard case let .image(steps) = manifest.body else { return nil }
         return ImageTransformEngine.run(steps: steps, imageData: data)
+        #else
+        // Image pipelines are macOS-only; text transforms cover iOS.
+        return nil
+        #endif
     }
 }
