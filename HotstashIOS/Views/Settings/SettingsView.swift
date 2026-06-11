@@ -8,14 +8,31 @@ struct AboutView: View {
     @State private var purchaseError: String?
     @State private var showPurchaseError = false
 
+    /// 0 = General (about/purchase), 1 = Transforms (order + enablement).
+    @State private var tab = 0
+
     var body: some View {
         NavigationStack {
-            List {
-                appIdentitySection
-                purchaseSection
-                infoSection
+            VStack(spacing: 0) {
+                Picker("Section", selection: $tab) {
+                    Text("General").tag(0)
+                    Text("Transforms").tag(1)
+                }
+                .pickerStyle(.segmented)
+                .padding(.horizontal)
+                .padding(.vertical, 8)
+
+                if tab == 0 {
+                    List {
+                        appIdentitySection
+                        purchaseSection
+                        infoSection
+                    }
+                } else {
+                    TransformOrderView()
+                }
             }
-            .navigationTitle("About")
+            .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
             .task { await loadProduct() }
             .alert("Purchase Failed", isPresented: $showPurchaseError, presenting: purchaseError) { _ in

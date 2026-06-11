@@ -11,8 +11,8 @@ struct TransformView: View {
     @FocusState private var inputFocused: Bool
 
     private var filteredTransforms: [any Transform] {
-        guard !searchText.isEmpty else { return IOSTransforms.all }
-        return IOSTransforms.all.filter {
+        guard !searchText.isEmpty else { return IOSTransformSettings.enabledOrdered() }
+        return IOSTransformSettings.enabledOrdered().filter {
             $0.name.localizedCaseInsensitiveContains(searchText)
         }
     }

@@ -99,8 +99,8 @@ private struct ShareTransformView: View {
     @State private var searchText       = ""
 
     private var filteredTransforms: [any Transform] {
-        guard !searchText.isEmpty else { return IOSTransforms.all }
-        return IOSTransforms.all.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
+        guard !searchText.isEmpty else { return IOSTransformSettings.enabledOrdered() }
+        return IOSTransformSettings.enabledOrdered().filter { $0.name.localizedCaseInsensitiveContains(searchText) }
     }
 
     var body: some View {

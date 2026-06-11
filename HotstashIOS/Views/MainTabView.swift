@@ -39,7 +39,7 @@ struct MainTabView: View {
                     .tag(AppTab.queue)
 
                 AboutView()
-                    .tabItem { Label("About", systemImage: "info.circle") }
+                    .tabItem { Label("Settings", systemImage: "gearshape") }
                     .tag(AppTab.settings)
             }
             .onOpenURL { url in

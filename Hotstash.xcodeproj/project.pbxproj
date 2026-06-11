@@ -71,6 +71,7 @@
 		4FB1C238201EF23819C7576F /* CaseTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 405816998C0516ABD02E3EA5 /* CaseTransforms.swift */; };
 		505044144935FBD906ABDCCE /* KeyboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E0D1E88D6804D6237DFBC89 /* KeyboardViewController.swift */; };
 		5216C4AC86F4D8A68EFFA8C5 /* MockMarketplaceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F8DCE25CBC81614DCDCB19D /* MockMarketplaceService.swift */; };
+		52F2AA09B5D0050C2EB47299 /* TransformOrderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDABE82DCA00522439AB0103 /* TransformOrderView.swift */; };
 		5332EC427A7577BC774CBC30 /* JSONTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DA7DEADB4144664958C7845 /* JSONTransforms.swift */; };
 		55309C6144D563297EA066CD /* LaunchAtLoginManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C81123429DA8F08940306AC /* LaunchAtLoginManager.swift */; };
 		5562EF3A9E681FEB4CBB7EC5 /* MarketplaceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4004EA1EFAA637E984B2B46F /* MarketplaceService.swift */; };
@@ -365,6 +366,7 @@
 		F778C47A68C7E62BD82B2EB0 /* ClipboardHistoryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardHistoryManager.swift; sourceTree = "<group>"; };
 		F7B98406979879E055F31A11 /* AppMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppMenu.swift; sourceTree = "<group>"; };
 		F8758C63AA816832764F2043 /* ServiceManagement.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ServiceManagement.framework; path = System/Library/Frameworks/ServiceManagement.framework; sourceTree = SDKROOT; };
+		FDABE82DCA00522439AB0103 /* TransformOrderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransformOrderView.swift; sourceTree = "<group>"; };
 		FF8673C62891F86C722E27A1 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		FF87284D296313E0AF446761 /* MyTransformsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyTransformsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -604,6 +606,7 @@
 			isa = PBXGroup;
 			children = (
 				18312139FBAE57231CDAAE5D /* SettingsView.swift */,
+				FDABE82DCA00522439AB0103 /* TransformOrderView.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -1217,6 +1220,7 @@
 				02A60340D3D9EA271C550220 /* Transform.swift in Sources */,
 				76BCCE53AD39D43B293DFED2 /* TransformManifest.swift in Sources */,
 				012AF3CF927396A0C6AEC980 /* TransformManifestCodec.swift in Sources */,
+				52F2AA09B5D0050C2EB47299 /* TransformOrderView.swift in Sources */,
 				0662D115AEC8B7C4CADAD95C /* TransformRow.swift in Sources */,
 				B388BCD58AF7FAB68AE8AACC /* TransformView.swift in Sources */,
 				11F600B56BB30BE033C5649B /* TrialManager.swift in Sources */,

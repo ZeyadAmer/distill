@@ -33,6 +33,9 @@ struct KeyboardView: View {
     /// 0 = Recents, 1 = Pinned.
     @State private var tab = 0
 
+    /// Multi-paste strip visibility (insert the last N clips at once).
+    @State private var showMultiPaste = false
+
     private var visibleClips: [KeyboardClip] {
         tab == 0
             ? dataSource.clips.filter { !$0.isPinned }
@@ -45,6 +48,10 @@ struct KeyboardView: View {
             Divider()
             if let clip = transformingClip {
                 transformStrip(for: clip)
+                Divider()
+            }
+            if showMultiPaste {
+                multiPasteStrip
                 Divider()
             }
             content
@@ -68,7 +75,7 @@ struct KeyboardView: View {
                 .buttonStyle(.plain)
                 .accessibilityLabel("Close transforms")
 
-                ForEach(IOSTransforms.all, id: \.id) { transform in
+                ForEach(IOSTransformSettings.enabledOrdered(), id: \.id) { transform in
                     Button {
                         onInsert(transform.apply(to: clip.content))
                         transformingClip = nil
@@ -107,10 +114,75 @@ struct KeyboardView: View {
 
             Spacer()
 
+            Button {
+                showMultiPaste.toggle()
+                transformingClip = nil
+            } label: {
+                Image(systemName: "rectangle.stack")
+                    .font(.body)
+                    .foregroundStyle(showMultiPaste ? AnyShapeStyle(.tint) : AnyShapeStyle(.primary))
+                    .frame(width: 36, height: 30)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Paste last items")
+
             DeleteKey(onDelete: onDelete)
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 5)
+    }
+
+    // MARK: Multi-paste strip
+
+    /// Inserts the last N recent clips at once, oldest first, one per line.
+    private var multiPasteStrip: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "rectangle.stack")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Text("Paste last")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            ForEach([2, 3, 4, 5], id: \.self) { count in
+                Button {
+                    insertLast(count)
+                    showMultiPaste = false
+                } label: {
+                    Text("\(count)")
+                        .font(.subheadline.weight(.semibold))
+                        .frame(width: 36, height: 28)
+                        .background(Color(.tertiarySystemBackground), in: Capsule())
+                }
+                .buttonStyle(.plain)
+            }
+
+            Spacer()
+
+            Button {
+                showMultiPaste = false
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .foregroundStyle(.secondary)
+                    .frame(width: 28, height: 28)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Close multi-paste")
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 5)
+    }
+
+    private func insertLast(_ count: Int) {
+        let recents = dataSource.clips.filter { !$0.isPinned }.prefix(count)
+        guard !recents.isEmpty else { return }
+        // Reversed → chronological order (oldest of the N first).
+        let joined = recents.reversed()
+            .map { $0.content.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .joined(separator: "\n")
+        onInsert(joined)
     }
 
     // MARK: Content
