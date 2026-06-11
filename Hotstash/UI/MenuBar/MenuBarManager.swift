@@ -34,7 +34,7 @@ final class MenuBarManager: NSObject {
 
     private func configureButton() {
         guard let button = statusItem.button else { return }
-        button.image = makeFlameClipboardImage(warningDot: false)
+        button.image = makeStatusIcon()
         button.action = #selector(handleButtonClick(_:))
         button.sendAction(on: [.leftMouseUp, .rightMouseUp])
         button.target = self
@@ -42,49 +42,15 @@ final class MenuBarManager: NSObject {
 
     // MARK: - Icon drawing
 
-    /// Builds a clipboard + flame composite image for the status bar.
-    /// When `warningDot` is true, adds a small red dot to indicate an expired trial.
-    private func makeFlameClipboardImage(warningDot: Bool) -> NSImage {
-        let totalSize = NSSize(width: 22, height: 18)
-        let composite = NSImage(size: totalSize)
-
-        composite.lockFocus()
-
-        // Clipboard — palette color bakes white directly into the symbol rendering
-        let clipConfig = NSImage.SymbolConfiguration(pointSize: 14, weight: .regular)
-            .applying(NSImage.SymbolConfiguration(paletteColors: [.white]))
-        if let clip = NSImage(systemSymbolName: "doc.on.clipboard",
-                              accessibilityDescription: "Hotstash")?
-            .withSymbolConfiguration(clipConfig) {
-            let cw = clip.size.width
-            let ch = clip.size.height
-            clip.draw(in: NSRect(x: 1, y: (totalSize.height - ch) / 2, width: cw, height: ch))
-        }
-
-        // Flame badge (bottom-right, always orange)
-        let flameConfig = NSImage.SymbolConfiguration(pointSize: 7.5, weight: .bold)
-            .applying(NSImage.SymbolConfiguration(paletteColors: [.systemOrange]))
-        if let flame = NSImage(systemSymbolName: "flame.fill",
-                               accessibilityDescription: nil)?
-            .withSymbolConfiguration(flameConfig) {
-            let fw = flame.size.width
-            let fh = flame.size.height
-            flame.draw(in: NSRect(x: totalSize.width - fw - 0.5, y: 0, width: fw, height: fh))
-        }
-
-        // Optional red warning dot (top-right corner)
-        if warningDot {
-            let dotDiameter: CGFloat = 5
-            NSColor.systemRed.setFill()
-            let dotRect = NSRect(x: totalSize.width - dotDiameter - 0.5,
-                                 y: totalSize.height - dotDiameter - 0.5,
-                                 width: dotDiameter, height: dotDiameter)
-            NSBezierPath(ovalIn: dotRect).fill()
-        }
-
-        composite.unlockFocus()
-        composite.isTemplate = false
-        return composite
+    /// Template flame icon — the system tints it for light/dark menu bars,
+    /// hover highlight, and reduced-transparency modes automatically.
+    private func makeStatusIcon() -> NSImage {
+        let config = NSImage.SymbolConfiguration(pointSize: 15, weight: .medium)
+        let icon = NSImage(systemSymbolName: "flame.fill",
+                           accessibilityDescription: "Hotstash")?
+            .withSymbolConfiguration(config) ?? NSImage()
+        icon.isTemplate = true
+        return icon
     }
 
     // MARK: - Click handling
@@ -177,9 +143,12 @@ final class MenuBarManager: NSObject {
     // MARK: - Badge drawing
 
     private func updateBadge() {
-        let showDot = TrialManager.shared.isRestricted && !PurchaseManager.shared.isPurchased
-        guard showDot != trialExpiredBadgeVisible else { return }
-        trialExpiredBadgeVisible = showDot
-        statusItem.button?.image = makeFlameClipboardImage(warningDot: showDot)
+        let showWarning = TrialManager.shared.isRestricted && !PurchaseManager.shared.isPurchased
+        guard showWarning != trialExpiredBadgeVisible else { return }
+        trialExpiredBadgeVisible = showWarning
+        // Orange tint overrides the template's automatic menu-bar color
+        // while the trial is expired; nil restores system behavior.
+        statusItem.button?.contentTintColor = showWarning ? .systemOrange : nil
+        statusItem.button?.toolTip = showWarning ? "Hotstash — trial expired" : "Hotstash"
     }
 }
