@@ -35,7 +35,9 @@
 		1DC62D1D2745328DB77C4421 /* Notifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F5A0B2DFE8E78A0497DE0A4 /* Notifications.swift */; };
 		211390616CDF62A510B02083 /* SaveClipboardControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2514400ADC1A16CE97D6102 /* SaveClipboardControl.swift */; };
 		211BDD99F886E7590BE13A8E /* AboutSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72D38A0D5D49CAA9F1A4419C /* AboutSettingsView.swift */; };
+		21685C8DFDEFA37EDC44E1D2 /* WhitespaceTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC8FD990DF3BF88CE1E8B306 /* WhitespaceTransforms.swift */; };
 		233E720F4358B5BA58F1CD0B /* HotkeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 252AECFD0C49802E4F197FEC /* HotkeyManager.swift */; };
+		23649852DF77F3EFD6FB0856 /* Transform.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5C42098CBDBF783A7B887BE /* Transform.swift */; };
 		23E8305A5D49348DDED051A4 /* ServiceManagement.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F8758C63AA816832764F2043 /* ServiceManagement.framework */; };
 		242F418C7F139225F563A36F /* ContentDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DC86C0A994B73FB8009A7EA /* ContentDetector.swift */; };
 		2575F95BEFBBB20BAB2C32CF /* ListTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA61738337E4369F78AAFB73 /* ListTransforms.swift */; };
@@ -46,6 +48,7 @@
 		340EC864C860F3D0F724F271 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22D1F8CFB59A151FB042BEB6 /* main.swift */; };
 		3537F0CBF436C85F70FA9288 /* MenuBarManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE1B33F7E9EF3F45381A3B2B /* MenuBarManager.swift */; };
 		36E86F2188D0CBA7BA4D402B /* ImageTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADE6965A34882FA76B8FE89 /* ImageTransforms.swift */; };
+		399E5BD7B54DB107FFB8AB01 /* ContentDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DC86C0A994B73FB8009A7EA /* ContentDetector.swift */; };
 		39AC95D543E5C81EA04D317E /* ClipboardHistoryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F778C47A68C7E62BD82B2EB0 /* ClipboardHistoryManager.swift */; };
 		39F5CDA001E915934120722F /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A98E09300889DCD8F69A0FB2 /* MainTabView.swift */; };
 		3C9715A9ADD898F8DEC1AB62 /* SmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AAC8B5CB7445D1E6B14899B /* SmokeTests.swift */; };
@@ -74,6 +77,7 @@
 		5998260E55D8972C44C92CBA /* TextTransformEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BA74CF4DAB850A3D52A491 /* TextTransformEngine.swift */; };
 		5C4E8677C90D38DCE7AD5D59 /* ClipboardStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07A94AD7A9C0604D08B842FA /* ClipboardStore.swift */; };
 		632B3A38CD1C5A60ED5AF9C0 /* ClipboardItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F6E7D0DCEC47B20359A28A1 /* ClipboardItem.swift */; };
+		633783518FB0DD091C7E7278 /* ListTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA61738337E4369F78AAFB73 /* ListTransforms.swift */; };
 		635410ED8FD04136194FF6E0 /* CleanupTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206650306DE75178F63F72E5 /* CleanupTransforms.swift */; };
 		6376DACF5122CF18585AF517 /* MarketplaceLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721A38B2C4233F9BBF04D1C1 /* MarketplaceLibrary.swift */; };
 		639937388E0DA8F8A87D17B5 /* SettingsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 497B06AB9E1C80977587F03C /* SettingsWindowController.swift */; };
@@ -86,6 +90,7 @@
 		70EADE71F10F45D36332E71B /* QuickTransformStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D69A2226F6E822FA5377B405 /* QuickTransformStore.swift */; };
 		7147B0DE54461C7B0ABE6A54 /* TransformBodyHash.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14BA343EC9CF6C24495915FF /* TransformBodyHash.swift */; };
 		74B739BCDB3FA91DC592C51E /* Notifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F5A0B2DFE8E78A0497DE0A4 /* Notifications.swift */; };
+		74D8F6173ABBEC310778DC9F /* EncodingTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55953DA19505ACD1E2B0551A /* EncodingTransforms.swift */; };
 		76BCCE53AD39D43B293DFED2 /* TransformManifest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B88FF4244587A52947EA560 /* TransformManifest.swift */; };
 		7783391989F07CE66EFF6D2B /* HotstashKeyboard.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 090BFC98F6FD77387BFDCA4E /* HotstashKeyboard.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		78E82A9CC6B74427C7004D83 /* TransformRegistryMergeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 134A56F8386E88E7AEE5711E /* TransformRegistryMergeTests.swift */; };
@@ -117,6 +122,7 @@
 		989AD24250841C51BA711B55 /* CodeTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8C1302B2401F121B1FB4F20 /* CodeTransforms.swift */; };
 		99A3584FCDCB07D41E80A194 /* KeyboardClips.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A684417BC90E6000818DB0F /* KeyboardClips.swift */; };
 		9CFB646636D1F225FD1E5547 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18312139FBAE57231CDAAE5D /* SettingsView.swift */; };
+		9D2CC8BBC6C172B7EFDFEEF6 /* IOSTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 333CB100009DEC016F64B5B8 /* IOSTransforms.swift */; };
 		9F9420B42D1738B43FAD691C /* HotstashApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D36E70DB0E58B065856B91 /* HotstashApp.swift */; };
 		A3B05C7B6329695BA146BF20 /* OpenHistoryControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42054CDB74C2A12D99482164 /* OpenHistoryControl.swift */; };
 		A716C9D9EA74A355B3A21704 /* TransformSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 745DE6446393891754A48B11 /* TransformSettingsView.swift */; };
@@ -152,12 +158,15 @@
 		CDF55ADC901E389DC4FB6295 /* MarketplaceModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = D694B7901653C7BA740C2AEF /* MarketplaceModels.swift */; };
 		CE5F686F1E974854CBC9A6F6 /* TransformManifestCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BB7F14A2532ED233E9E50D1 /* TransformManifestCodec.swift */; };
 		CF210BA00EABB53C3D0BDF80 /* EncodingTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55953DA19505ACD1E2B0551A /* EncodingTransforms.swift */; };
+		D338B3BAD1C7B008D6955056 /* CaseTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 405816998C0516ABD02E3EA5 /* CaseTransforms.swift */; };
 		D3715E5B3586B2785B962021 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0FD250AD5757E2AAD64F8DD8 /* UIKit.framework */; };
 		D499EFBA3A153736E68C446C /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8867D061EB86A9D577C92E9 /* EmptyStateView.swift */; };
 		D4B0E830A7AE62BBCB66C1D5 /* PurchaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ECB321F90AFA8FD509986C0 /* PurchaseManager.swift */; };
 		D62305E0FB7754EB04A3C68A /* TransformManifest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B88FF4244587A52947EA560 /* TransformManifest.swift */; };
 		D68943C362ED92EFC2E0FA37 /* WhitespaceTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC8FD990DF3BF88CE1E8B306 /* WhitespaceTransforms.swift */; };
 		D70EDAD98EFE7D9313EB45C5 /* ModelContainer+iOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A3E04304FA75C1C157D8A7D /* ModelContainer+iOS.swift */; };
+		D74385145FCB4D381B64ACCE /* JSONTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DA7DEADB4144664958C7845 /* JSONTransforms.swift */; };
+		DBB67C245DF2A7982C8B01A5 /* CleanupTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206650306DE75178F63F72E5 /* CleanupTransforms.swift */; };
 		DE07CCD51BD9E8A6B3F9D615 /* HotstashControls.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = A867D783F8E944CFD9C96914 /* HotstashControls.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		DF11787D23BA9A97C40351E0 /* AuthenticationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F4D2DE5FC790AED434083F8D /* AuthenticationServices.framework */; };
 		DF59EA1054756C010B19E2F2 /* HistoryRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF8E8D7BDEE4360F02FE1574 /* HistoryRow.swift */; };
@@ -1219,10 +1228,19 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D338B3BAD1C7B008D6955056 /* CaseTransforms.swift in Sources */,
+				DBB67C245DF2A7982C8B01A5 /* CleanupTransforms.swift in Sources */,
+				399E5BD7B54DB107FFB8AB01 /* ContentDetector.swift in Sources */,
+				74D8F6173ABBEC310778DC9F /* EncodingTransforms.swift in Sources */,
+				9D2CC8BBC6C172B7EFDFEEF6 /* IOSTransforms.swift in Sources */,
+				D74385145FCB4D381B64ACCE /* JSONTransforms.swift in Sources */,
 				99A3584FCDCB07D41E80A194 /* KeyboardClips.swift in Sources */,
 				4CED30B3DFA993F9BE2FAFC7 /* KeyboardView.swift in Sources */,
 				505044144935FBD906ABDCCE /* KeyboardViewController.swift in Sources */,
+				633783518FB0DD091C7E7278 /* ListTransforms.swift in Sources */,
 				165B41293097B1060A66288B /* SharedDefaults.swift in Sources */,
+				23649852DF77F3EFD6FB0856 /* Transform.swift in Sources */,
+				21685C8DFDEFA37EDC44E1D2 /* WhitespaceTransforms.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

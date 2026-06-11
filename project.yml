@@ -182,6 +182,9 @@ targets:
           - iCloud.com.zeyadamer.hotstash
         com.apple.developer.icloud-services:
           - CloudKit
+        # Silent CloudKit pushes wake the app so Mac→iPhone sync lands
+        # without the user opening the app.
+        aps-environment: development
 
   HotstashKeyboard:
     type: app-extension
@@ -196,6 +199,16 @@ targets:
       # Keyboard reads only the UserDefaults mirror — never the SwiftData store
       - path: HotstashIOS/Models/SharedDefaults.swift
       - path: HotstashIOS/Models/KeyboardClips.swift
+      # Built-in transforms so clips can be inserted transformed
+      - path: HotstashIOS/Models/IOSTransforms.swift
+      - path: Hotstash/Transforms/ContentDetector.swift
+      - path: Hotstash/Transforms/Transform.swift
+      - path: Hotstash/Transforms/Transforms/CaseTransforms.swift
+      - path: Hotstash/Transforms/Transforms/WhitespaceTransforms.swift
+      - path: Hotstash/Transforms/Transforms/ListTransforms.swift
+      - path: Hotstash/Transforms/Transforms/JSONTransforms.swift
+      - path: Hotstash/Transforms/Transforms/EncodingTransforms.swift
+      - path: Hotstash/Transforms/Transforms/CleanupTransforms.swift
 
     settings:
       base:

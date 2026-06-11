@@ -26,13 +26,58 @@ struct KeyboardView: View {
     let onInsert: (String) -> Void
     let onDelete: () -> Void
 
+    /// Clip whose transform strip is open (wand button). Tapping a transform
+    /// chip inserts the transformed text and closes the strip.
+    @State private var transformingClip: KeyboardClip?
+
     var body: some View {
         VStack(spacing: 0) {
             header
             Divider()
+            if let clip = transformingClip {
+                transformStrip(for: clip)
+                Divider()
+            }
             content
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    // MARK: Transform strip
+
+    private func transformStrip(for clip: KeyboardClip) -> some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 6) {
+                Button {
+                    transformingClip = nil
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(.secondary)
+                        .frame(width: 28, height: 28)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Close transforms")
+
+                ForEach(IOSTransforms.all, id: \.id) { transform in
+                    Button {
+                        onInsert(transform.apply(to: clip.content))
+                        transformingClip = nil
+                    } label: {
+                        Label(transform.name, systemImage: transform.icon)
+                            .font(.caption)
+                            .lineLimit(1)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(Color(.tertiarySystemBackground),
+                                        in: Capsule())
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+        }
     }
 
     // MARK: Header
@@ -90,32 +135,50 @@ struct KeyboardView: View {
         ScrollView {
             LazyVStack(spacing: 6) {
                 ForEach(dataSource.clips) { clip in
-                    Button {
-                        onInsert(clip.content)
-                    } label: {
-                        HStack(spacing: 8) {
-                            if clip.isPinned {
-                                Image(systemName: "pin.fill")
-                                    .font(.caption2)
-                                    .foregroundStyle(.orange)
+                    HStack(spacing: 6) {
+                        Button {
+                            onInsert(clip.content)
+                        } label: {
+                            HStack(spacing: 8) {
+                                if clip.isPinned {
+                                    Image(systemName: "pin.fill")
+                                        .font(.caption2)
+                                        .foregroundStyle(.orange)
+                                }
+                                Text(clip.content)
+                                    .font(.subheadline)
+                                    .lineLimit(2)
+                                    .multilineTextAlignment(.leading)
+                                    .foregroundStyle(.primary)
+                                Spacer(minLength: 0)
                             }
-                            Text(clip.content)
-                                .font(.subheadline)
-                                .lineLimit(2)
-                                .multilineTextAlignment(.leading)
-                                .foregroundStyle(.primary)
-                            Spacer(minLength: 0)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 8)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .contentShape(Rectangle())
                         }
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 8)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(
-                            Color(.secondarySystemBackground),
-                            in: RoundedRectangle(cornerRadius: 10)
-                        )
-                        .contentShape(Rectangle())
+                        .buttonStyle(.plain)
+
+                        Button {
+                            transformingClip = transformingClip?.id == clip.id ? nil : clip
+                        } label: {
+                            Image(systemName: "wand.and.stars")
+                                .font(.footnote)
+                                .foregroundStyle(
+                                    transformingClip?.id == clip.id
+                                        ? AnyShapeStyle(.tint)
+                                        : AnyShapeStyle(.secondary)
+                                )
+                                .frame(width: 32, height: 32)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Insert transformed")
                     }
-                    .buttonStyle(.plain)
+                    .background(
+                        Color(.secondarySystemBackground),
+                        in: RoundedRectangle(cornerRadius: 10)
+                    )
                 }
             }
             .padding(.horizontal, 10)
