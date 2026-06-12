@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 import JavaScriptCore
 
@@ -50,9 +51,13 @@ enum TextTransformEngine {
     #if !os(macOS)
     /// iOS path: execute on a dedicated thread and wait up to the limit (plus
     /// startup margin). On timeout the result is discarded and the thread is
-    /// abandoned — JSC offers no public termination API on iOS, and marketplace
-    /// scripts are server-moderated, so a runaway script is rare and bounded
-    /// to one background thread rather than a hung UI.
+    /// abandoned — JSC offers no public termination API on iOS. An abandoned
+    /// thread keeps burning CPU until the script ends, so a circuit breaker
+    /// refuses to run any script that has already timed out twice: at most two
+    /// runaway threads per bad transform, ever, instead of one per tap.
+    private static let timeoutCountsKey = "transformTimeoutCounts"
+    private static let maxTimeoutsBeforeDisabled = 2
+
     private static func runWithWatchdog(
         js: String,
         input: String,
@@ -60,6 +65,14 @@ enum TextTransformEngine {
         maxOutputBytes: Int
     ) -> TextTransformResult {
         let failure = TextTransformResult(output: input, didError: true)
+
+        // Circuit breaker: scripts that keep timing out are benched.
+        let scriptKey = SHA256.hash(data: Data(js.utf8))
+            .map { String(format: "%02x", $0) }.joined()
+        var counts = UserDefaults.standard.dictionary(forKey: timeoutCountsKey) as? [String: Int] ?? [:]
+        if counts[scriptKey, default: 0] >= maxTimeoutsBeforeDisabled {
+            return failure
+        }
 
         final class ResultBox: @unchecked Sendable {
             private let lock = NSLock()
@@ -75,12 +88,21 @@ enum TextTransformEngine {
             box.set(execute(js: js, input: input, timeLimitMs: timeLimitMs, maxOutputBytes: maxOutputBytes))
             semaphore.signal()
         }
-        thread.qualityOfService = .userInitiated
+        // Background QoS: a runaway script yields to the UI and burns far less power.
+        thread.qualityOfService = .utility
         thread.start()
 
         // Generous margin over the nominal limit to absorb JSContext startup.
         let deadline = DispatchTime.now() + .milliseconds(max(timeLimitMs, 0) + 750)
-        guard semaphore.wait(timeout: deadline) == .success else { return failure }
+        guard semaphore.wait(timeout: deadline) == .success else {
+            counts[scriptKey, default: 0] += 1
+            UserDefaults.standard.set(counts, forKey: timeoutCountsKey)
+            return failure
+        }
+        if counts[scriptKey] != nil {
+            counts[scriptKey] = nil
+            UserDefaults.standard.set(counts, forKey: timeoutCountsKey)
+        }
         return box.get() ?? failure
     }
     #endif
