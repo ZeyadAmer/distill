@@ -70,6 +70,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         TrialManager.shared.start()
         PurchaseManager.shared.listenForTransactions()
 
+        // Anonymous active-user ping (no login, no PII).
+        DeviceTracker.recordOpen()
+
         // Show first-launch onboarding or version What's New.
         showOnboardingIfNeeded()
         showWhatsNewIfNeeded()

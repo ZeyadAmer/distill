@@ -12,6 +12,10 @@ struct HotstashApp: App {
     init() {
         TrialManager.shared.start()
         PurchaseManager.shared.listenForTransactions()
+
+        // Anonymous active-user ping (no login, no PII).
+        DeviceTracker.recordOpen()
+
         // Installed marketplace transforms join the built-ins in every picker.
         // Image-kind transforms are macOS-only, so only text ones surface here.
         IOSTransforms.extraProvider = {
