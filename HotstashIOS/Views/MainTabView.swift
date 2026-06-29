@@ -13,6 +13,11 @@ struct MainTabView: View {
 
     @State private var selectedTab: AppTab = .history
 
+    /// First-run keyboard-setup prompt — shown once so users discover the
+    /// custom keyboard, which otherwise stays invisible until enabled.
+    @AppStorage("hasSeenKeyboardSetup") private var hasSeenKeyboardSetup = false
+    @State private var showKeyboardSetup = false
+
     private var isRestricted: Bool {
         !TrialManager.shared.isInTrial && !purchase.isPurchased
     }
@@ -49,6 +54,13 @@ struct MainTabView: View {
                 case "snippets":  selectedTab = .snippets
                 case "queue":     selectedTab = .queue
                 default:          break
+                }
+            }
+            .sheet(isPresented: $showKeyboardSetup) { KeyboardSetupView() }
+            .onAppear {
+                if !hasSeenKeyboardSetup {
+                    hasSeenKeyboardSetup = true
+                    showKeyboardSetup = true
                 }
             }
         }

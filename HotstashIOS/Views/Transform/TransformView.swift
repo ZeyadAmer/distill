@@ -102,13 +102,18 @@ struct TransformView: View {
                 .animation(.easeOut(duration: 0.15), value: copiedResult)
             }
 
-            Text(resultText)
-                .font(.system(.subheadline, design: .monospaced))
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(8)
-                .background(Color(.secondarySystemBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 10))
-                .lineLimit(6)
+            ScrollView {
+                Text(resultText)
+                    .font(.system(.subheadline, design: .monospaced))
+                    .textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(8)
+            }
+            // At least ~2 lines tall so multi-line results read as scrollable;
+            // caps out and scrolls internally for long output.
+            .frame(minHeight: 56, maxHeight: 200)
+            .background(Color(.secondarySystemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 10))
         }
     }
 

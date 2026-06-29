@@ -1,5 +1,6 @@
 import SwiftUI
 import StoreKit
+import UIKit
 
 struct AboutView: View {
 
@@ -7,6 +8,7 @@ struct AboutView: View {
     @State private var product: Product?
     @State private var purchaseError: String?
     @State private var showPurchaseError = false
+    @State private var showKeyboardSetup = false
 
     /// 0 = General (about/purchase), 1 = Transforms (order + enablement).
     @State private var tab = 0
@@ -34,6 +36,7 @@ struct AboutView: View {
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
+            .sheet(isPresented: $showKeyboardSetup) { KeyboardSetupView() }
             .task { await loadProduct() }
             .alert("Purchase Failed", isPresented: $showPurchaseError, presenting: purchaseError) { _ in
                 Button("OK", role: .cancel) {}
@@ -101,6 +104,12 @@ struct AboutView: View {
 
     private var infoSection: some View {
         Section {
+            Button {
+                showKeyboardSetup = true
+            } label: {
+                Label("Set Up the Keyboard", systemImage: "keyboard")
+            }
+
             Label("Your clipboard never leaves your device.", systemImage: "lock.fill")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
@@ -158,6 +167,80 @@ struct AboutView: View {
         } catch {
             purchaseError = error.localizedDescription
             showPurchaseError = true
+        }
+    }
+}
+
+// MARK: - KeyboardSetupView
+
+/// Explains how to enable the Hotstash custom keyboard. Shown once on first
+/// launch (see `MainTabView`) and reachable any time from Settings, since the
+/// keyboard is the main reason users don't realize the app does anything in
+/// other apps.
+struct KeyboardSetupView: View {
+
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 24) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Image(systemName: "keyboard.badge.ellipsis")
+                            .font(.system(size: 44))
+                            .foregroundStyle(.tint)
+                        Text("Enable the Hotstash Keyboard")
+                            .font(.title2.bold())
+                        Text("Paste your clips, snippets, and transforms straight from any app — without switching back to Hotstash.")
+                            .foregroundStyle(.secondary)
+                    }
+
+                    VStack(alignment: .leading, spacing: 16) {
+                        step(1, "Open the Settings app.")
+                        step(2, "Go to General → Keyboard → Keyboards.")
+                        step(3, "Tap Add New Keyboard…, then choose Hotstash.")
+                        step(4, "Tap Hotstash and turn on Allow Full Access so it can read and paste your clipboard.")
+                    }
+
+                    Label("Full Access keeps everything on-device — nothing is sent anywhere.",
+                          systemImage: "lock.fill")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+                .padding()
+            }
+            .safeAreaInset(edge: .bottom) {
+                Button {
+                    if let url = URL(string: UIApplication.openSettingsURLString) {
+                        UIApplication.shared.open(url)
+                    }
+                } label: {
+                    Label("Open Settings", systemImage: "arrow.up.forward.app")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .padding()
+            }
+            .navigationTitle("Keyboard Setup")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") { dismiss() }
+                }
+            }
+        }
+    }
+
+    private func step(_ number: Int, _ text: String) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            Text("\(number)")
+                .font(.subheadline.bold())
+                .foregroundStyle(.white)
+                .frame(width: 26, height: 26)
+                .background(Circle().fill(Color.accentColor))
+            Text(text)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 }
