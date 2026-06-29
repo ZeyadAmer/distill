@@ -159,11 +159,13 @@ struct SnippetEditSheet: View {
     }
 
     private func save() {
-        let trimmed = content.trimmingCharacters(in: .whitespacesAndNewlines)
+        // Preserve content verbatim — trailing spaces/newlines are intentional
+        // (e.g. a snippet that leaves a space so you can keep typing after it).
+        // The Save button is already disabled for whitespace-only content.
         if let s = existingSnippet {
-            snippets.update(id: s.id, title: title, content: trimmed)
+            snippets.update(id: s.id, title: title, content: content)
         } else {
-            snippets.add(title: title, content: trimmed)
+            snippets.add(title: title, content: content)
         }
         dismiss()
     }
