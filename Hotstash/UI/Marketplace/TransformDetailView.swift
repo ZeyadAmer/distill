@@ -254,9 +254,9 @@ struct TransformDetailView: View {
     }
 
     private func rate(_ stars: Int) async {
-        guard let accessToken else { return }
+        guard accessToken != nil, let token = await AuthManager.shared.validToken() else { return }
         do {
-            try await viewModel.service.rate(transformID: item.id, stars: stars, accessToken: accessToken)
+            try await viewModel.service.rate(transformID: item.id, stars: stars, accessToken: token)
             actionMessage = "Thanks for rating!"
         } catch {
             actionMessage = "Couldn't submit rating."
@@ -264,11 +264,11 @@ struct TransformDetailView: View {
     }
 
     private func postReview() async {
-        guard let accessToken else { return }
         let body = reviewBody.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !body.isEmpty else { return }
+        guard accessToken != nil, let token = await AuthManager.shared.validToken() else { return }
         do {
-            try await viewModel.service.postReview(transformID: item.id, body: body, accessToken: accessToken)
+            try await viewModel.service.postReview(transformID: item.id, body: body, accessToken: token)
             reviewBody = ""
             actionMessage = "Review posted."
             reviews = (try? await viewModel.service.reviews(transformID: item.id)) ?? reviews
@@ -278,12 +278,12 @@ struct TransformDetailView: View {
     }
 
     private func report() async {
-        guard let accessToken else { return }
         let reason = reportReason.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !reason.isEmpty else { return }
+        guard accessToken != nil, let token = await AuthManager.shared.validToken() else { return }
         do {
             try await viewModel.service.report(
-                targetType: "transform", targetID: item.id, reason: reason, accessToken: accessToken
+                targetType: "transform", targetID: item.id, reason: reason, accessToken: token
             )
             reportReason = ""
             actionMessage = "Report submitted."

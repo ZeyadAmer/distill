@@ -61,6 +61,8 @@ struct MarketplaceSettingsView: View {
         }
         .onAppear { nameDraft = auth.displayName ?? "" }
         .onChange(of: auth.displayName) { newValue in nameDraft = newValue ?? "" }
+        // Re-validate a Keychain-restored session and refresh admin status.
+        .task { await auth.restoreSession() }
     }
 
     @ViewBuilder

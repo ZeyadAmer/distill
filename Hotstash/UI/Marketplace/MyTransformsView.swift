@@ -140,7 +140,9 @@ struct MyTransformsView: View {
     }
 
     private func loadPublished() async {
-        guard let token = accessToken else { published = []; return }
+        guard accessToken != nil, let token = await AuthManager.shared.validToken() else {
+            published = []; return
+        }
         published = (try? await service.myTransforms(accessToken: token)) ?? []
     }
 
@@ -232,12 +234,12 @@ struct MyTransformsView: View {
             statusMessage = "Couldn't read this draft."
             return
         }
-        guard let accessToken else {
+        guard accessToken != nil, let token = await AuthManager.shared.validToken() else {
             statusMessage = "Sign in to publish transforms."
             return
         }
         do {
-            let result = try await service.submit(manifest: manifest, accessToken: accessToken)
+            let result = try await service.submit(manifest: manifest, accessToken: token)
             if result.status == "rejected" {
                 statusMessage = "Rejected: \(result.reason ?? "no reason given")"
             } else {

@@ -96,22 +96,30 @@ struct ReviewQueueView: View {
     private func load() async {
         isLoading = true
         message = nil
+        defer { isLoading = false }
+        guard let token = await AuthManager.shared.validToken() else {
+            message = "Session expired — sign in again."
+            return
+        }
         do {
-            pending = try await service.pendingReview(accessToken: accessToken)
+            pending = try await service.pendingReview(accessToken: token)
         } catch {
             message = "Couldn't load the queue. \(error.localizedDescription)"
         }
-        isLoading = false
     }
 
     private func act(_ item: TransformListItem, approve: Bool) async {
         working.insert(item.id)
         defer { working.remove(item.id) }
+        guard let token = await AuthManager.shared.validToken() else {
+            message = "Session expired — sign in again."
+            return
+        }
         do {
             if approve {
-                try await service.approve(transformID: item.id, accessToken: accessToken)
+                try await service.approve(transformID: item.id, accessToken: token)
             } else {
-                try await service.reject(transformID: item.id, accessToken: accessToken)
+                try await service.reject(transformID: item.id, accessToken: token)
             }
             pending.removeAll { $0.id == item.id }
             message = approve ? "Approved \(item.name)." : "Rejected \(item.name)."

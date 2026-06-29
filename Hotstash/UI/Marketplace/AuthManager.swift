@@ -22,13 +22,32 @@ final class AuthManager: NSObject, ObservableObject {
     @Published private(set) var isSigningIn = false
     @Published var errorMessage: String?
 
+    /// Long-lived token used to mint fresh access tokens once the short-lived
+    /// access token expires. Persisted in the Keychain; never surfaced to UI.
+    private var refreshToken: String?
+
+    /// Coalesces concurrent refreshes into one network call so a rotating
+    /// refresh token isn't spent twice (the second use would 401 and sign the
+    /// user out spuriously).
+    private var refreshInFlight: Task<Bool, Never>?
+
     private let logger = Logger(subsystem: "com.zeyadamer.hotstash", category: "Auth")
     private let session = URLSession.shared
     private static let displayNameKey = "com.zeyadamer.hotstash.appleDisplayName"
+    private static let accessTokenAccount = "marketplace.accessToken"
+    private static let refreshTokenAccount = "marketplace.refreshToken"
+
+    /// Refresh this many seconds before the token's `exp`, absorbing clock skew
+    /// and in-flight request latency.
+    private static let expiryLeeway: TimeInterval = 60
 
     private override init() {
         displayName = UserDefaults.standard.string(forKey: Self.displayNameKey)
         super.init()
+        // Restore a prior session from the Keychain. The token may be expired;
+        // `validToken()` refreshes it on first use.
+        accessToken = KeychainStore.get(Self.accessTokenAccount)
+        refreshToken = KeychainStore.get(Self.refreshTokenAccount)
     }
 
     var isSignedIn: Bool { accessToken != nil }
@@ -45,7 +64,7 @@ final class AuthManager: NSObject, ObservableObject {
         isSigningIn = true
         let provider = ASAuthorizationAppleIDProvider()
         let request = provider.createRequest()
-        request.requestedScopes = [.fullName]
+        request.requestedScopes = [.fullName, .email]
         let controller = ASAuthorizationController(authorizationRequests: [request])
         controller.delegate = self
         controller.presentationContextProvider = self
@@ -54,15 +73,91 @@ final class AuthManager: NSObject, ObservableObject {
 
     func signOut() {
         accessToken = nil
+        refreshToken = nil
         isAdmin = false
+        KeychainStore.set(nil, for: Self.accessTokenAccount)
+        KeychainStore.set(nil, for: Self.refreshTokenAccount)
         // Keep the cached display name; Apple only returns the name on first sign-in.
+    }
+
+    /// Returns a non-expired access token, transparently refreshing via the
+    /// stored refresh token when the current one is at/near expiry. Returns nil
+    /// when not signed in or when refresh fails — callers must treat nil as
+    /// signed-out and prompt the user. All authenticated requests should source
+    /// their token here rather than reading `accessToken` directly.
+    func validToken() async -> String? {
+        guard let token = accessToken else { return nil }
+        if let exp = SupabaseMarketplaceService.expiry(fromJWT: token),
+           exp.timeIntervalSinceNow > Self.expiryLeeway {
+            return token
+        }
+        // Expired, near-expiry, or unparseable → refresh.
+        return await refresh() ? accessToken : nil
+    }
+
+    /// Re-validates a Keychain-restored session at launch and refreshes admin
+    /// status (which isn't persisted). Safe to call repeatedly.
+    func restoreSession() async {
+        guard let config = SupabaseConfig.current, isSignedIn else { return }
+        guard let token = await validToken() else { return }
+        await refreshIsAdmin(config: config, token: token)
+    }
+
+    // MARK: - Refresh
+
+    /// Exchanges the stored refresh token for a fresh access token. Coalesced so
+    /// concurrent callers share one network round-trip.
+    private func refresh() async -> Bool {
+        if let refreshInFlight { return await refreshInFlight.value }
+        let task = Task { await self.performRefresh() }
+        refreshInFlight = task
+        let ok = await task.value
+        refreshInFlight = nil
+        return ok
+    }
+
+    private func performRefresh() async -> Bool {
+        guard let config = SupabaseConfig.current,
+              let refreshToken,
+              let url = URL(string: config.url.absoluteString + "/auth/v1/token?grant_type=refresh_token")
+        else { signOut(); return false }
+
+        var req = URLRequest(url: url)
+        req.httpMethod = "POST"
+        req.setValue(config.anonKey, forHTTPHeaderField: "apikey")
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.httpBody = try? JSONSerialization.data(withJSONObject: ["refresh_token": refreshToken])
+
+        guard let (data, response) = try? await session.data(for: req),
+              let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode),
+              let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let access = obj["access_token"] as? String
+        else {
+            // Refresh token revoked or expired — only a fresh sign-in recovers.
+            logger.error("Token refresh failed; clearing session.")
+            signOut()
+            return false
+        }
+        setSession(access: access, refresh: obj["refresh_token"] as? String)
+        return true
+    }
+
+    /// Persists a new session (access + rotated refresh token) to memory and
+    /// the Keychain.
+    private func setSession(access: String, refresh: String?) {
+        accessToken = access
+        KeychainStore.set(access, for: Self.accessTokenAccount)
+        if let refresh {
+            refreshToken = refresh
+            KeychainStore.set(refresh, for: Self.refreshTokenAccount)
+        }
     }
 
     /// Sets the user's public display name (shown as the author on published
     /// transforms). Apple only returns the real name on first consent, so this
     /// lets users fix a blank/"Anonymous" name.
     func updateDisplayName(_ name: String) async {
-        guard let token = accessToken else { return }
+        guard let token = await validToken() else { return }
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
         do {
@@ -129,7 +224,7 @@ final class AuthManager: NSObject, ObservableObject {
             if let resolvedName, !resolvedName.isEmpty {
                 UserDefaults.standard.set(resolvedName, forKey: Self.displayNameKey)
             }
-            accessToken = token
+            setSession(access: token, refresh: obj["refresh_token"] as? String)
             displayName = resolvedName
             isSigningIn = false
             errorMessage = nil

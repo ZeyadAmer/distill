@@ -261,6 +261,20 @@ struct SupabaseMarketplaceService: MarketplaceService {
     /// Extracts the `sub` (user id) claim from a JWT without verifying it
     /// (verification happens server-side; we only need the id for write payloads).
     static func subject(fromJWT token: String) -> String? {
+        payload(fromJWT: token)?["sub"] as? String
+    }
+
+    /// Extracts the `exp` (expiry) claim as a `Date`, used to refresh the
+    /// session before the access token lapses. Unverified — the server is the
+    /// authority; this only schedules a proactive refresh.
+    static func expiry(fromJWT token: String) -> Date? {
+        guard let exp = (payload(fromJWT: token)?["exp"] as? NSNumber)?.doubleValue else { return nil }
+        return Date(timeIntervalSince1970: exp)
+    }
+
+    /// Base64url-decodes the JWT payload segment into a claims dictionary
+    /// without signature verification.
+    private static func payload(fromJWT token: String) -> [String: Any]? {
         let parts = token.split(separator: ".")
         guard parts.count >= 2 else { return nil }
         var b64 = String(parts[1])
@@ -268,9 +282,9 @@ struct SupabaseMarketplaceService: MarketplaceService {
             .replacingOccurrences(of: "_", with: "/")
         while b64.count % 4 != 0 { b64 += "=" }
         guard let data = Data(base64Encoded: b64),
-              let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let sub = obj["sub"] as? String else { return nil }
-        return sub
+              let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+        else { return nil }
+        return obj
     }
 }
 

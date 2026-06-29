@@ -110,4 +110,21 @@ struct MarketplaceServiceTests {
         #expect(SupabaseMarketplaceService.subject(fromJWT: token) == "user-123")
         #expect(SupabaseMarketplaceService.subject(fromJWT: "garbage") == nil)
     }
+
+    @Test func expiryExtractedFromJWT() {
+        func b64url(_ s: String) -> String {
+            Data(s.utf8).base64EncodedString()
+                .replacingOccurrences(of: "+", with: "-")
+                .replacingOccurrences(of: "/", with: "_")
+                .replacingOccurrences(of: "=", with: "")
+        }
+        // exp = 1_700_000_000 (a fixed Unix timestamp).
+        let token = "\(b64url("{}")).\(b64url("{\"exp\":1700000000}")).sig"
+        #expect(SupabaseMarketplaceService.expiry(fromJWT: token)
+                == Date(timeIntervalSince1970: 1_700_000_000))
+        #expect(SupabaseMarketplaceService.expiry(fromJWT: "garbage") == nil)
+        // Missing exp claim → nil (caller refreshes rather than trusting it).
+        let noExp = "\(b64url("{}")).\(b64url("{\"sub\":\"x\"}")).sig"
+        #expect(SupabaseMarketplaceService.expiry(fromJWT: noExp) == nil)
+    }
 }
