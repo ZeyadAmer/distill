@@ -33,6 +33,7 @@ final class ClipboardPanelVC: NSViewController {
         static let tabRowHeight:      CGFloat = 38
         static let toolbarRowHeight:  CGFloat = 44
         static let trialBannerHeight: CGFloat = 36
+        static let updateBannerHeight: CGFloat = 32
         static let horizontalPadding: CGFloat = 12
     }
 
@@ -228,6 +229,54 @@ final class ClipboardPanelVC: NSViewController {
 
     private var trialBannerHeightConstraint: NSLayoutConstraint?
 
+    // MARK: - Subviews — Update banner
+
+    /// Shown under the Recents/Pinned tabs only when a newer version is on the
+    /// App Store. Tapping "Get update" opens the store page. See `UpdateChecker`.
+    private lazy var updateBanner: NSView = {
+        let container = NSView()
+        container.wantsLayer = true
+        container.layer?.backgroundColor = NSColor.controlAccentColor.withAlphaComponent(0.14).cgColor
+        container.translatesAutoresizingMaskIntoConstraints = false
+
+        let icon = NSImageView()
+        icon.image = NSImage(systemSymbolName: "arrow.down.circle.fill", accessibilityDescription: nil)
+        icon.contentTintColor = .controlAccentColor
+        icon.translatesAutoresizingMaskIntoConstraints = false
+
+        let label = NSTextField(labelWithString: "Update available")
+        label.font      = .systemFont(ofSize: 11.5, weight: .medium)
+        label.textColor = .labelColor
+        label.translatesAutoresizingMaskIntoConstraints = false
+
+        let getButton = NSButton(title: "Get update", target: self, action: #selector(handleGetUpdate))
+        getButton.bezelStyle   = .inline
+        getButton.isBordered   = false
+        getButton.font         = .systemFont(ofSize: 11.5, weight: .semibold)
+        getButton.contentTintColor = .controlAccentColor
+        getButton.translatesAutoresizingMaskIntoConstraints = false
+
+        container.addSubview(icon)
+        container.addSubview(label)
+        container.addSubview(getButton)
+
+        NSLayoutConstraint.activate([
+            icon.centerYAnchor.constraint(equalTo: container.centerYAnchor),
+            icon.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 12),
+            label.centerYAnchor.constraint(equalTo: container.centerYAnchor),
+            label.leadingAnchor.constraint(equalTo: icon.trailingAnchor, constant: 6),
+            getButton.centerYAnchor.constraint(equalTo: container.centerYAnchor),
+            getButton.leadingAnchor.constraint(equalTo: label.trailingAnchor, constant: 8),
+        ])
+
+        return container
+    }()
+
+    private var updateBannerHeightConstraint: NSLayoutConstraint?
+
+    /// App Store link resolved by the last update check; nil when up to date.
+    private var updatePageURL: URL?
+
     // MARK: - Data
 
     /// Flat list of rows that the table renders — a mix of section headers and items.
@@ -316,6 +365,22 @@ final class ClipboardPanelVC: NSViewController {
         selectFirstItem()
         searchField.becomeFirstResponder()
         updateTrialBanner()
+        Task { await refreshUpdateBanner() }
+    }
+
+    /// Asks `UpdateChecker` whether a newer App Store version exists and shows
+    /// or hides the banner accordingly. Best-effort — failures just hide it.
+    private func refreshUpdateBanner() async {
+        let result = await UpdateChecker.availableUpdate()
+        updatePageURL = result?.pageURL
+        let show = result != nil
+        updateBanner.isHidden = !show
+        updateBannerHeightConstraint?.constant = show ? Layout.updateBannerHeight : 0
+    }
+
+    @objc private func handleGetUpdate() {
+        guard let url = updatePageURL else { return }
+        NSWorkspace.shared.open(url)
     }
 
     // MARK: - Layout Construction
@@ -394,6 +459,12 @@ final class ClipboardPanelVC: NSViewController {
         bannerHeightConstraint.isActive = true
         trialBannerHeightConstraint = bannerHeightConstraint
 
+        // ── Update banner (hidden until a check finds a newer version) ─────────
+        updateBanner.isHidden = true
+        let updateConstraint = updateBanner.heightAnchor.constraint(equalToConstant: 0)
+        updateConstraint.isActive = true
+        updateBannerHeightConstraint = updateConstraint
+
         // ── Top-level separator ───────────────────────────────────────────────
         let searchSep = separatorView()
         let toolbarSep = separatorView()
@@ -404,6 +475,7 @@ final class ClipboardPanelVC: NSViewController {
             searchSep,
             tabRow,
             tabSep,
+            updateBanner,
             scrollView,
             toolbarSep,
             toolbarRow,
@@ -427,6 +499,7 @@ final class ClipboardPanelVC: NSViewController {
             searchRow.widthAnchor.constraint(equalTo: outerStack.widthAnchor),
             toolbarRow.widthAnchor.constraint(equalTo: outerStack.widthAnchor),
             trialBanner.widthAnchor.constraint(equalTo: outerStack.widthAnchor),
+            updateBanner.widthAnchor.constraint(equalTo: outerStack.widthAnchor),
             searchSep.widthAnchor.constraint(equalTo: outerStack.widthAnchor),
             toolbarSep.widthAnchor.constraint(equalTo: outerStack.widthAnchor),
 

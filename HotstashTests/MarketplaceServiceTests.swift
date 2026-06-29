@@ -127,4 +127,14 @@ struct MarketplaceServiceTests {
         let noExp = "\(b64url("{}")).\(b64url("{\"sub\":\"x\"}")).sig"
         #expect(SupabaseMarketplaceService.expiry(fromJWT: noExp) == nil)
     }
+
+    // MARK: Update version comparison
+
+    @Test func updateCheckerComparesVersionsNumerically() {
+        #expect(UpdateChecker.isNewer("7.0.0", than: "6.0.0"))
+        #expect(UpdateChecker.isNewer("6.1.0", than: "6.0.0"))
+        #expect(UpdateChecker.isNewer("10.0.0", than: "9.0.0"))   // numeric, not lexical
+        #expect(!UpdateChecker.isNewer("6.0.0", than: "6.0.0"))   // equal → no update
+        #expect(!UpdateChecker.isNewer("6.0.0", than: "7.0.0"))   // older → no update
+    }
 }
