@@ -26,16 +26,6 @@ struct TransformView: View {
             }
             .navigationTitle("Transform")
             .onAppear { loadFromClipboard() }
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    NavigationLink {
-                        MarketplaceView()
-                    } label: {
-                        Image(systemName: "storefront")
-                    }
-                    .accessibilityLabel("Transform Marketplace")
-                }
-            }
         }
     }
 

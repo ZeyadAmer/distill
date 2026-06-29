@@ -1,7 +1,7 @@
 import SwiftUI
 
 enum AppTab: Hashable {
-    case history, transform, snippets, queue, settings
+    case history, transform, marketplace, snippets, queue, settings
 }
 
 struct MainTabView: View {
@@ -35,6 +35,10 @@ struct MainTabView: View {
                     .tabItem { Label("Transform", systemImage: "wand.and.sparkles") }
                     .tag(AppTab.transform)
 
+                NavigationStack { MarketplaceView() }
+                    .tabItem { Label("Market", systemImage: "storefront") }
+                    .tag(AppTab.marketplace)
+
                 SnippetsView()
                     .tabItem { Label("Snippets", systemImage: "bookmark") }
                     .tag(AppTab.snippets)
@@ -49,11 +53,12 @@ struct MainTabView: View {
             }
             .onOpenURL { url in
                 switch url.host {
-                case "history":   selectedTab = .history
-                case "transform": selectedTab = .transform
-                case "snippets":  selectedTab = .snippets
-                case "queue":     selectedTab = .queue
-                default:          break
+                case "history":     selectedTab = .history
+                case "transform":   selectedTab = .transform
+                case "marketplace": selectedTab = .marketplace
+                case "snippets":    selectedTab = .snippets
+                case "queue":       selectedTab = .queue
+                default:            break
                 }
             }
             .sheet(isPresented: $showKeyboardSetup) { KeyboardSetupView() }
