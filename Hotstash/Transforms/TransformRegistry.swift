@@ -79,6 +79,7 @@ final class TransformRegistry {
             JWTDecodeTransform(),
 
             // Cleanup
+            CleanLinkTransform(),
             ExtractURLsTransform(),
             StripHTMLTransform(),
             RemoveMarkdownTransform(),
@@ -159,8 +160,8 @@ final class TransformRegistry {
             ]
         case .url:
             suggestedIDs = [
+                CleanLinkTransform().id,
                 ExtractURLsTransform().id,
-                Base64EncodeTransform().id,
                 URLEncodeTransform().id,
             ]
         case .code:

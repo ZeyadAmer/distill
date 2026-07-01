@@ -290,8 +290,11 @@ final class ClipboardPanelVC: NSViewController {
     /// How many recent pages are currently loaded.
     private var loadedRecentCount = 0
 
-    /// 0 = Recents, 1 = Pinned.
+    /// 0 = Recents, 1 = Pinned, 2 ..< (2 + folders.count) = a folder tab.
     private var currentTab: Int = 0
+
+    /// Cached folder list backing the dynamic folder tabs. Refreshed by `rebuildTabs()`.
+    private var folders: [Folder] = []
 
     /// The row currently under the mouse cursor (-1 = none).
     private var hoveredRow: Int = -1 {
@@ -330,6 +333,7 @@ final class ClipboardPanelVC: NSViewController {
         buildLayout()
         wireTargetActions()
         subscribeToNotifications()
+        rebuildTabs()
         reload()
         installHoverTracking()
     }
@@ -359,6 +363,7 @@ final class ClipboardPanelVC: NSViewController {
     /// Called just before the panel becomes visible so the view can reset state.
     func panelWillShow() {
         searchField.stringValue = ""
+        rebuildTabs()
         currentTab = 0
         tabControl.selectedSegment = 0
         applySearch(query: "")
@@ -423,6 +428,9 @@ final class ClipboardPanelVC: NSViewController {
         tableView.setDraggingSourceOperationMask(.move, forLocal: true)
         // Allow dragging items out of the panel into other apps.
         tableView.setDraggingSourceOperationMask(.copy, forLocal: false)
+        let rowMenu = NSMenu()
+        rowMenu.delegate = self
+        tableView.menu = rowMenu
         scrollView.documentView = tableView
 
         // ── Toolbar row ───────────────────────────────────────────────────────
@@ -587,12 +595,25 @@ final class ClipboardPanelVC: NSViewController {
         let store = ClipboardStore.shared
         let trimmed = query.trimmingCharacters(in: .whitespaces)
 
+        // Resolve the folder for a folder tab, if any (guards array bounds).
+        let folderIndex = currentTab - 2
+        let activeFolder: Folder? = (folderIndex >= 0 && folderIndex < folders.count)
+            ? folders[folderIndex]
+            : nil
+
         if !trimmed.isEmpty {
-            // Search spans full history; split by current tab below.
-            let results = store.search(query: trimmed)
-            filteredItems = currentTab == 0
-                ? results.filter { !$0.isPinned }
-                : results.filter {  $0.isPinned }
+            // Search spans full history; narrow to the current tab context.
+            // Items whose assigned name matches rank first (name-first search).
+            let results = Self.rankByRelevance(store.search(query: trimmed), query: trimmed)
+            if let folder = activeFolder {
+                filteredItems = results.filter { $0.folderID == folder.id }
+            } else if currentTab == 1 {
+                filteredItems = results.filter { $0.isPinned }
+            } else {
+                filteredItems = results.filter { !$0.isPinned && $0.folderID == nil }
+            }
+        } else if let folder = activeFolder {
+            filteredItems = store.items(inFolder: folder.id)
         } else if currentTab == 1 {
             filteredItems = store.pinnedItems
         } else {
@@ -679,26 +700,99 @@ final class ClipboardPanelVC: NSViewController {
         updateToolbarState()
     }
 
+    // MARK: - Dynamic tabs
+
+    /// The number of selectable tabs (Recents, Pinned, and each folder) — i.e.
+    /// every segment except the trailing "＋" add segment.
+    private var selectableTabCount: Int { 2 + folders.count }
+
+    /// The index of the trailing "＋" (add folder) segment.
+    private var addSegmentIndex: Int { 2 + folders.count }
+
+    /// Refreshes the cached folders and rebuilds the segmented control to
+    /// ["Recents", "Pinned", <folder names…>, "＋"], preserving the current
+    /// selection where possible.
+    private func rebuildTabs() {
+        folders = ClipboardStore.shared.folders
+
+        let labels = ["Recents", "Pinned"] + folders.map { $0.name } + ["\u{FF0B}"]
+        tabControl.segmentCount = labels.count
+        for (index, label) in labels.enumerated() {
+            tabControl.setLabel(label, forSegment: index)
+        }
+        // The trailing "＋" is a momentary add action, not a real tab; the
+        // tooltip gives it an accessible description beyond the glyph label.
+        tabControl.setToolTip("Add Folder", forSegment: addSegmentIndex)
+
+        // Keep the current tab selected if it still exists; otherwise fall back
+        // to Recents. Never leave the "＋" segment selected.
+        let clamped = min(max(currentTab, 0), selectableTabCount - 1)
+        currentTab = clamped
+        tabControl.selectedSegment = clamped
+    }
+
     // MARK: - Action handlers
 
     @objc private func handleTabChanged(_ sender: NSSegmentedControl) {
+        // The trailing "＋" segment is an add action, not a tab.
+        if sender.selectedSegment == addSegmentIndex {
+            promptNewFolder()
+            return
+        }
         currentTab = sender.selectedSegment
         applySearch(query: searchField.stringValue)
         selectFirstItem()
     }
 
-    /// Switches to the given tab (0 = Recents, 1 = Pinned) and refreshes the list.
+    /// Prompts for a folder name, creates it, rebuilds the tabs, and selects it.
+    private func promptNewFolder() {
+        let alert = NSAlert()
+        alert.messageText     = "New Folder"
+        alert.informativeText = "Name this folder so you can group items into it."
+        alert.addButton(withTitle: "Create")
+        alert.addButton(withTitle: "Cancel")
+
+        let input = NSTextField(frame: NSRect(x: 0, y: 0, width: 240, height: 24))
+        input.placeholderString = "Folder name"
+        alert.accessoryView = input
+        alert.window.initialFirstResponder = input
+
+        guard runModalKeepingPanel(alert) == .alertFirstButtonReturn else {
+            // Cancelled — restore the previously selected tab.
+            tabControl.selectedSegment = currentTab
+            return
+        }
+        let name = input.stringValue.trimmingCharacters(in: .whitespaces)
+        guard !name.isEmpty else {
+            tabControl.selectedSegment = currentTab
+            return
+        }
+
+        let folder = ClipboardStore.shared.createFolder(name: name)
+        rebuildTabs()
+        if let index = folders.firstIndex(where: { $0.id == folder.id }) {
+            switchTab(to: 2 + index)
+        } else {
+            tabControl.selectedSegment = currentTab
+        }
+    }
+
+    /// Switches to the given tab index and refreshes the list. Ignores the
+    /// trailing "＋" add segment.
     private func switchTab(to index: Int) {
-        guard index != currentTab, index >= 0, index < tabControl.segmentCount else { return }
+        guard index >= 0, index < selectableTabCount else { return }
         currentTab = index
         tabControl.selectedSegment = index
         applySearch(query: searchField.stringValue)
         selectFirstItem()
     }
 
-    /// Toggles between Recents and Pinned (bound to Tab / Shift-Tab).
+    /// Cycles forward across the selectable tabs (Recents, Pinned, folders),
+    /// skipping the "＋" add segment (bound to Tab / Shift-Tab).
     private func toggleTab() {
-        switchTab(to: currentTab == 0 ? 1 : 0)
+        guard selectableTabCount > 0 else { return }
+        let next = (currentTab + 1) % selectableTabCount
+        switchTab(to: next)
     }
 
     @objc private func handleClose() {
@@ -714,6 +808,9 @@ final class ClipboardPanelVC: NSViewController {
         transformPopover.sourceItem = item
         transformPopover.onSelect = { [weak self] transform in
             self?.pasteSelected(with: transform)
+        }
+        transformPopover.onApplyStack = { [weak self] transforms in
+            self?.pasteSelected(withStack: transforms)
         }
         transformPopover.show(
             relativeTo: sender.bounds,
@@ -736,6 +833,86 @@ final class ClipboardPanelVC: NSViewController {
     @objc private func handleDelete() {
         guard let item = selectedItem else { return }
         ClipboardStore.shared.remove(id: item.id)
+        reload()
+    }
+
+    // MARK: - Context menu
+
+    /// The item under the right-click, falling back to the current selection.
+    private var contextItem: ClipboardItem? {
+        let row = tableView.clickedRow
+        if row >= 0, row < rows.count, case .item(let item) = rows[row] { return item }
+        return selectedItem
+    }
+
+    /// Prompts for a searchable name and stores it on the item.
+    @objc private func handleRename() {
+        guard let item = contextItem else { return }
+        let alert = NSAlert()
+        alert.messageText     = "Name This Item"
+        alert.informativeText = "Give it a name you can search for later (e.g. \u{201C}supabase\u{201D})."
+        alert.addButton(withTitle: "Save")
+        alert.addButton(withTitle: "Cancel")
+
+        let input = NSTextField(frame: NSRect(x: 0, y: 0, width: 240, height: 24))
+        input.stringValue = item.label
+        input.placeholderString = "Name"
+        alert.accessoryView = input
+        alert.window.initialFirstResponder = input
+
+        guard runModalKeepingPanel(alert) == .alertFirstButtonReturn else { return }
+        ClipboardStore.shared.setLabel(id: item.id, label: input.stringValue)
+        reload()
+    }
+
+    /// Resolves redirects (network) then copies the tracking-free link.
+    @objc private func handleCopyCleanLink() {
+        guard let item = contextItem,
+              let url = URL(string: item.content.trimmingCharacters(in: .whitespacesAndNewlines)) else { return }
+        Task {
+            let cleaned = await LinkCleaner.resolveAndClean(url)
+            PasteEngine.hotstashedCopy(cleaned.absoluteString)
+        }
+    }
+
+    /// Assigns the context item to the folder carried in `representedObject`.
+    @objc private func handleMoveToFolder(_ sender: NSMenuItem) {
+        guard let item = contextItem,
+              let folderID = sender.representedObject as? UUID else { return }
+        ClipboardStore.shared.assignFolder(itemID: item.id, folderID: folderID)
+        rebuildTabs()
+        reload()
+    }
+
+    /// Prompts for a new folder name, creates it, and assigns the context item.
+    @objc private func handleMoveToNewFolder() {
+        guard let item = contextItem else { return }
+        let alert = NSAlert()
+        alert.messageText     = "New Folder"
+        alert.informativeText = "Name this folder to move the item into it."
+        alert.addButton(withTitle: "Create")
+        alert.addButton(withTitle: "Cancel")
+
+        let input = NSTextField(frame: NSRect(x: 0, y: 0, width: 240, height: 24))
+        input.placeholderString = "Folder name"
+        alert.accessoryView = input
+        alert.window.initialFirstResponder = input
+
+        guard runModalKeepingPanel(alert) == .alertFirstButtonReturn else { return }
+        let name = input.stringValue.trimmingCharacters(in: .whitespaces)
+        guard !name.isEmpty else { return }
+
+        let folder = ClipboardStore.shared.createFolder(name: name)
+        ClipboardStore.shared.assignFolder(itemID: item.id, folderID: folder.id)
+        rebuildTabs()
+        reload()
+    }
+
+    /// Removes the context item from its folder.
+    @objc private func handleRemoveFromFolder() {
+        guard let item = contextItem else { return }
+        ClipboardStore.shared.assignFolder(itemID: item.id, folderID: nil)
+        rebuildTabs()
         reload()
     }
 
@@ -779,13 +956,26 @@ final class ClipboardPanelVC: NSViewController {
         alert.addButton(withTitle: "Clear All")
         alert.addButton(withTitle: "Cancel")
         alert.alertStyle = .warning
-        guard alert.runModal() == .alertFirstButtonReturn else { return }
+        guard runModalKeepingPanel(alert) == .alertFirstButtonReturn else { return }
         ClipboardStore.shared.clearAll()
         reload()
     }
 
     @objc private func handleGear() {
         let menu = NSMenu()
+
+        // Folder management for the active folder tab.
+        if currentTab >= 2, currentTab - 2 < folders.count {
+            let renameFolder = NSMenuItem(title: "Rename Folder\u{2026}", action: #selector(handleRenameFolder), keyEquivalent: "")
+            renameFolder.target = self
+            menu.addItem(renameFolder)
+
+            let deleteFolder = NSMenuItem(title: "Delete Folder", action: #selector(handleDeleteFolder), keyEquivalent: "")
+            deleteFolder.target = self
+            menu.addItem(deleteFolder)
+
+            menu.addItem(.separator())
+        }
 
         let settingsItem = NSMenuItem(title: "Settings\u{2026}", action: #selector(openSettings), keyEquivalent: ",")
         settingsItem.keyEquivalentModifierMask = .command
@@ -809,6 +999,51 @@ final class ClipboardPanelVC: NSViewController {
         NSApp.terminate(nil)
     }
 
+    /// Renames the folder backing the active folder tab.
+    @objc private func handleRenameFolder() {
+        guard currentTab >= 2, currentTab - 2 < folders.count else { return }
+        let folder = folders[currentTab - 2]
+
+        let alert = NSAlert()
+        alert.messageText     = "Rename Folder"
+        alert.informativeText = "Give this folder a new name."
+        alert.addButton(withTitle: "Save")
+        alert.addButton(withTitle: "Cancel")
+
+        let input = NSTextField(frame: NSRect(x: 0, y: 0, width: 240, height: 24))
+        input.stringValue = folder.name
+        input.placeholderString = "Folder name"
+        alert.accessoryView = input
+        alert.window.initialFirstResponder = input
+
+        guard runModalKeepingPanel(alert) == .alertFirstButtonReturn else { return }
+        let name = input.stringValue.trimmingCharacters(in: .whitespaces)
+        guard !name.isEmpty else { return }
+
+        ClipboardStore.shared.renameFolder(id: folder.id, name: name)
+        rebuildTabs()
+        reload()
+    }
+
+    /// Deletes the folder backing the active folder tab after confirmation.
+    @objc private func handleDeleteFolder() {
+        guard currentTab >= 2, currentTab - 2 < folders.count else { return }
+        let folder = folders[currentTab - 2]
+
+        let alert = NSAlert()
+        alert.messageText     = "Delete \u{201C}\(folder.name)\u{201D}?"
+        alert.informativeText = "The folder is removed. Items inside it stay in your history but are no longer grouped."
+        alert.addButton(withTitle: "Delete")
+        alert.addButton(withTitle: "Cancel")
+        alert.alertStyle = .warning
+        guard runModalKeepingPanel(alert) == .alertFirstButtonReturn else { return }
+
+        ClipboardStore.shared.deleteFolder(id: folder.id)
+        rebuildTabs()
+        switchTab(to: 0)
+        reload()
+    }
+
     @objc private func handleBuy() {
         Task {
             do {
@@ -819,7 +1054,7 @@ final class ClipboardPanelVC: NSViewController {
                 alert.informativeText = "Unable to complete the purchase. Please check your internet connection and try again.\n\n\(error.localizedDescription)"
                 alert.alertStyle      = .warning
                 alert.addButton(withTitle: "OK")
-                alert.runModal()
+                runModalKeepingPanel(alert)
             }
         }
     }
@@ -857,6 +1092,28 @@ final class ClipboardPanelVC: NSViewController {
         PasteEngine.hotstashedPaste(item: item, plainTextOnly: plainTextOnly)
     }
 
+    /// Applies an ordered stack of transforms to the selected item and pastes the
+    /// result. Mirrors the single-transform path in `pasteSelected(with:)`: use is
+    /// recorded but the item is not moved to top (matching transform behavior).
+    func pasteSelected(withStack transforms: [any Transform]) {
+        guard !transforms.isEmpty, let item = selectedItem else { return }
+
+        ClipboardStore.shared.recordUse(id: item.id)
+
+        if item.contentType == .image, let data = item.imageData {
+            // Chain image transforms in order; a transform that can't process the
+            // data (returns nil) is skipped, preserving the prior result.
+            let finalData = transforms.reduce(data) { current, transform in
+                transform.applyToImageData(current) ?? current
+            }
+            PasteEngine.hotstashedPasteImage(finalData)
+            return
+        }
+
+        let result = transforms.reduce(item.content) { $1.apply(to: $0) }
+        PasteEngine.hotstashedPaste(result)
+    }
+
     /// Items currently selected in the table, top-to-bottom (paste stack source).
     private var selectedItems: [ClipboardItem] {
         tableView.selectedRowIndexes.sorted().compactMap { row in
@@ -878,7 +1135,7 @@ final class ClipboardPanelVC: NSViewController {
             alert.informativeText = "Paste Stack watches for your ⌘V presses so it can stage the next item. Grant Hotstash Accessibility access in System Settings, then try again."
             alert.addButton(withTitle: "Open System Settings")
             alert.addButton(withTitle: "Cancel")
-            if alert.runModal() == .alertFirstButtonReturn {
+            if runModalKeepingPanel(alert) == .alertFirstButtonReturn {
                 AutoPasteService.openAccessibilitySettings()
             }
             return
@@ -949,6 +1206,46 @@ final class ClipboardPanelVC: NSViewController {
     }
 
     // MARK: - Helpers
+
+    /// Runs a modal alert while keeping the clipboard panel visible behind it,
+    /// so the user sees the result (e.g. a new name) the moment they save.
+    @discardableResult
+    private func runModalKeepingPanel(_ alert: NSAlert) -> NSApplication.ModalResponse {
+        ClipboardPanel.shared.suppressAutoHide = true
+        defer {
+            ClipboardPanel.shared.suppressAutoHide = false
+            ClipboardPanel.shared.makeKeyAndOrderFront(nil)
+        }
+        return alert.runModal()
+    }
+
+    /// Re-orders search hits so items whose user-assigned name matches rank
+    /// first (exact › prefix › contains), then content matches, weighted by
+    /// how often an item is used; ties fall back to recency.
+    static func rankByRelevance(_ items: [ClipboardItem], query: String) -> [ClipboardItem] {
+        items.sorted { a, b in
+            let sa = relevanceScore(a, query: query)
+            let sb = relevanceScore(b, query: query)
+            if sa != sb { return sa > sb }
+            return a.timestamp > b.timestamp
+        }
+    }
+
+    private static func relevanceScore(_ item: ClipboardItem, query: String) -> Int {
+        let q = query.lowercased()
+        var score = 0
+        let label = item.label.lowercased()
+        if !label.isEmpty {
+            if label == q { score += 10_000 }
+            else if label.hasPrefix(q) { score += 5_000 }
+            else if label.contains(q) { score += 2_000 }
+        }
+        let content = item.content.lowercased()
+        if content.hasPrefix(q) { score += 800 }
+        else if content.contains(q) { score += 300 }
+        score += min(item.useCount, 50) * 5
+        return score
+    }
 
     private func separatorView() -> NSView {
         let box = NSBox()
@@ -1098,6 +1395,54 @@ extension ClipboardPanelVC: NSTableViewDelegate {
 
         cell.configure(with: item, isSelected: isSelected, isHovered: isHovered, hotkey: hotkey, showsDragHandle: currentTab == 1)
         return cell
+    }
+}
+
+// MARK: - NSMenuDelegate (row context menu)
+
+extension ClipboardPanelVC: NSMenuDelegate {
+
+    func menuNeedsUpdate(_ menu: NSMenu) {
+        menu.removeAllItems()
+        guard let item = contextItem else { return }
+
+        let renameTitle = item.label.isEmpty ? "Name\u{2026}" : "Rename\u{2026}"
+        let rename = NSMenuItem(title: renameTitle, action: #selector(handleRename), keyEquivalent: "")
+        rename.target = self
+        menu.addItem(rename)
+
+        if item.contentType == .url {
+            let clean = NSMenuItem(title: "Copy Clean Link", action: #selector(handleCopyCleanLink), keyEquivalent: "")
+            clean.target = self
+            menu.addItem(clean)
+        }
+
+        menu.addItem(.separator())
+
+        // ── Move to Folder submenu ──────────────────────────────────────────
+        let moveItem = NSMenuItem(title: "Move to Folder", action: nil, keyEquivalent: "")
+        let submenu = NSMenu()
+        for folder in folders {
+            let folderItem = NSMenuItem(title: folder.name, action: #selector(handleMoveToFolder(_:)), keyEquivalent: "")
+            folderItem.target = self
+            folderItem.representedObject = folder.id
+            folderItem.state = (item.folderID == folder.id) ? .on : .off
+            submenu.addItem(folderItem)
+        }
+        if !folders.isEmpty {
+            submenu.addItem(.separator())
+        }
+        let newFolderItem = NSMenuItem(title: "New Folder\u{2026}", action: #selector(handleMoveToNewFolder), keyEquivalent: "")
+        newFolderItem.target = self
+        submenu.addItem(newFolderItem)
+        moveItem.submenu = submenu
+        menu.addItem(moveItem)
+
+        if item.folderID != nil {
+            let remove = NSMenuItem(title: "Remove from Folder", action: #selector(handleRemoveFromFolder), keyEquivalent: "")
+            remove.target = self
+            menu.addItem(remove)
+        }
     }
 }
 

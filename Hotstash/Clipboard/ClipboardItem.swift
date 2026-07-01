@@ -81,6 +81,10 @@ final class ClipboardItem {
     var ocrText: String = ""
     /// Page title fetched for URL items via LinkPresentation. Empty when none.
     var linkTitle: String = ""
+    /// User-assigned name for quick search (e.g. "supabase"). Searchable; empty when none.
+    var label: String = ""
+    /// The `Folder` this item is stored in, or nil when it lives in Recents/Pinned.
+    var folderID: UUID?
 
     /// Typed accessor over the persisted raw string.
     var contentType: ContentType {
@@ -107,7 +111,9 @@ final class ClipboardItem {
         htmlData: Data? = nil,
         fileInfoData: Data? = nil,
         ocrText: String = "",
-        linkTitle: String = ""
+        linkTitle: String = "",
+        label: String = "",
+        folderID: UUID? = nil
     ) {
         self.id = id
         self.content = content
@@ -123,5 +129,7 @@ final class ClipboardItem {
         self.fileInfoData = fileInfoData
         self.ocrText = ocrText
         self.linkTitle = linkTitle
+        self.label = label
+        self.folderID = folderID
     }
 }

@@ -19,13 +19,21 @@ final class ClipboardPanel: NSPanel {
 
     private static let panelWidth:  CGFloat = 480
     private static let panelHeight: CGFloat = 520
+    private static let minWidth:    CGFloat = 320
+    private static let minHeight:   CGFloat = 300
     private static let cornerRadius: CGFloat = 12
+    private static let frameKey = "clipboardPanelFrame"
 
     // MARK: Internal state
 
     private var outsideClickMonitor: Any?
     private var localKeyMonitor: Any?
     private let contentVC = ClipboardPanelVC()
+
+    /// When true, the panel won't auto-hide on losing key status. Set while a
+    /// modal dialog (rename, new folder, …) is up so the panel stays visible
+    /// behind it and the user sees the result on save.
+    var suppressAutoHide = false
 
     /// The app that was frontmost just before the panel opened. Used to restore
     /// focus and paste directly into it. Captured in `show()` before we activate.
@@ -41,7 +49,7 @@ final class ClipboardPanel: NSPanel {
         )
         super.init(
             contentRect: initialRect,
-            styleMask:   [.borderless, .nonactivatingPanel, .hudWindow],
+            styleMask:   [.borderless, .nonactivatingPanel, .hudWindow, .resizable],
             backing:     .buffered,
             defer:       false
         )
@@ -57,6 +65,8 @@ final class ClipboardPanel: NSPanel {
         backgroundColor     = .clear
         hasShadow           = true
         isMovableByWindowBackground = true
+        minSize             = NSSize(width: Self.minWidth, height: Self.minHeight)
+        delegate            = self
 
         // Set VC first so contentView is contentVC.view.
         contentViewController = contentVC
@@ -121,6 +131,7 @@ final class ClipboardPanel: NSPanel {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
                 guard let self, self.isVisible, !self.isKeyWindow else { return }
                 guard !MultiPastePanel.shared.isVisible else { return }
+                guard !self.suppressAutoHide else { return }
                 self.hide()
             }
         }
@@ -154,9 +165,11 @@ final class ClipboardPanel: NSPanel {
         // restore focus to it and inject ⌘V there.
         previousApp = NSWorkspace.shared.frontmostApplication
 
-        switch PanelPosition.current {
-        case .cursor:  positionNearCursor()
-        case .menuBar: positionNearMenuBar()
+        if !restoreSavedFrame() {
+            switch PanelPosition.current {
+            case .cursor:  positionNearCursor()
+            case .menuBar: positionNearMenuBar()
+            }
         }
         alphaValue = 0
         makeKeyAndOrderFront(nil)
@@ -249,10 +262,36 @@ final class ClipboardPanel: NSPanel {
         setFrame(NSRect(x: x, y: y, width: w, height: h), display: false)
     }
 
+    // MARK: - Frame persistence
+
+    /// Restores the last user-set frame if one is stored and still lands on a
+    /// connected screen. Returns false when no usable frame exists so the caller
+    /// falls back to cursor/menu-bar positioning.
+    private func restoreSavedFrame() -> Bool {
+        guard let raw = UserDefaults.standard.string(forKey: Self.frameKey) else { return false }
+        let frame = NSRectFromString(raw)
+        guard frame.width >= Self.minWidth, frame.height >= Self.minHeight else { return false }
+        // Only restore if it's at least partly visible on some screen.
+        guard NSScreen.screens.contains(where: { $0.visibleFrame.intersects(frame) }) else { return false }
+        setFrame(frame, display: false)
+        return true
+    }
+
+    private func saveFrame() {
+        UserDefaults.standard.set(NSStringFromRect(frame), forKey: Self.frameKey)
+    }
+
     // MARK: - NSPanel overrides
 
     /// Allow the panel to become key so keyboard navigation works.
     override var canBecomeKey: Bool { true }
+}
+
+// MARK: - NSWindowDelegate
+
+extension ClipboardPanel: NSWindowDelegate {
+    func windowDidMove(_ notification: Notification) { saveFrame() }
+    func windowDidEndLiveResize(_ notification: Notification) { saveFrame() }
 }
 
 // MARK: - PanelPosition

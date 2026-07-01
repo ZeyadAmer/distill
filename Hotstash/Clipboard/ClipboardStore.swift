@@ -67,10 +67,10 @@ final class ClipboardStore {
         return fetch(descriptor)
     }
 
-    /// A page of non-pinned items, newest first.
+    /// A page of non-pinned items not in a folder, newest first.
     func recentItems(limit: Int, offset: Int = 0) -> [ClipboardItem] {
         var descriptor = FetchDescriptor<ClipboardItem>(
-            predicate: #Predicate { !$0.isPinned },
+            predicate: #Predicate { !$0.isPinned && $0.folderID == nil },
             sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
         )
         descriptor.fetchLimit = limit
@@ -78,10 +78,10 @@ final class ClipboardStore {
         return fetch(descriptor)
     }
 
-    /// Count of non-pinned items.
+    /// Count of non-pinned items not in a folder.
     var recentCount: Int {
         (try? context.fetchCount(FetchDescriptor<ClipboardItem>(
-            predicate: #Predicate { !$0.isPinned }
+            predicate: #Predicate { !$0.isPinned && $0.folderID == nil }
         ))) ?? 0
     }
 
@@ -97,6 +97,7 @@ final class ClipboardStore {
                 $0.content.localizedStandardContains(trimmed)
                 || $0.ocrText.localizedStandardContains(trimmed)
                 || $0.linkTitle.localizedStandardContains(trimmed)
+                || $0.label.localizedStandardContains(trimmed)
             },
             sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
         )
@@ -104,10 +105,10 @@ final class ClipboardStore {
         return fetch(descriptor)
     }
 
-    /// Returns the existing non-pinned item with exactly this content, if any.
+    /// Returns the existing non-pinned item not in a folder with exactly this content, if any.
     func existingUnpinned(content: String) -> ClipboardItem? {
         var descriptor = FetchDescriptor<ClipboardItem>(
-            predicate: #Predicate { !$0.isPinned && $0.content == content }
+            predicate: #Predicate { !$0.isPinned && $0.folderID == nil && $0.content == content }
         )
         descriptor.fetchLimit = 1
         return fetch(descriptor).first
@@ -120,6 +121,63 @@ final class ClipboardStore {
         )
         descriptor.fetchLimit = 1
         return fetch(descriptor).first
+    }
+
+    // MARK: Folders
+
+    /// All folders, ordered by `order` then recency.
+    var folders: [Folder] {
+        (try? context.fetch(FetchDescriptor<Folder>(
+            sortBy: [SortDescriptor(\.order), SortDescriptor(\.timestamp)]
+        ))) ?? []
+    }
+
+    /// Creates a folder appended after all existing folders. Returns the new folder.
+    @discardableResult
+    func createFolder(name: String) -> Folder {
+        let nextOrder = (folders.map(\.order).max() ?? -1) + 1
+        let folder = Folder(
+            name: name.trimmingCharacters(in: .whitespacesAndNewlines),
+            order: nextOrder
+        )
+        context.insert(folder)
+        save()
+        NotificationCenter.default.post(name: .clipboardDidUpdate, object: nil)
+        return folder
+    }
+
+    /// Renames a folder.
+    func renameFolder(id: UUID, name: String) {
+        guard let folder = folder(id: id) else { return }
+        folder.name = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        save()
+        NotificationCenter.default.post(name: .clipboardDidUpdate, object: nil)
+    }
+
+    /// Deletes a folder, returning its member items to unfoldered storage.
+    func deleteFolder(id: UUID) {
+        guard let folder = folder(id: id) else { return }
+        items(inFolder: id).forEach { $0.folderID = nil }
+        context.delete(folder)
+        save()
+        NotificationCenter.default.post(name: .clipboardDidUpdate, object: nil)
+    }
+
+    /// Assigns an item to a folder, or removes it from any folder when `folderID` is nil.
+    func assignFolder(itemID: UUID, folderID: UUID?) {
+        guard let item = item(id: itemID) else { return }
+        item.folderID = folderID
+        save()
+        NotificationCenter.default.post(name: .clipboardDidUpdate, object: nil)
+    }
+
+    /// Items belonging to a folder, newest first.
+    func items(inFolder folderID: UUID) -> [ClipboardItem] {
+        let id = folderID
+        return fetch(FetchDescriptor<ClipboardItem>(
+            predicate: #Predicate { $0.folderID == id },
+            sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
+        ))
     }
 
     // MARK: Mutations
@@ -195,6 +253,14 @@ final class ClipboardStore {
         NotificationCenter.default.post(name: .clipboardDidUpdate, object: nil)
     }
 
+    /// Sets (or clears) the user-assigned name for an item.
+    func setLabel(id: UUID, label: String) {
+        guard let item = item(id: id) else { return }
+        item.label = label.trimmingCharacters(in: .whitespacesAndNewlines)
+        save()
+        NotificationCenter.default.post(name: .clipboardDidUpdate, object: nil)
+    }
+
     /// Stores the fetched page title for a URL item.
     func setLinkTitle(id: UUID, title: String) {
         guard let item = item(id: id) else { return }
@@ -209,7 +275,7 @@ final class ClipboardStore {
     /// budgets are satisfied. Pinned images are always retained.
     func enforceImageBudget() {
         var imageItems = fetch(FetchDescriptor<ClipboardItem>(
-            predicate: #Predicate { !$0.isPinned && $0.hasImage },
+            predicate: #Predicate { !$0.isPinned && $0.hasImage && $0.folderID == nil },
             sortBy: [SortDescriptor(\.timestamp, order: .reverse)]  // newest first
         ))
         var totalBytes = imageItems.reduce(0) { $0 + ($1.imageData?.count ?? 0) }
@@ -230,7 +296,7 @@ final class ClipboardStore {
         let excess = recentCount - limit
         guard excess > 0 else { return }
         var descriptor = FetchDescriptor<ClipboardItem>(
-            predicate: #Predicate { !$0.isPinned },
+            predicate: #Predicate { !$0.isPinned && $0.folderID == nil },
             sortBy: [SortDescriptor(\.timestamp)]   // oldest first
         )
         descriptor.fetchLimit = excess
@@ -245,6 +311,12 @@ final class ClipboardStore {
         var descriptor = FetchDescriptor<ClipboardItem>(predicate: #Predicate { $0.id == id })
         descriptor.fetchLimit = 1
         return fetch(descriptor).first
+    }
+
+    private func folder(id: UUID) -> Folder? {
+        var descriptor = FetchDescriptor<Folder>(predicate: #Predicate { $0.id == id })
+        descriptor.fetchLimit = 1
+        return (try? context.fetch(descriptor))?.first
     }
 
     private func fetch(_ descriptor: FetchDescriptor<ClipboardItem>) -> [ClipboardItem] {

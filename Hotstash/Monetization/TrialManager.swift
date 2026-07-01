@@ -57,9 +57,17 @@ final class TrialManager {
     /// Sets `firstLaunchDate` on the very first run, then checks whether the
     /// trial has just expired and posts `.purchaseStateChanged` if so.
     func start() {
+        #if DEBUG
+        // Local dev: Xcode/StoreKit can't verify the real purchase, so re-anchor
+        // the trial to today on every launch — the app behaves as if the trial
+        // just started instead of showing "expired". Release builds keep the
+        // real first-launch date.
+        firstLaunchDate = Date()
+        #else
         if firstLaunchDate == nil {
             firstLaunchDate = Date()
         }
+        #endif
 
         // If the trial is expired (and the user has not purchased), broadcast
         // the state change so the menubar icon can update its badge.

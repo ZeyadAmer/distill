@@ -11,13 +11,13 @@ extension ModelContainer {
             cloudKitDatabase: .private("iCloud.com.zeyadamer.hotstash")
         )
         do {
-            return try ModelContainer(for: ClipboardItem.self, StoredTransform.self, configurations: config)
+            return try ModelContainer(for: ClipboardItem.self, StoredTransform.self, Folder.self, configurations: config)
         } catch {
             // A failed store is unrecoverable for a clipboard app; fall back to
             // a local-only store so the app still launches without sync.
             let local = ModelConfiguration("Hotstash", cloudKitDatabase: .none)
             // swiftlint:disable:next force_try
-            return try! ModelContainer(for: ClipboardItem.self, StoredTransform.self, configurations: local)
+            return try! ModelContainer(for: ClipboardItem.self, StoredTransform.self, Folder.self, configurations: local)
         }
     }()
 
@@ -28,6 +28,6 @@ extension ModelContainer {
     /// In-memory container for unit tests.
     static func hotstashInMemory() throws -> ModelContainer {
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
-        return try ModelContainer(for: ClipboardItem.self, StoredTransform.self, configurations: config)
+        return try ModelContainer(for: ClipboardItem.self, StoredTransform.self, Folder.self, configurations: config)
     }
 }

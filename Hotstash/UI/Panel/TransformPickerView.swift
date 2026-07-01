@@ -21,6 +21,13 @@ final class TransformPickerPopover: NSPopover {
         set { pickerVC.onSelect = newValue }
     }
 
+    /// Called on the main actor when the user commits a stack of transforms via
+    /// the footer "Apply" button.
+    var onApplyStack: (([any Transform]) -> Void)? {
+        get { pickerVC.onApplyStack }
+        set { pickerVC.onApplyStack = newValue }
+    }
+
     /// The clipboard item whose content type drives the "Suggested" section.
     var sourceItem: ClipboardItem? {
         get { pickerVC.sourceItem }
@@ -59,6 +66,14 @@ final class TransformPickerVC: NSViewController {
 
     var onSelect: ((any Transform) -> Void)?
 
+    /// Called when the user commits an ordered stack of transforms.
+    var onApplyStack: (([any Transform]) -> Void)?
+
+    // MARK: Stack selection
+
+    /// The ordered transforms the user has ⌘-clicked (or clicked while stacking).
+    private var selection: [any Transform] = []
+
     // MARK: Content state
 
     /// The clipboard item used to derive suggestions; set before the popover is shown.
@@ -84,6 +99,53 @@ final class TransformPickerVC: NSViewController {
         return sv
     }()
 
+    /// Footer bar pinned to the bottom of the popover, visible only while
+    /// `selection` is non-empty. Hosts the "Apply" commit button.
+    private let footerView: NSView = {
+        let v = NSView()
+        v.wantsLayer = true
+        v.isHidden = true
+        v.translatesAutoresizingMaskIntoConstraints = false
+        return v
+    }()
+
+    private let footerDivider: NSBox = {
+        let box = NSBox()
+        box.boxType = .separator
+        box.translatesAutoresizingMaskIntoConstraints = false
+        return box
+    }()
+
+    private let applyButton: NSButton = {
+        let btn = NSButton(title: "Apply", target: nil, action: nil)
+        btn.bezelStyle = .rounded
+        btn.controlSize = .large
+        btn.keyEquivalent = "\r"
+        btn.translatesAutoresizingMaskIntoConstraints = false
+        return btn
+    }()
+
+    private let footerSubtitle: NSTextField = {
+        let tf = NSTextField(labelWithString: "")
+        tf.font      = .systemFont(ofSize: 10.5, weight: .regular)
+        tf.textColor = .secondaryLabelColor
+        tf.maximumNumberOfLines = 1
+        tf.lineBreakMode = .byTruncatingMiddle
+        tf.translatesAutoresizingMaskIntoConstraints = false
+        return tf
+    }()
+
+    /// The row views currently in the stack, keyed by transform id, so a toggle
+    /// can flip the matching row's selected state without a full rebuild.
+    private var rowsByID: [String: TransformRowView] = [:]
+
+    /// The footer's height constraint, toggled between 0 and `footerHeight`.
+    private var footerHeightConstraint: NSLayoutConstraint?
+
+    // MARK: Footer geometry
+
+    private static let footerHeight: CGFloat = 60
+
     // MARK: View lifecycle
 
     override func loadView() {
@@ -99,6 +161,10 @@ final class TransformPickerVC: NSViewController {
 
     override func viewWillAppear() {
         super.viewWillAppear()
+        // Each opening starts with a fresh, empty stack.
+        selection = []
+        rebuildRows()
+        updateFooter()
         updatePreferredContentSize()
         scrollView.documentView?.scroll(.zero)
     }
@@ -117,17 +183,59 @@ final class TransformPickerVC: NSViewController {
 
         view.addSubview(scrollView)
 
+        // ── Footer bar (Apply stack) ────────────────────────────────────────
+        applyButton.target = self
+        applyButton.action = #selector(handleApplyStack)
+
+        footerView.addSubview(footerDivider)
+        footerView.addSubview(applyButton)
+        footerView.addSubview(footerSubtitle)
+        view.addSubview(footerView)
+
+        // The scroll view's bottom is pinned to the top of the footer. The footer
+        // collapses to zero height when hidden (full-height list) and expands to
+        // `footerHeight` when a stack is being built.
+        let scrollBottom = scrollView.bottomAnchor.constraint(equalTo: footerView.topAnchor)
+        let footerHeight = footerView.heightAnchor.constraint(equalToConstant: 0)
+        footerHeightConstraint = footerHeight
+
         NSLayoutConstraint.activate([
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             scrollView.topAnchor.constraint(equalTo: view.topAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            scrollBottom,
+            footerHeight,
 
             // Stack fills the scroll view's width.
             stackView.leadingAnchor.constraint(equalTo: clipView.leadingAnchor),
             stackView.trailingAnchor.constraint(equalTo: clipView.trailingAnchor),
             stackView.topAnchor.constraint(equalTo: clipView.topAnchor),
+
+            // Footer pinned to the bottom edge, full width.
+            footerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            footerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            footerView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+
+            footerDivider.leadingAnchor.constraint(equalTo: footerView.leadingAnchor),
+            footerDivider.trailingAnchor.constraint(equalTo: footerView.trailingAnchor),
+            footerDivider.topAnchor.constraint(equalTo: footerView.topAnchor),
+
+            applyButton.leadingAnchor.constraint(equalTo: footerView.leadingAnchor, constant: 12),
+            applyButton.trailingAnchor.constraint(equalTo: footerView.trailingAnchor, constant: -12),
+            applyButton.topAnchor.constraint(equalTo: footerDivider.bottomAnchor, constant: 8),
+
+            footerSubtitle.leadingAnchor.constraint(equalTo: footerView.leadingAnchor, constant: 12),
+            footerSubtitle.trailingAnchor.constraint(equalTo: footerView.trailingAnchor, constant: -12),
+            footerSubtitle.topAnchor.constraint(equalTo: applyButton.bottomAnchor, constant: 4),
         ])
+    }
+
+    // MARK: - Stack commit
+
+    @objc private func handleApplyStack() {
+        guard !selection.isEmpty else { return }
+        onApplyStack?(selection)
+        dismiss(nil)
     }
 
     // MARK: - Row Construction
@@ -139,6 +247,7 @@ final class TransformPickerVC: NSViewController {
             stackView.removeArrangedSubview(view)
             view.removeFromSuperview()
         }
+        rowsByID.removeAll()
 
         let contentType = sourceItem?.contentType ?? .plainText
 
@@ -207,11 +316,60 @@ final class TransformPickerVC: NSViewController {
         let row = TransformRowView(transform: transform, isHighlighted: isHighlighted)
         row.translatesAutoresizingMaskIntoConstraints = false
         row.onTap = { [weak self] in
-            self?.onSelect?(transform)
-            self?.dismiss(nil)
+            self?.handleRowTap(transform)
         }
+        rowsByID[transform.id] = row
+        // Reflect any persisted selection (checkmarks survive rebuilds).
+        row.setSelected(selection.contains { $0.id == transform.id })
         stackView.addArrangedSubview(row)
         row.widthAnchor.constraint(equalTo: stackView.widthAnchor).isActive = true
+    }
+
+    /// Row-click routing:
+    /// - Plain click with an empty stack → single apply (today's behavior).
+    /// - ⌘-click, or any click while stacking → toggle in the ordered stack.
+    private func handleRowTap(_ transform: any Transform) {
+        let commandHeld = NSApp.currentEvent?.modifierFlags.contains(.command) == true
+
+        if !commandHeld && selection.isEmpty {
+            onSelect?(transform)
+            dismiss(nil)
+            return
+        }
+        toggle(transform)
+    }
+
+    /// Appends the transform if absent (by id), or removes it if already present.
+    /// Updates the matching row's checkmark and refreshes the footer.
+    private func toggle(_ transform: any Transform) {
+        if let index = selection.firstIndex(where: { $0.id == transform.id }) {
+            selection.remove(at: index)
+            rowsByID[transform.id]?.setSelected(false)
+        } else {
+            selection.append(transform)
+            rowsByID[transform.id]?.setSelected(true)
+        }
+        updateFooter()
+    }
+
+    // MARK: - Footer
+
+    /// Shows/hides the footer and refreshes its title + ordered subtitle to match
+    /// the current stack, then re-measures the popover.
+    private func updateFooter() {
+        guard isViewLoaded else { return }
+        let count = selection.count
+        let show = count > 0
+
+        footerView.isHidden = !show
+        footerHeightConstraint?.constant = show ? Self.footerHeight : 0
+
+        if show {
+            let noun = count == 1 ? "transform" : "transforms"
+            applyButton.title = "Apply \(count) \(noun)"
+            footerSubtitle.stringValue = selection.map { $0.name }.joined(separator: " \u{2192} ")
+        }
+        updatePreferredContentSize()
     }
 
     // MARK: - Divider
@@ -229,9 +387,9 @@ final class TransformPickerVC: NSViewController {
 
     private func updatePreferredContentSize() {
         view.layoutSubtreeIfNeeded()
-        let totalHeight = stackView.fittingSize.height
-        let clampedHeight = min(totalHeight, Self.maxHeight)
-        preferredContentSize = NSSize(width: Self.width, height: clampedHeight)
+        let footerHeight: CGFloat = footerView.isHidden ? 0 : Self.footerHeight
+        let listHeight = min(stackView.fittingSize.height, Self.maxHeight - footerHeight)
+        preferredContentSize = NSSize(width: Self.width, height: listHeight + footerHeight)
     }
 }
 
@@ -277,9 +435,21 @@ private final class TransformRowView: NSView {
         return v
     }()
 
+    private let checkmarkView: NSImageView = {
+        let iv = NSImageView()
+        let cfg = NSImage.SymbolConfiguration(pointSize: 11, weight: .semibold)
+        iv.image = NSImage(systemSymbolName: "checkmark", accessibilityDescription: "Selected")?
+            .withSymbolConfiguration(cfg)
+        iv.contentTintColor = .controlAccentColor
+        iv.isHidden = true
+        iv.translatesAutoresizingMaskIntoConstraints = false
+        return iv
+    }()
+
     // MARK: State
 
     private var isHovering = false
+    private var isStackSelected = false
 
     // MARK: Init
 
@@ -301,6 +471,7 @@ private final class TransformRowView: NSView {
         addSubview(highlightView)
         addSubview(iconView)
         addSubview(nameLabel)
+        addSubview(checkmarkView)
 
         NSLayoutConstraint.activate([
             highlightView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 4),
@@ -314,8 +485,13 @@ private final class TransformRowView: NSView {
             iconView.heightAnchor.constraint(equalToConstant: 16),
 
             nameLabel.leadingAnchor.constraint(equalTo: iconView.trailingAnchor, constant: 8),
-            nameLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12),
+            nameLabel.trailingAnchor.constraint(equalTo: checkmarkView.leadingAnchor, constant: -6),
             nameLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
+
+            checkmarkView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12),
+            checkmarkView.centerYAnchor.constraint(equalTo: centerYAnchor),
+            checkmarkView.widthAnchor.constraint(equalToConstant: 14),
+            checkmarkView.heightAnchor.constraint(equalToConstant: 14),
         ])
 
         // Icon.
@@ -362,9 +538,28 @@ private final class TransformRowView: NSView {
     }
 
     private func updateHoverState() {
-        highlightView.isHidden = !isHovering
-        highlightView.layer?.backgroundColor = isHovering
-            ? NSColor.labelColor.withAlphaComponent(0.07).cgColor
-            : .none
+        // A stack-selected row keeps a subtle persistent tint; hover deepens it.
+        let showHighlight = isHovering || isStackSelected
+        highlightView.isHidden = !showHighlight
+
+        let color: CGColor?
+        if isStackSelected {
+            color = NSColor.controlAccentColor
+                .withAlphaComponent(isHovering ? 0.20 : 0.13).cgColor
+        } else if isHovering {
+            color = NSColor.labelColor.withAlphaComponent(0.07).cgColor
+        } else {
+            color = .none
+        }
+        highlightView.layer?.backgroundColor = color
+    }
+
+    // MARK: - Stack selection
+
+    /// Shows/hides the trailing checkmark and the persistent selected tint.
+    func setSelected(_ selected: Bool) {
+        isStackSelected = selected
+        checkmarkView.isHidden = !selected
+        updateHoverState()
     }
 }
