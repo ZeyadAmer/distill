@@ -15,9 +15,9 @@ struct TransformSettingsView: View {
             List {
                 ForEach($transforms, id: \.id) { $row in
                     HStack(spacing: 10) {
-                        Image(systemName: row.icon)
+                        TransformIconView(icon: row.icon)
                             .foregroundStyle(.secondary)
-                            .frame(width: 20)
+                            .frame(width: 20, height: 20)
 
                         VStack(alignment: .leading, spacing: 1) {
                             Text(row.name)

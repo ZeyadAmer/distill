@@ -9,10 +9,10 @@ struct TransformRow: View {
     var body: some View {
         Button(action: onTap) {
             HStack(spacing: 12) {
-                Image(systemName: transform.icon)
+                TransformIconView(icon: transform.icon)
                     .font(.body)
                     .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
-                    .frame(width: 24)
+                    .frame(width: 24, height: 24)
 
                 Text(transform.name)
                     .font(.subheadline)

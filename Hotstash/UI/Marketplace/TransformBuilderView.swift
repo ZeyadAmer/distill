@@ -19,7 +19,14 @@ struct TransformBuilderView: View {
     @State private var description = ""
     @State private var category = TransformCategory.cleanup.rawValue
     @State private var icon = "wand.and.stars"
+    @State private var iconMode: IconMode = .symbol
     @State private var kind: TransformKind = .text
+
+    /// How the author is currently entering the icon. The stored `icon` string
+    /// stays polymorphic (symbol name / emoji / data URI); this only drives the UI.
+    enum IconMode: String, CaseIterable {
+        case symbol = "Symbol", emoji = "Emoji", image = "Image"
+    }
 
     // Bodies
     @State private var jsSource = "function transform(input) {\n  return input;\n}"
@@ -82,19 +89,15 @@ struct TransformBuilderView: View {
             labeledField("Description") {
                 TextField("Short description", text: $description).textFieldStyle(.roundedBorder)
             }
-            HStack {
-                labeledField("Category") {
-                    Picker("", selection: $category) {
-                        ForEach(TransformCategory.allCases, id: \.self) { c in
-                            Text(c.rawValue).tag(c.rawValue)
-                        }
+            labeledField("Category") {
+                Picker("", selection: $category) {
+                    ForEach(TransformCategory.allCases, id: \.self) { c in
+                        Text(c.rawValue).tag(c.rawValue)
                     }
-                    .labelsHidden()
                 }
-                labeledField("Icon (SF Symbol)") {
-                    TextField("wand.and.stars", text: $icon).textFieldStyle(.roundedBorder)
-                }
+                .labelsHidden()
             }
+            iconField
             labeledField("Kind") {
                 Picker("", selection: $kind) {
                     Text("Text").tag(TransformKind.text)
@@ -103,6 +106,40 @@ struct TransformBuilderView: View {
                 .labelsHidden()
                 .pickerStyle(.segmented)
                 .frame(width: 200)
+            }
+        }
+    }
+
+    // MARK: Icon
+
+    private var iconField: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Icon").font(.caption).foregroundStyle(.secondary)
+            Picker("", selection: $iconMode) {
+                ForEach(IconMode.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+            }
+            .labelsHidden().pickerStyle(.segmented).frame(width: 260)
+            .onChange(of: iconMode) { _, mode in normalizeIcon(for: mode) }
+
+            HStack(spacing: 10) {
+                TransformIconView(icon: icon.isEmpty ? "wand.and.stars" : icon)
+                    .foregroundStyle(.tint)
+                    .frame(width: 30, height: 30)
+                    .background(Color.secondary.opacity(0.08))
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
+
+                switch iconMode {
+                case .symbol:
+                    TextField("wand.and.stars", text: $icon).textFieldStyle(.roundedBorder)
+                case .emoji:
+                    TextField("🔥", text: $icon).textFieldStyle(.roundedBorder)
+                    Button("Emoji…") { NSApp.orderFrontCharacterPalette(nil) }
+                case .image:
+                    Text(icon.hasPrefix("data:") ? "Custom image · 64×64 PNG" : "No image chosen")
+                        .font(.caption).foregroundStyle(.secondary)
+                    Spacer()
+                    Button("Choose…") { chooseImage() }
+                }
             }
         }
     }
@@ -197,6 +234,56 @@ struct TransformBuilderView: View {
         steps.removeAll { $0.id == step.id }
     }
 
+    // MARK: Icon helpers
+
+    /// The mode implied by a stored icon string.
+    static func iconMode(for icon: String) -> IconMode {
+        if icon.hasPrefix("data:") { return .image }
+        if TransformIconView.isEmoji(icon) { return .emoji }
+        return .symbol
+    }
+
+    /// Clears a value that doesn't belong to the newly-selected mode so the
+    /// field starts fresh (e.g. switching Image → Symbol drops the data URI).
+    private func normalizeIcon(for mode: IconMode) {
+        switch mode {
+        case .symbol: if icon.hasPrefix("data:") || TransformIconView.isEmoji(icon) { icon = "wand.and.stars" }
+        case .emoji:  if !TransformIconView.isEmoji(icon) { icon = "" }
+        case .image:  if !icon.hasPrefix("data:") { icon = "" }
+        }
+    }
+
+    private func chooseImage() {
+        let panel = NSOpenPanel()
+        panel.allowsMultipleSelection = false
+        panel.canChooseDirectories = false
+        panel.allowedContentTypes = [.png, .jpeg, .heic, .image]
+        guard panel.runModal() == .OK, let url = panel.url,
+              let image = NSImage(contentsOf: url) else { return }
+        guard let data = Self.pngIcon(image, side: 64) else {
+            saveMessage = "Couldn't process that image."
+            return
+        }
+        icon = "data:image/png;base64," + data.base64EncodedString()
+    }
+
+    /// Redraws any image into a `side`×`side` RGBA PNG — bounds the base64 blob
+    /// stored inline in the transform (a 64px PNG is a few KB).
+    static func pngIcon(_ image: NSImage, side: Int) -> Data? {
+        guard let rep = NSBitmapImageRep(
+            bitmapDataPlanes: nil, pixelsWide: side, pixelsHigh: side,
+            bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+            colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0
+        ) else { return nil }
+        rep.size = NSSize(width: side, height: side)
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: rep)
+        image.draw(in: NSRect(x: 0, y: 0, width: side, height: side),
+                   from: .zero, operation: .copy, fraction: 1.0)
+        NSGraphicsContext.restoreGraphicsState()
+        return rep.representation(using: .png, properties: [:])
+    }
+
     private func runTextTest() {
         let result = TextTransformEngine.run(js: jsSource, input: sampleInput)
         testFailed = result.didError
@@ -211,6 +298,7 @@ struct TransformBuilderView: View {
         description = manifest.description
         category = manifest.category
         icon = manifest.icon
+        iconMode = Self.iconMode(for: manifest.icon)
         kind = manifest.kind
         switch manifest.body {
         case let .text(js):

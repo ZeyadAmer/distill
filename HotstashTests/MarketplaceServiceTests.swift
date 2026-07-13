@@ -9,7 +9,7 @@ struct MarketplaceServiceTests {
     @Test func listItemDecodesSnakeCase() throws {
         let json = """
         [{"id":"00000000-0000-0000-0000-0000000000A1","slug":"slugify","name":"Slugify",
-          "kind":"text","category":"Cleanup","install_count":1280,"rating_avg":4.7,
+          "kind":"text","category":"Cleanup","icon":"🔥","install_count":1280,"rating_avg":4.7,
           "rating_count":64,"is_featured":true}]
         """.data(using: .utf8)!
         let items = try JSONDecoder().decode([TransformListItem].self, from: json)
@@ -17,22 +17,38 @@ struct MarketplaceServiceTests {
         let item = items[0]
         #expect(item.slug == "slugify")
         #expect(item.kind == .text)
+        #expect(item.icon == "🔥")
         #expect(item.installCount == 1280)
         #expect(item.ratingAvg == 4.7)
         #expect(item.isFeatured == true)
         #expect(item.authorName == nil)   // absent key → nil
     }
 
+    @Test func iconClassification() {
+        // Emoji → text; SF Symbol names (ASCII, incl. dotted) → not emoji.
+        #expect(TransformIconView.isEmoji("🔥"))
+        #expect(TransformIconView.isEmoji("🧹"))
+        #expect(!TransformIconView.isEmoji("textformat"))
+        #expect(!TransformIconView.isEmoji("chevron.left.forwardslash.chevron.right"))
+        #expect(!TransformIconView.isEmoji(""))
+        // data URI → decodes to an image; other strings → not an image.
+        let pngBase64 =
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
+        #expect(TransformIconView.decodeDataURI("data:image/png;base64,\(pngBase64)") != nil)
+        #expect(TransformIconView.decodeDataURI("textformat") == nil)
+    }
+
     @Test func detailToManifestMapsKindAndBody() {
         let detail = TransformDetail(
             id: UUID(), slug: "slugify", name: "Slugify", authorName: "me",
-            kind: .text, category: "Cleanup", installCount: 1, ratingAvg: 5, ratingCount: 1,
-            isFeatured: false, description: "d", version: 3,
+            kind: .text, category: "Cleanup", icon: "🔥", installCount: 1, ratingAvg: 5,
+            ratingCount: 1, isFeatured: false, description: "d", version: 3,
             body: .text(js: "function transform(i){return i}")
         )
         let manifest = detail.toManifest()
         #expect(manifest.kind == .text)
         #expect(manifest.slug == "slugify")
+        #expect(manifest.icon == "🔥")   // real icon carried through, not hardcoded
         #expect(manifest.version == 3)
         if case .text(let js) = manifest.body { #expect(js.contains("transform")) }
         else { Issue.record("expected text body") }

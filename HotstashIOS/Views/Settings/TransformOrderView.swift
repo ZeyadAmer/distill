@@ -21,9 +21,9 @@ struct TransformOrderView: View {
             Section {
                 ForEach(rows) { row in
                     HStack(spacing: 12) {
-                        Image(systemName: row.icon)
+                        TransformIconView(icon: row.icon)
                             .foregroundStyle(.tint)
-                            .frame(width: 24)
+                            .frame(width: 24, height: 24)
                         Text(row.name)
                         Spacer()
                         Toggle("", isOn: binding(for: row.id))

@@ -110,9 +110,9 @@ struct MarketplaceView: View {
             }
             ForEach(installed, id: \.id) { transform in
                 HStack(spacing: 12) {
-                    Image(systemName: transform.icon)
+                    TransformIconView(icon: transform.icon)
                         .foregroundStyle(.tint)
-                        .frame(width: 24)
+                        .frame(width: 24, height: 24)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(transform.name)
                         Text(transform.category.rawValue)

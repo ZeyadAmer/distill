@@ -43,11 +43,6 @@ struct WhatsNewView: View {
 
     private let items: [ChangeItem] = [
         ChangeItem(
-            icon: "magnifyingglass",
-            title: "Smarter search",
-            detail: "Search now puts the clips you've named right at the top, so typing a name you gave something takes you straight to it."
-        ),
-        ChangeItem(
             icon: "folder.fill",
             title: "Folders",
             detail: "Give your clips a home. Keep one folder for API keys, another for the snippets you paste all day, and tuck things away with a right-click. They live right next to Recents and Pinned, and they never get swept up when history clears."
@@ -58,6 +53,11 @@ struct WhatsNewView: View {
             detail: "Right-click a clip and call it whatever sticks — \u{201C}supabase\u{201D}, \u{201C}work email\u{201D}, you name it. Then just search that name to pull it back in a second."
         ),
         ChangeItem(
+            icon: "magnifyingglass",
+            title: "Smarter search",
+            detail: "Search now puts the clips you've named right at the top, so typing a name you gave something takes you straight to it."
+        ),
+        ChangeItem(
             icon: "link",
             title: "Clean up links",
             detail: "Copied a link from Instagram, Facebook, or anywhere else? Strip out the tracking junk with one click — it'll even follow share redirects to grab the real destination first."
@@ -66,6 +66,16 @@ struct WhatsNewView: View {
             icon: "wand.and.stars",
             title: "Stack your transforms",
             detail: "Hold ⌘ and pick as many transforms as you like. Trim it, lowercase it, wrap it in quotes — all at once, in the order you choose."
+        ),
+        ChangeItem(
+            icon: "face.smiling",
+            title: "Custom transform icons",
+            detail: "Give any transform an emoji or your own image — not just a symbol. Pick one while editing: ⌃⌘Space opens the emoji picker, or choose an image and it's saved as a crisp 64×64 icon."
+        ),
+        ChangeItem(
+            icon: "sparkles",
+            title: "Marketplace shows real icons",
+            detail: "Browse and My Transforms now show each transform's actual icon — emoji, image, or symbol — and it syncs to everyone who installs it."
         ),
         ChangeItem(
             icon: "arrow.up.left.and.arrow.down.right",
@@ -93,7 +103,7 @@ struct WhatsNewView: View {
                     .font(.largeTitle)
                     .fontWeight(.bold)
 
-                Text("Version 7.0")
+                Text("Version \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "")")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }

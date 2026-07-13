@@ -71,6 +71,7 @@
 		49CB8CA419F5BD520AF6E9AD /* TransformManifestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70D7A178D07506F1EDAB47E3 /* TransformManifestTests.swift */; };
 		4B20BCC116F5F014FBE130DD /* MarketplaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE46F6B9B3D57DDE5909BCA0 /* MarketplaceView.swift */; };
 		4C03CF55D098F47123370763 /* HotstashControlsBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B298A4D51C077F952C4FAB9 /* HotstashControlsBundle.swift */; };
+		4CE8E045E1BBB1CC901354B3 /* UpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FAE3B7D5B105A8A54961BEC /* UpdateChecker.swift */; };
 		4CED30B3DFA993F9BE2FAFC7 /* KeyboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3230AEC3C48079A9B6B1C1E3 /* KeyboardView.swift */; };
 		4EAAFA3054D2A4643216CB20 /* SharedDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DE3E18CA56B224DD64F7DF1 /* SharedDefaults.swift */; };
 		4FB1C238201EF23819C7576F /* CaseTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 405816998C0516ABD02E3EA5 /* CaseTransforms.swift */; };
@@ -142,9 +143,9 @@
 		A716C9D9EA74A355B3A21704 /* TransformSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 745DE6446393891754A48B11 /* TransformSettingsView.swift */; };
 		A95C9AABADAF344936023EBC /* TransformBodyHash.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14BA343EC9CF6C24495915FF /* TransformBodyHash.swift */; };
 		AAA1B05850C4715A0A3CB018 /* MarketplaceTransform.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4E93D6391F5289AC2057ED1 /* MarketplaceTransform.swift */; };
-		AF2F304882BA4AC5052E978C /* UpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DB01C978FA01B87CE9AAA34 /* UpdateChecker.swift */; };
 		B0247E9EF8DDD631448064A2 /* MultiPasteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6721501D4E6FA93DD31DFFB /* MultiPasteView.swift */; };
 		B06187387ED2CA7401FBB3B9 /* TransformDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAC24B15D15F460CE84F90F2 /* TransformDetailView.swift */; };
+		B1FF81EEA34796AF1E351315 /* TransformIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57C5DA74EA668F0F46AC0178 /* TransformIconView.swift */; };
 		B2E1CFEF13F2C256B9BF84B1 /* ContentDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DC86C0A994B73FB8009A7EA /* ContentDetector.swift */; };
 		B388BCD58AF7FAB68AE8AACC /* TransformView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEF17AA532CE411B1ABAA44E /* TransformView.swift */; };
 		B551B4E62A7FA5D33AD53681 /* ClipboardPanelVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DAB0717E7F75E3FF9B30BBE /* ClipboardPanelVC.swift */; };
@@ -173,6 +174,7 @@
 		CA8E5D96757839E263BEEA20 /* MyTransformsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF87284D296313E0AF446761 /* MyTransformsView.swift */; };
 		CC67773C9B905D4807C2D0B4 /* PurchaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ECB321F90AFA8FD509986C0 /* PurchaseManager.swift */; };
 		CCE1BA09582FE00F4E8DA54A /* KeyboardClips.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A684417BC90E6000818DB0F /* KeyboardClips.swift */; };
+		CD89C438CB420D1C5A5FBE92 /* TransformIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57C5DA74EA668F0F46AC0178 /* TransformIconView.swift */; };
 		CDF55ADC901E389DC4FB6295 /* MarketplaceModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = D694B7901653C7BA740C2AEF /* MarketplaceModels.swift */; };
 		CE5F686F1E974854CBC9A6F6 /* TransformManifestCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BB7F14A2532ED233E9E50D1 /* TransformManifestCodec.swift */; };
 		CF210BA00EABB53C3D0BDF80 /* EncodingTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55953DA19505ACD1E2B0551A /* EncodingTransforms.swift */; };
@@ -305,10 +307,10 @@
 		52E9247C196BF78780D32FC7 /* SupabaseConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseConfig.swift; sourceTree = "<group>"; };
 		54B0C95B0A5D95C2B037025D /* StoredTransform.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoredTransform.swift; sourceTree = "<group>"; };
 		55953DA19505ACD1E2B0551A /* EncodingTransforms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncodingTransforms.swift; sourceTree = "<group>"; };
+		57C5DA74EA668F0F46AC0178 /* TransformIconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransformIconView.swift; sourceTree = "<group>"; };
 		5AAC8B5CB7445D1E6B14899B /* SmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeTests.swift; sourceTree = "<group>"; };
 		5ADB0D8C46670B9E8F1B67A8 /* HotkeyRecorderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeyRecorderView.swift; sourceTree = "<group>"; };
 		5D31B6CA4813B599061AE43C /* ClipboardPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardPanel.swift; sourceTree = "<group>"; };
-		5DB01C978FA01B87CE9AAA34 /* UpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateChecker.swift; sourceTree = "<group>"; };
 		5DE3E18CA56B224DD64F7DF1 /* SharedDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedDefaults.swift; sourceTree = "<group>"; };
 		61E8D2209E6F7B00DD9FE504 /* WhatsNewWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhatsNewWindowController.swift; sourceTree = "<group>"; };
 		6A90BF984A455334596629A7 /* ExcludedAppsSettingsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExcludedAppsSettingsSection.swift; sourceTree = "<group>"; };
@@ -324,6 +326,7 @@
 		734B0CC5E12592D47953225E /* ItemEnricher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemEnricher.swift; sourceTree = "<group>"; };
 		73CF21CEDA1219A6A09F9833 /* AppRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRouter.swift; sourceTree = "<group>"; };
 		745DE6446393891754A48B11 /* TransformSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransformSettingsView.swift; sourceTree = "<group>"; };
+		7FAE3B7D5B105A8A54961BEC /* UpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateChecker.swift; sourceTree = "<group>"; };
 		83A92FB48CB294E715B02806 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		86BB9B94B395BE9C2266BF2F /* GeneralSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneralSettingsView.swift; sourceTree = "<group>"; };
 		883C0E0540370662D042B67A /* ClipboardStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardStoreTests.swift; sourceTree = "<group>"; };
@@ -495,9 +498,16 @@
 				3DAB0717E7F75E3FF9B30BBE /* ClipboardPanelVC.swift */,
 				36695DA641B3C931651BFDEC /* PasteEngine.swift */,
 				E14B176F759EFA9AB5D42406 /* TransformPickerView.swift */,
-				5DB01C978FA01B87CE9AAA34 /* UpdateChecker.swift */,
 			);
 			path = Panel;
+			sourceTree = "<group>";
+		};
+		162BDE89D073E872200AF2F4 /* Updates */ = {
+			isa = PBXGroup;
+			children = (
+				7FAE3B7D5B105A8A54961BEC /* UpdateChecker.swift */,
+			);
+			path = Updates;
 			sourceTree = "<group>";
 		};
 		1782C2826BF6D2FFC9D57109 /* HotstashKeyboard */ = {
@@ -600,6 +610,7 @@
 				FBD55B39EBD15F62FCEB3A54 /* Onboarding */,
 				154D48E800EE4016575727CD /* Panel */,
 				53472E63AE83840ACA932E1A /* Settings */,
+				8159F3312A391C0C75518245 /* Shared */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -648,6 +659,7 @@
 				C7CE749EE0F65203510D200D /* Reviews */,
 				D689FDCE5BE85B28471E5424 /* Transforms */,
 				4D3131D43A5ABE7EF1A1AF5A /* UI */,
+				162BDE89D073E872200AF2F4 /* Updates */,
 			);
 			path = Hotstash;
 			sourceTree = "<group>";
@@ -658,6 +670,14 @@
 				1E3D42C077663BCE0A8ADE17 /* MultiPastePanel.swift */,
 			);
 			path = MultiPaste;
+			sourceTree = "<group>";
+		};
+		8159F3312A391C0C75518245 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				57C5DA74EA668F0F46AC0178 /* TransformIconView.swift */,
+			);
+			path = Shared;
 			sourceTree = "<group>";
 		};
 		8A38177833964239FF6039EA /* Marketplace */ = {
@@ -1198,13 +1218,14 @@
 				7147B0DE54461C7B0ABE6A54 /* TransformBodyHash.swift in Sources */,
 				09BEA4DFFF8E7C8581BF1C08 /* TransformBuilderView.swift in Sources */,
 				B06187387ED2CA7401FBB3B9 /* TransformDetailView.swift in Sources */,
+				B1FF81EEA34796AF1E351315 /* TransformIconView.swift in Sources */,
 				D62305E0FB7754EB04A3C68A /* TransformManifest.swift in Sources */,
 				CE5F686F1E974854CBC9A6F6 /* TransformManifestCodec.swift in Sources */,
 				7CC8C7921B547CD879CC6744 /* TransformPickerView.swift in Sources */,
 				9281E15530C2905396A38C57 /* TransformRegistry.swift in Sources */,
 				A716C9D9EA74A355B3A21704 /* TransformSettingsView.swift in Sources */,
 				0CD787342600584EA796B669 /* TrialManager.swift in Sources */,
-				AF2F304882BA4AC5052E978C /* UpdateChecker.swift in Sources */,
+				4CE8E045E1BBB1CC901354B3 /* UpdateChecker.swift in Sources */,
 				6F2F5F32E018AFDCF7D9E2A6 /* WhatsNewWindowController.swift in Sources */,
 				68C4134F124CC338F0D3C814 /* WhitespaceTransforms.swift in Sources */,
 				340EC864C860F3D0F724F271 /* main.swift in Sources */,
@@ -1272,6 +1293,7 @@
 				F2FB1A90EB5600121D275B8A /* TextTransformEngine.swift in Sources */,
 				02A60340D3D9EA271C550220 /* Transform.swift in Sources */,
 				A95C9AABADAF344936023EBC /* TransformBodyHash.swift in Sources */,
+				CD89C438CB420D1C5A5FBE92 /* TransformIconView.swift in Sources */,
 				76BCCE53AD39D43B293DFED2 /* TransformManifest.swift in Sources */,
 				012AF3CF927396A0C6AEC980 /* TransformManifestCodec.swift in Sources */,
 				52F2AA09B5D0050C2EB47299 /* TransformOrderView.swift in Sources */,
