@@ -48,7 +48,7 @@ struct SupabaseMarketplaceService: MarketplaceService {
     func detail(slug: String) async throws -> TransformDetail {
         // Fetch the row + its newest version body in a single embedded query.
         let q = "transforms?slug=eq.\(escape(slug))&status=eq.live"
-            + "&select=id,slug,name,description,kind,category,owner_id,latest_version,install_count,rating_avg,rating_count,is_featured,transform_versions(version,body)"
+            + "&select=id,slug,name,description,kind,category,icon,owner_id,latest_version,install_count,rating_avg,rating_count,is_featured,transform_versions(version,body)"
             + "&transform_versions.order=version.desc&transform_versions.limit=1"
         let rows: [DetailRow] = try await get(q)
         guard let row = rows.first, var detail = row.toDetail() else { throw MarketplaceError.decoding }
@@ -181,7 +181,7 @@ struct SupabaseMarketplaceService: MarketplaceService {
     // MARK: - Private helpers
 
     private static let listColumns =
-        "id,slug,name,kind,category,install_count,rating_avg,rating_count,is_featured"
+        "id,slug,name,kind,category,icon,install_count,rating_avg,rating_count,is_featured"
 
     private func getList(_ query: String) async throws -> [TransformListItem] {
         try await get(query)
@@ -299,6 +299,7 @@ private struct DetailRow: Decodable {
     let description: String
     let kind: TransformKind
     let category: String
+    let icon: String
     let owner_id: UUID
     let latest_version: Int
     let install_count: Int
@@ -316,7 +317,7 @@ private struct DetailRow: Decodable {
         guard let body = transform_versions.first?.body else { return nil }
         return TransformDetail(
             id: id, slug: slug, name: name, authorName: nil, kind: kind,
-            category: category, installCount: install_count, ratingAvg: rating_avg,
+            category: category, icon: icon, installCount: install_count, ratingAvg: rating_avg,
             ratingCount: rating_count, isFeatured: is_featured,
             description: description, version: latest_version, body: body
         )

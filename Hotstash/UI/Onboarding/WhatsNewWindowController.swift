@@ -43,24 +43,24 @@ struct WhatsNewView: View {
 
     private let items: [ChangeItem] = [
         ChangeItem(
-            icon: "square.stack.3d.up",
-            title: "Paste Stack",
-            detail: "⌘-click several items, hit the stack button — then every ⌘V you press pastes the next one. Copy five things, paste five things."
+            icon: "face.smiling",
+            title: "Emoji transform icons",
+            detail: "Give any transform an emoji instead of a symbol. Edit a transform, switch the icon to Emoji, and pick one — ⌃⌘Space opens the macOS emoji picker."
         ),
         ChangeItem(
-            icon: "textformat",
-            title: "Formatting preserved",
-            detail: "Copied text keeps its bold, links, and colors. Hold ⇧ and press Return to paste any item as plain text — or flip one switch in Settings to always paste plain."
+            icon: "photo",
+            title: "Custom image icons",
+            detail: "Use your own artwork. Choose any image while editing a transform; it's resized to a crisp 64×64 icon and travels with the transform when you publish it."
         ),
         ChangeItem(
-            icon: "folder",
-            title: "Files, OCR & link titles",
-            detail: "Copied files now land in your history. Text inside screenshots is searchable. Copied links show their page title."
+            icon: "sparkles",
+            title: "Marketplace shows real icons",
+            detail: "Browse and My Transforms now display each transform's actual icon — emoji, image, or symbol — instead of a generic glyph."
         ),
         ChangeItem(
-            icon: "hand.raised",
-            title: "Excluded apps & drag out",
-            detail: "Tell Hotstash to ignore certain apps entirely, and drag any item from the panel straight into another app."
+            icon: "arrow.triangle.2.circlepath",
+            title: "Icons sync everywhere",
+            detail: "Whatever icon you set follows the transform across your Mac, iPhone, and to everyone who installs it — no rebuild needed."
         ),
     ]
 
@@ -78,7 +78,7 @@ struct WhatsNewView: View {
                     .font(.largeTitle)
                     .fontWeight(.bold)
 
-                Text("Version 6.0")
+                Text("Version \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "")")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }

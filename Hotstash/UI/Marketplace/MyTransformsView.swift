@@ -182,8 +182,8 @@ struct MyTransformsView: View {
     private func rowLabel(_ row: StoredTransform, status: String) -> some View {
         let manifest = row.manifest
         return HStack(spacing: 10) {
-            Image(systemName: manifest?.icon ?? "wand.and.stars")
-                .foregroundStyle(.secondary).frame(width: 20)
+            TransformIconView(icon: manifest?.icon ?? "wand.and.stars")
+                .foregroundStyle(.secondary).frame(width: 20, height: 20)
             VStack(alignment: .leading, spacing: 1) {
                 Text(manifest?.name ?? row.slug).font(.body)
                 Text(status).font(.caption).foregroundStyle(.tertiary)

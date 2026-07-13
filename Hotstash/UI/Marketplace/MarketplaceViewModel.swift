@@ -105,7 +105,7 @@ final class MarketplaceViewModel: ObservableObject {
             return TransformListItem(
                 id: detail.id, slug: detail.slug, name: detail.name,
                 authorName: detail.authorName, kind: detail.kind, category: detail.category,
-                installCount: detail.installCount, ratingAvg: detail.ratingAvg,
+                icon: detail.icon, installCount: detail.installCount, ratingAvg: detail.ratingAvg,
                 ratingCount: detail.ratingCount, isFeatured: detail.isFeatured
             )
         } catch {

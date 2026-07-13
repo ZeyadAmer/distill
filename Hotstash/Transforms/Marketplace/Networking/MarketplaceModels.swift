@@ -11,6 +11,8 @@ struct TransformListItem: Identifiable, Codable, Equatable {
     let authorName: String?
     let kind: TransformKind
     let category: String
+    /// Icon string: SF Symbol name, emoji, or base64 PNG data URI. See TransformIconView.
+    let icon: String
     let installCount: Int
     let ratingAvg: Double
     let ratingCount: Int
@@ -19,10 +21,11 @@ struct TransformListItem: Identifiable, Codable, Equatable {
     let status: String?
 
     init(id: UUID, slug: String, name: String, authorName: String?, kind: TransformKind,
-         category: String, installCount: Int, ratingAvg: Double, ratingCount: Int,
-         isFeatured: Bool, status: String? = nil) {
+         category: String, icon: String = "textformat", installCount: Int, ratingAvg: Double,
+         ratingCount: Int, isFeatured: Bool, status: String? = nil) {
         self.id = id; self.slug = slug; self.name = name; self.authorName = authorName
-        self.kind = kind; self.category = category; self.installCount = installCount
+        self.kind = kind; self.category = category; self.icon = icon
+        self.installCount = installCount
         self.ratingAvg = ratingAvg; self.ratingCount = ratingCount
         self.isFeatured = isFeatured; self.status = status
     }
@@ -34,6 +37,7 @@ struct TransformListItem: Identifiable, Codable, Equatable {
         case authorName = "author_name"
         case kind
         case category
+        case icon
         case installCount = "install_count"
         case ratingAvg = "rating_avg"
         case ratingCount = "rating_count"
@@ -53,6 +57,8 @@ struct TransformDetail: Identifiable, Codable, Equatable {
     let authorName: String?
     let kind: TransformKind
     let category: String
+    /// Icon string: SF Symbol name, emoji, or base64 PNG data URI. See TransformIconView.
+    let icon: String
     let installCount: Int
     let ratingAvg: Double
     let ratingCount: Int
@@ -61,6 +67,16 @@ struct TransformDetail: Identifiable, Codable, Equatable {
     let version: Int
     let body: TransformBody
 
+    init(id: UUID, slug: String, name: String, authorName: String?, kind: TransformKind,
+         category: String, icon: String = "textformat", installCount: Int, ratingAvg: Double,
+         ratingCount: Int, isFeatured: Bool, description: String, version: Int, body: TransformBody) {
+        self.id = id; self.slug = slug; self.name = name; self.authorName = authorName
+        self.kind = kind; self.category = category; self.icon = icon
+        self.installCount = installCount; self.ratingAvg = ratingAvg
+        self.ratingCount = ratingCount; self.isFeatured = isFeatured
+        self.description = description; self.version = version; self.body = body
+    }
+
     private enum CodingKeys: String, CodingKey {
         case id
         case slug
@@ -68,6 +84,7 @@ struct TransformDetail: Identifiable, Codable, Equatable {
         case authorName = "author_name"
         case kind
         case category
+        case icon
         case installCount = "install_count"
         case ratingAvg = "rating_avg"
         case ratingCount = "rating_count"
@@ -82,7 +99,7 @@ struct TransformDetail: Identifiable, Codable, Equatable {
     func withAuthor(_ name: String) -> TransformDetail {
         TransformDetail(
             id: id, slug: slug, name: self.name, authorName: name, kind: kind,
-            category: category, installCount: installCount, ratingAvg: ratingAvg,
+            category: category, icon: icon, installCount: installCount, ratingAvg: ratingAvg,
             ratingCount: ratingCount, isFeatured: isFeatured, description: description,
             version: version, body: body
         )
@@ -97,7 +114,7 @@ struct TransformDetail: Identifiable, Codable, Equatable {
             kind: kind,
             name: name,
             description: description,
-            icon: kind == .image ? "photo" : "textformat",
+            icon: icon,
             category: category,
             authorName: authorName,
             body: body

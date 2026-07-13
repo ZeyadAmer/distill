@@ -122,9 +122,9 @@ struct MarketplaceView: View {
             selectedItem = item
         } label: {
             HStack(spacing: 10) {
-                Image(systemName: item.kind == .image ? "photo" : "textformat")
+                TransformIconView(icon: item.icon)
                     .foregroundStyle(.tint)
-                    .frame(width: 22)
+                    .frame(width: 22, height: 22)
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(item.name).font(.body)

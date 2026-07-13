@@ -140,6 +140,8 @@ targets:
       - path: Hotstash/Transforms/Marketplace/TransformBodyHash.swift
       - path: Hotstash/Transforms/Marketplace/Networking
       - path: Hotstash/UI/Marketplace/MarketplaceViewModel.swift
+      # Shared icon renderer (SF Symbol / emoji / base64 image)
+      - path: Hotstash/UI/Shared/TransformIconView.swift
       - path: Hotstash/Resources/Supabase.plist
         buildPhase: resources
       # App Intents referenced by HotstashShortcuts and the Control Center widgets
