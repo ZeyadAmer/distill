@@ -32,6 +32,23 @@ struct ExtractURLsTransform: Transform {
     }
 }
 
+// MARK: - CleanLinkTransform
+
+struct CleanLinkTransform: Transform {
+    let id       = "clean_link"
+    let name     = "Clean Link"
+    let icon     = "link.badge.plus"
+    let category = TransformCategory.cleanup
+
+    let applicableTo: [ContentType] = [.url]
+
+    /// Strips UTM/tracking parameters and unwraps known redirect wrappers.
+    /// Offline only — see `LinkCleaner.resolveAndClean` for shortener resolution.
+    func apply(to input: String) -> String {
+        LinkCleaner.clean(input)
+    }
+}
+
 // MARK: - StripHTMLTransform
 
 struct StripHTMLTransform: Transform {

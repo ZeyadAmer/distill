@@ -116,6 +116,8 @@ targets:
           - Resources/HotstashiOS.entitlements
       # Shared model + detector (FINAL files, shared with the Mac app)
       - path: Hotstash/Clipboard/ClipboardItem.swift
+      - path: Hotstash/Clipboard/Folder.swift
+      - path: Hotstash/Clipboard/LinkCleaner.swift
       - path: Hotstash/Transforms/ContentDetector.swift
       # SwiftData schema parity with the Mac container (ClipboardItem + StoredTransform)
       - path: Hotstash/Transforms/Marketplace/StoredTransform.swift
@@ -221,6 +223,8 @@ targets:
       - path: Hotstash/Transforms/Transforms/JSONTransforms.swift
       - path: Hotstash/Transforms/Transforms/EncodingTransforms.swift
       - path: Hotstash/Transforms/Transforms/CleanupTransforms.swift
+      - path: Hotstash/Clipboard/LinkCleaner.swift
+      - path: Hotstash/Clipboard/Folder.swift
 
     settings:
       base:
@@ -273,6 +277,8 @@ targets:
       - path: Hotstash/Transforms/Transforms/JSONTransforms.swift
       - path: Hotstash/Transforms/Transforms/EncodingTransforms.swift
       - path: Hotstash/Transforms/Transforms/CleanupTransforms.swift
+      - path: Hotstash/Clipboard/LinkCleaner.swift
+      - path: Hotstash/Clipboard/Folder.swift
       - path: HotstashIOS/Models/SharedDefaults.swift
       - path: HotstashIOS/Models/KeyboardClips.swift
       - path: HotstashIOS/Models/ModelContainer+iOS.swift

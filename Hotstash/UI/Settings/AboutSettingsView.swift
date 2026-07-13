@@ -17,6 +17,7 @@ struct AboutSettingsView: View {
                 featuresSection
                 transformsSection
                 shortcutsSection
+                howToUseSection
                 footerSection
             }
             .frame(maxWidth: .infinity)
@@ -153,6 +154,14 @@ struct AboutSettingsView: View {
                     title: "Multi-Paste",
                     description: "Paste multiple items at once into any app.",
                     color: .indigo, premium: true),
+        FeatureCard(icon: "folder.fill",
+                    title: "Folders",
+                    description: "Organize snippets into folders, kept safe from history cleanup.",
+                    color: .yellow, premium: false),
+        FeatureCard(icon: "tag.fill",
+                    title: "Item Names",
+                    description: "Name any item and it jumps to the top when you search that name.",
+                    color: .cyan, premium: false),
     ]
 
     private var featuresSection: some View {
@@ -254,6 +263,50 @@ struct AboutSettingsView: View {
         .padding(.vertical, 20)
     }
 
+    // MARK: - How To Use
+
+    fileprivate struct HowToStep: Identifiable {
+        let id = UUID()
+        let title: String
+        let detail: String
+    }
+
+    private let howToSteps: [HowToStep] = [
+        HowToStep(title: "Open Hotstash",
+                  detail: "Press the global hotkey (default ⌘⇧V, customizable in General) to open the clipboard panel near your cursor or menu bar."),
+        HowToStep(title: "Copy & paste",
+                  detail: "Everything you copy is saved automatically. Select an item and press Return to copy, or double-click to paste it into the previous app. ⇧Return pastes plain text; ⌘1–9 paste by position."),
+        HowToStep(title: "Search",
+                  detail: "Start typing in the search box to filter your whole history — it matches content, text inside images via OCR, link titles, and names you assign."),
+        HowToStep(title: "Name items",
+                  detail: "Right-click any item → \"Name…\" to give it a searchable label (e.g. \"supabase\"), then find it instantly by that name."),
+        HowToStep(title: "Pin",
+                  detail: "Pin important items to the Pinned tab and drag to reorder them."),
+        HowToStep(title: "Folders",
+                  detail: "Click the \"＋\" tab to create a folder, then right-click any item → \"Move to Folder\". Folders sit beside Recents and Pinned and are kept safe from history cleanup. Rename or Delete from the gear menu while the tab is open."),
+        HowToStep(title: "Transforms",
+                  detail: "Select an item and click \"Transform\" to reshape it (case, JSON, encoding, cleanup, and more). Hold ⌘ while clicking transforms to stack several and apply them in sequence."),
+        HowToStep(title: "Clean Link",
+                  detail: "Right-click a link → \"Copy Clean Link\" to strip tracking parameters (utm, fbclid, etc.) and resolve share redirects to the real destination."),
+        HowToStep(title: "Multi-Paste & Paste Stack",
+                  detail: "Open Multi-Paste (⌘⇧L) to paste several items at once, or ⌘-click multiple rows and use the Paste Stack so each ⌘V pastes the next item."),
+    ]
+
+    private var howToUseSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SectionHeader(title: "How To Use", icon: "book.fill")
+                .padding(.horizontal, 20)
+
+            VStack(spacing: 6) {
+                ForEach(Array(howToSteps.enumerated()), id: \.element.id) { idx, step in
+                    HowToStepRow(number: idx + 1, step: step)
+                }
+            }
+            .padding(.horizontal, 16)
+        }
+        .padding(.vertical, 20)
+    }
+
     // MARK: - Footer
 
     private var footerSection: some View {
@@ -287,10 +340,40 @@ struct AboutSettingsView: View {
     @ViewBuilder
     private var trialStatusView: some View {
         if purchaseManager.isPurchased {
-            Label("Full version — thank you!", systemImage: "checkmark.seal.fill")
-                .foregroundStyle(.green)
-                .font(.subheadline)
-                .fontWeight(.medium)
+            HStack(spacing: 12) {
+                Image(systemName: "checkmark.seal.fill")
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundStyle(.green)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Full version")
+                        .font(.subheadline)
+                        .fontWeight(.bold)
+                    Text("Lifetime license · thank you for your support")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer()
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
+            .frame(maxWidth: .infinity)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.green.opacity(0.16), Color.green.opacity(0.06)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.green.opacity(0.35), lineWidth: 1)
+            )
+            .padding(.horizontal, 24)
         } else if TrialManager.shared.isInTrial {
             let days = TrialManager.shared.trialDaysRemaining
             HStack(spacing: 4) {
@@ -419,6 +502,45 @@ private struct TransformGroupRow: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 7)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color.primary.opacity(0.03))
+        )
+    }
+}
+
+// MARK: - HowToStepRow
+
+private struct HowToStepRow: View {
+    let number: Int
+    let step: AboutSettingsView.HowToStep
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            ZStack {
+                Circle()
+                    .fill(Color.accentColor.opacity(0.15))
+                    .frame(width: 26, height: 26)
+                Text("\(number)")
+                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .foregroundStyle(Color.accentColor)
+            }
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(step.title)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                Text(step.detail)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 8)
                 .fill(Color.primary.opacity(0.03))

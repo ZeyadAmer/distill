@@ -210,6 +210,18 @@ final class ClipboardItemCell: NSTableCellView {
         configureHotkey(hotkey)
         configureSelection(isSelected, isHovered: isHovered)
         configureDragHandle(showsDragHandle)
+        configureTooltip(for: item)
+    }
+
+    /// Full content on hover — native tooltip. For images, the OCR text (if any).
+    private func configureTooltip(for item: ClipboardItem) {
+        switch item.contentType {
+        case .image:
+            toolTip = item.ocrText.isEmpty ? nil : item.ocrText
+        default:
+            let name = item.label.isEmpty ? "" : "🏷 \(item.label)\n\n"
+            toolTip = name + item.content
+        }
     }
 
     // MARK: - Private configuration helpers
@@ -233,9 +245,11 @@ final class ClipboardItemCell: NSTableCellView {
 
         let maxChars = 120
         // URL items with a fetched page title show "Title — url".
-        let raw = item.contentType == .url && !item.linkTitle.isEmpty
+        let base = item.contentType == .url && !item.linkTitle.isEmpty
             ? "\(item.linkTitle) — \(item.content)"
             : item.content
+        // A user-assigned name is surfaced as a scannable tag prefix.
+        let raw = item.label.isEmpty ? base : "🏷 \(item.label) — \(base)"
         let truncated = raw.count > maxChars
             ? String(raw.prefix(maxChars)) + "…"
             : raw

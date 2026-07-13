@@ -77,12 +77,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         showOnboardingIfNeeded()
         showWhatsNewIfNeeded()
         showSignInPromptIfNeeded()
-
-        // Check the App Store for a newer version (prompts at most once per
-        // version). Deferred so it never competes with launch windows.
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-            UpdateChecker.checkOnLaunch()
-        }
+        // App Store update discovery is handled passively by the clipboard
+        // panel's "Update available" strip (see ClipboardPanelVC + UpdateChecker).
     }
 
     /// Invites the user to sign in to the marketplace on first launch and after

@@ -22,7 +22,7 @@ extension ModelContainer {
             cloudKitDatabase: .private(cloudKitContainerID)
         )
         do {
-            return try ModelContainer(for: ClipboardItem.self, StoredTransform.self, configurations: config)
+            return try ModelContainer(for: ClipboardItem.self, StoredTransform.self, Folder.self, configurations: config)
         } catch {
             // A failed store is unrecoverable for a clipboard app; fall back to
             // a local-only store so the app still launches without sync.
@@ -46,12 +46,12 @@ extension ModelContainer {
             cloudKitDatabase: .none
         )
         do {
-            return try ModelContainer(for: ClipboardItem.self, StoredTransform.self, configurations: local)
+            return try ModelContainer(for: ClipboardItem.self, StoredTransform.self, Folder.self, configurations: local)
         } catch {
             // Last resort: in-memory store so the process never crashes at launch.
             let memory = ModelConfiguration(isStoredInMemoryOnly: true)
             // swiftlint:disable:next force_try
-            return try! ModelContainer(for: ClipboardItem.self, StoredTransform.self, configurations: memory)
+            return try! ModelContainer(for: ClipboardItem.self, StoredTransform.self, Folder.self, configurations: memory)
         }
     }
 }

@@ -43,24 +43,39 @@ struct WhatsNewView: View {
 
     private let items: [ChangeItem] = [
         ChangeItem(
-            icon: "square.stack.3d.up",
-            title: "Paste Stack",
-            detail: "⌘-click several items, hit the stack button — then every ⌘V you press pastes the next one. Copy five things, paste five things."
+            icon: "magnifyingglass",
+            title: "Smarter search",
+            detail: "Search now puts the clips you've named right at the top, so typing a name you gave something takes you straight to it."
         ),
         ChangeItem(
-            icon: "textformat",
-            title: "Formatting preserved",
-            detail: "Copied text keeps its bold, links, and colors. Hold ⇧ and press Return to paste any item as plain text — or flip one switch in Settings to always paste plain."
+            icon: "folder.fill",
+            title: "Folders",
+            detail: "Give your clips a home. Keep one folder for API keys, another for the snippets you paste all day, and tuck things away with a right-click. They live right next to Recents and Pinned, and they never get swept up when history clears."
         ),
         ChangeItem(
-            icon: "folder",
-            title: "Files, OCR & link titles",
-            detail: "Copied files now land in your history. Text inside screenshots is searchable. Copied links show their page title."
+            icon: "tag.fill",
+            title: "Name anything",
+            detail: "Right-click a clip and call it whatever sticks — \u{201C}supabase\u{201D}, \u{201C}work email\u{201D}, you name it. Then just search that name to pull it back in a second."
         ),
         ChangeItem(
-            icon: "hand.raised",
-            title: "Excluded apps & drag out",
-            detail: "Tell Hotstash to ignore certain apps entirely, and drag any item from the panel straight into another app."
+            icon: "link",
+            title: "Clean up links",
+            detail: "Copied a link from Instagram, Facebook, or anywhere else? Strip out the tracking junk with one click — it'll even follow share redirects to grab the real destination first."
+        ),
+        ChangeItem(
+            icon: "wand.and.stars",
+            title: "Stack your transforms",
+            detail: "Hold ⌘ and pick as many transforms as you like. Trim it, lowercase it, wrap it in quotes — all at once, in the order you choose."
+        ),
+        ChangeItem(
+            icon: "arrow.up.left.and.arrow.down.right",
+            title: "A panel that stays put",
+            detail: "Drag the window to the size and spot that suit you. It opens right back there next time instead of snapping under the menu bar."
+        ),
+        ChangeItem(
+            icon: "eye",
+            title: "Peek before you paste",
+            detail: "Hover over any clip to see the whole thing in a tooltip — no need to open it just to remember what's inside."
         ),
     ]
 
@@ -78,37 +93,39 @@ struct WhatsNewView: View {
                     .font(.largeTitle)
                     .fontWeight(.bold)
 
-                Text("Version 6.0")
+                Text("Version 7.0")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
-            .padding(.bottom, 24)
+            .padding(.bottom, 20)
 
             // Feature list
-            VStack(alignment: .leading, spacing: 16) {
-                ForEach(items) { item in
-                    HStack(alignment: .top, spacing: 14) {
-                        Image(systemName: item.icon)
-                            .font(.system(size: 24))
-                            .foregroundStyle(Color.accentColor)
-                            .frame(width: 32, alignment: .center)
-                            .padding(.top, 1)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    ForEach(items) { item in
+                        HStack(alignment: .top, spacing: 14) {
+                            Image(systemName: item.icon)
+                                .font(.system(size: 24))
+                                .foregroundStyle(Color.accentColor)
+                                .frame(width: 32, alignment: .center)
+                                .padding(.top, 1)
 
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(item.title)
-                                .font(.subheadline)
-                                .fontWeight(.semibold)
-                            Text(item.detail)
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                                .fixedSize(horizontal: false, vertical: true)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(item.title)
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                Text(item.detail)
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            Spacer(minLength: 0)
                         }
                     }
                 }
+                .padding(.horizontal, 36)
+                .padding(.bottom, 12)
             }
-            .padding(.horizontal, 36)
-
-            Spacer()
 
             // CTA
             Button {
