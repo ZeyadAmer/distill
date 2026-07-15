@@ -25,8 +25,31 @@ final class PurchaseManager: ObservableObject {
 
     // MARK: Published state
 
-    @Published var isPurchased: Bool = UserDefaults.standard.bool(forKey: "com.zeyadamer.hotstash.isPurchasedCache")
+    @Published var isPurchased: Bool = PurchaseManager.debugForcePro
+        || UserDefaults.standard.bool(forKey: "com.zeyadamer.hotstash.isPurchasedCache")
     @Published var isLoading: Bool = false
+
+    /// DEBUG-only Pro override for local testing. Enabled by passing the launch
+    /// argument `-debug.forcePro YES` (wired into the Debug scheme). Compiled out
+    /// of Release builds entirely.
+    static var debugForcePro: Bool {
+        #if DEBUG
+        return UserDefaults.standard.bool(forKey: "debug.forcePro")
+        #else
+        return false
+        #endif
+    }
+
+    /// Entitlement string sent to the AI backend when there's no real StoreKit
+    /// JWS (i.e. DEBUG force-Pro testing). The backend only accepts it when its
+    /// `DEV_BYPASS_TOKEN` secret is set to the same value — absent in production.
+    static var debugEntitlementFallback: String {
+        #if DEBUG
+        return "hotstash-dev-bypass"
+        #else
+        return ""
+        #endif
+    }
 
     // MARK: Init
 
@@ -96,6 +119,21 @@ final class PurchaseManager: ObservableObject {
         }
     }
 
+    // MARK: - Entitlement proof
+
+    /// Signed JWS for the current Pro entitlement, or nil when not entitled.
+    /// Sent to the AI-generation Edge Function as proof of Pro so the server can
+    /// gate the feature without the app holding any secret. Apple signs it.
+    func proEntitlementJWS() async -> String? {
+        for await result in Transaction.currentEntitlements {
+            if case .verified(let transaction) = result,
+               transaction.productID == productID {
+                return result.jwsRepresentation
+            }
+        }
+        return nil
+    }
+
     // MARK: - Transaction listener
 
     /// Long-lived listener for deferred or cross-device transactions.
@@ -115,6 +153,11 @@ final class PurchaseManager: ObservableObject {
 
     /// Iterates over current entitlements and updates `isPurchased` accordingly.
     private func loadPurchaseState() async {
+        // DEBUG override wins — keep Pro on for local testing.
+        if Self.debugForcePro {
+            isPurchased = true
+            return
+        }
         for await result in Transaction.currentEntitlements {
             if case .verified(let transaction) = result,
                transaction.productID == productID {

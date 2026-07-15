@@ -7,6 +7,7 @@ import SwiftData
 /// real on-disk store, tear the container down, reopen a fresh container on the
 /// same file, and assert the folder is still there. In-memory stores can't
 /// catch a missing-schema / unsaved-context bug, so this uses a file URL.
+@MainActor
 struct FolderPersistenceTests {
 
     @Test func folderSurvivesContainerReopen() throws {

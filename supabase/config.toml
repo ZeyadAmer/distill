@@ -66,3 +66,7 @@ verify_jwt = true
 
 [functions.notify-owner]
 verify_jwt = false
+
+# Does its own auth (device id + Pro entitlement). No Supabase user JWT needed.
+[functions.generate-transform]
+verify_jwt = false

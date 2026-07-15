@@ -40,6 +40,19 @@ struct TransformBuilderView: View {
     // Feedback
     @State private var saveMessage: String?
 
+    // AI generation
+    @ObservedObject private var purchase = PurchaseManager.shared
+    @State private var aiDescription = ""
+    @State private var aiExampleInput = ""
+    @State private var aiExpectedOutput = ""
+    @State private var aiBusy = false
+    @State private var aiStatus: AIStatus?
+
+    /// Result badge shown after an AI generation attempt.
+    enum AIStatus: Equatable {
+        case verified, unverified, error(String)
+    }
+
     init(editing: TransformManifest? = nil, onSaved: (() -> Void)? = nil) {
         self.editing = editing
         self.onSaved = onSaved
@@ -51,6 +64,7 @@ struct TransformBuilderView: View {
             Divider()
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
+                    aiSection
                     metadataSection
                     bodySection
                     testSection
@@ -77,6 +91,142 @@ struct TransformBuilderView: View {
             .buttonStyle(.plain)
         }
         .padding(16)
+    }
+
+    // MARK: AI generation
+
+    /// Describe-and-example panel that generates the JS via the backend, then
+    /// self-verifies against the example. Hidden entirely when there's no backend
+    /// configured or for image transforms (JS-only feature).
+    @ViewBuilder
+    private var aiSection: some View {
+        if kind == .text, AIGenerationServiceProvider.isConfigured {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Label("Generate with AI", systemImage: "sparkles").font(.headline)
+                    Spacer()
+                    if !purchase.isPurchased {
+                        Text("PRO").font(.caption2).bold()
+                            .padding(.horizontal, 6).padding(.vertical, 2)
+                            .background(Color.accentColor.opacity(0.15))
+                            .clipShape(Capsule())
+                    }
+                }
+                Text("Describe what it should do and give one example. AI writes the function, then checks it against your example.")
+                    .font(.caption).foregroundStyle(.secondary)
+
+                TextField("Description — e.g. convert to kebab-case", text: $aiDescription)
+                    .textFieldStyle(.roundedBorder)
+                HStack(spacing: 8) {
+                    labeledField("Example input") {
+                        TextField("Hello World", text: $aiExampleInput).textFieldStyle(.roundedBorder)
+                    }
+                    labeledField("Expected output") {
+                        TextField("hello-world", text: $aiExpectedOutput).textFieldStyle(.roundedBorder)
+                    }
+                }
+
+                HStack(spacing: 10) {
+                    Button(action: generateWithAI) {
+                        if aiBusy {
+                            ProgressView().controlSize(.small)
+                        } else {
+                            Label("Generate", systemImage: "sparkles")
+                        }
+                    }
+                    .disabled(!canGenerate)
+                    if let aiStatus { aiStatusBadge(aiStatus) }
+                    Spacer()
+                }
+                if !purchase.isPurchased {
+                    Text("Upgrade to Pro to use AI generation.")
+                        .font(.caption2).foregroundStyle(.secondary)
+                }
+            }
+            .padding(10)
+            .background(Color.accentColor.opacity(0.06))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+        }
+    }
+
+    @ViewBuilder
+    private func aiStatusBadge(_ status: AIStatus) -> some View {
+        switch status {
+        case .verified:
+            Label("Verified", systemImage: "checkmark.seal.fill")
+                .font(.caption).foregroundStyle(.green)
+        case .unverified:
+            Label("Couldn't verify — review it", systemImage: "exclamationmark.triangle.fill")
+                .font(.caption).foregroundStyle(.orange)
+        case .error(let message):
+            Text(message).font(.caption).foregroundStyle(.red)
+                .lineLimit(2)
+        }
+    }
+
+    private var canGenerate: Bool {
+        purchase.isPurchased && !aiBusy
+            && !aiDescription.trimmingCharacters(in: .whitespaces).isEmpty
+            && !aiExampleInput.isEmpty
+            && !aiExpectedOutput.isEmpty
+    }
+
+    private func generateWithAI() {
+        guard let service = AIGenerationServiceProvider.shared else {
+            aiStatus = .error("AI generation isn't available in this build.")
+            return
+        }
+        aiBusy = true
+        aiStatus = nil
+        let generator = AITransformGenerator(service: service)
+        let desc = aiDescription
+        let input = aiExampleInput
+        let expected = aiExpectedOutput
+        Task {
+            defer { aiBusy = false }
+            let entitlement = await PurchaseManager.shared.proEntitlementJWS()
+                ?? PurchaseManager.debugEntitlementFallback
+            do {
+                let outcome = try await generator.generate(
+                    description: desc, exampleInput: input, expectedOutput: expected,
+                    deviceID: DeviceTracker.installID, entitlement: entitlement
+                )
+                applyGenerated(outcome, exampleInput: input)
+            } catch {
+                aiStatus = .error((error as? LocalizedError)?.errorDescription ?? "Generation failed.")
+            }
+        }
+    }
+
+    /// Fills the editor from a generated transform. Metadata only fills fields the
+    /// user hasn't already typed into; the JS always replaces the editor content.
+    private func applyGenerated(_ outcome: AITransformGenerator.Outcome, exampleInput: String) {
+        let generated: AIGeneratedTransform
+        let verified: Bool
+        switch outcome {
+        case .verified(let g):   generated = g; verified = true
+        case .unverified(let g): generated = g; verified = false
+        }
+
+        jsSource = generated.js
+        if name.trimmingCharacters(in: .whitespaces).isEmpty, let suggested = generated.name {
+            name = suggested
+        }
+        if description.trimmingCharacters(in: .whitespaces).isEmpty, let suggested = generated.description {
+            description = suggested
+        }
+        if let suggested = generated.category, TransformCategory(rawValue: suggested) != nil {
+            category = suggested
+        }
+        if let suggested = generated.icon, !suggested.isEmpty {
+            icon = suggested
+            iconMode = Self.iconMode(for: suggested)
+        }
+
+        // Prefill the live-test with the example and run it so the result is visible.
+        sampleInput = exampleInput
+        runTextTest()
+        aiStatus = verified ? .verified : .unverified
     }
 
     // MARK: Metadata

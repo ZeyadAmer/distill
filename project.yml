@@ -368,6 +368,10 @@ schemes:
         - HotstashTests
     run:
       config: Debug
+      # DEBUG-only Pro unlock for local testing (PurchaseManager.debugForcePro).
+      # Toggle off in Edit Scheme › Run › Arguments to test the non-Pro state.
+      commandLineArguments:
+        "-debug.forcePro YES": true
     archive:
       config: Release
 

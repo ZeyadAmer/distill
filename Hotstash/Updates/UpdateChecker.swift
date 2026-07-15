@@ -17,7 +17,12 @@ enum UpdateChecker {
 
     private enum Keys {
         static let lastPromptedVersion = "lastPromptedUpdateVersion"
+        static let lastPromptedRemote = "lastPromptedRemoteNotice"
     }
+
+    /// App Store app id (from the live listing) — the fallback deep link target
+    /// when a remote notice doesn't supply its own `listing_url`.
+    private static let appStoreID = 6771842605
 
     // MARK: - Launch prompt
 
@@ -26,9 +31,14 @@ enum UpdateChecker {
         let listingURL: URL
     }
 
-    /// Fire-and-forget launch check.
+    /// Fire-and-forget launch check. A developer-triggered remote notice (Supabase)
+    /// takes priority; if none applies, fall back to the automatic iTunes version
+    /// check.
     static func checkOnLaunch() {
-        Task { await check() }
+        Task {
+            if await presentRemoteNoticeIfNeeded() { return }
+            await check()
+        }
     }
 
     static func check() async {
@@ -78,6 +88,87 @@ enum UpdateChecker {
         if alert.runModal() == .alertFirstButtonReturn {
             NSWorkspace.shared.open(info.listingURL)
         }
+    }
+
+    // MARK: - Remote notice (developer-triggered)
+
+    struct RemoteNotice {
+        let enabled: Bool
+        let minVersion: String
+        let message: String?
+        let force: Bool
+        let listingURL: URL?
+    }
+
+    /// Fetches the Supabase `app_update_notice` row for macOS and, if it applies
+    /// to this build, shows the popup. Returns true when a notice was presented so
+    /// the caller can skip the automatic iTunes check. Best-effort — any failure
+    /// (offline, unconfigured, no row) resolves to false.
+    static func presentRemoteNoticeIfNeeded() async -> Bool {
+        guard let notice = await fetchRemoteNotice(), notice.enabled else { return false }
+
+        let current = currentVersion()
+        guard isVersion(notice.minVersion, newerThan: current) else { return false }
+
+        // Non-forced notices nag once per min_version; forced ones re-prompt every launch.
+        if !notice.force {
+            if UserDefaults.standard.string(forKey: Keys.lastPromptedRemote) == notice.minVersion {
+                return false
+            }
+            UserDefaults.standard.set(notice.minVersion, forKey: Keys.lastPromptedRemote)
+        }
+
+        presentRemotePrompt(notice: notice)
+        return true
+    }
+
+    private static func fetchRemoteNotice() async -> RemoteNotice? {
+        guard let config = SupabaseConfig.current,
+              let url = URL(string: config.url.absoluteString
+                  + "/rest/v1/app_update_notice?platform=eq.macos&select=enabled,min_version,message,force,listing_url")
+        else { return nil }
+
+        var req = URLRequest(url: url)
+        req.timeoutInterval = 10
+        req.cachePolicy = .reloadIgnoringLocalCacheData
+        req.setValue(config.anonKey, forHTTPHeaderField: "apikey")
+        req.setValue("Bearer \(config.anonKey)", forHTTPHeaderField: "Authorization")
+
+        guard let (data, response) = try? await URLSession.shared.data(for: req),
+              let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode),
+              let rows = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]],
+              let row = rows.first
+        else { return nil }
+
+        let listing = (row["listing_url"] as? String).flatMap(URL.init(string:))
+        return RemoteNotice(
+            enabled: row["enabled"] as? Bool ?? false,
+            minVersion: row["min_version"] as? String ?? "0",
+            message: row["message"] as? String,
+            force: row["force"] as? Bool ?? false,
+            listingURL: listing
+        )
+    }
+
+    private static func presentRemotePrompt(notice: RemoteNotice) {
+        let alert = NSAlert()
+        // ponytail: "force" can't hard-block — a sandboxed MAS app can't self-update
+        // or prevent quitting. It's a stronger, re-every-launch nag with no "Later".
+        alert.messageText = notice.force ? "Update Required" : "Update Available"
+        alert.informativeText = notice.message
+            ?? "A new version of Hotstash is available. Update from the App Store to get the latest features and fixes."
+        alert.alertStyle = notice.force ? .warning : .informational
+        alert.addButton(withTitle: "View in App Store")
+        if !notice.force { alert.addButton(withTitle: "Later") }
+
+        NSApp.activate(ignoringOtherApps: true)
+        if alert.runModal() == .alertFirstButtonReturn {
+            NSWorkspace.shared.open(notice.listingURL ?? defaultListingURL())
+        }
+    }
+
+    private static func defaultListingURL() -> URL {
+        URL(string: "macappstore://apps.apple.com/app/id\(appStoreID)")!
     }
 
     // MARK: - Panel strip
