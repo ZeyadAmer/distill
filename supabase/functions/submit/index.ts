@@ -7,10 +7,11 @@
 //                  image step whitelist + param validation.
 //   2. Dedup     — compute body_hash; reject exact LIVE duplicate; flag near-dup
 //                  name (not rejected).
-//   3. Route     — first-time author (no prior live) => pending;
-//                  returning author => live + notify owner.
+//   3. Route     — EVERY new transform => pending (admin must approve before it
+//                  goes live). No author is auto-published.
 //   4. Update    — existing transform + new version => validate+dedup, append a
-//                  transform_versions row, bump latest_version.
+//                  transform_versions row, bump latest_version, set status back
+//                  to pending so the new code is re-reviewed before it's public.
 //
 // Runs with the SERVICE ROLE key (bypasses RLS) but ALWAYS verifies the caller's
 // JWT first and forces owner_id = the authenticated user. Never trust the client.
@@ -430,6 +431,10 @@ Deno.serve(async (req: Request) => {
       return json({ status: "rejected", reason: "failed to append version" }, 500);
     }
 
+    // Every new version must be re-reviewed before it goes public, so the
+    // transform is set back to pending. This closes the "approve v1, then push
+    // a malicious v2 that auto-publishes" bypass. Users who already installed
+    // keep their local copy; the listing hides until an admin re-approves.
     const { error: updErr } = await admin
       .from("transforms")
       .update({
@@ -439,6 +444,7 @@ Deno.serve(async (req: Request) => {
         icon: manifest.icon ?? "textformat",
         category: manifest.category ?? "cleanup",
         latest_version: nextVersion,
+        status: "pending",
         body_hash: bodyHash,
       })
       .eq("id", existing.id);
@@ -446,20 +452,18 @@ Deno.serve(async (req: Request) => {
       return json({ status: "rejected", reason: "failed to update head" }, 500);
     }
 
-    // Returning author update on a live transform => notify owner to spot-check.
-    if (existing.status === "live") {
-      await notifyOwner("returning_live", {
-        transformId: existing.id,
-        slug: manifest.slug,
-        name: manifest.name,
-        authorId: user.id,
-        version: nextVersion,
-        update: true,
-      });
-    }
+    // Notify admin that an updated transform is awaiting review.
+    await notifyOwner("pending", {
+      transformId: existing.id,
+      slug: manifest.slug,
+      name: manifest.name,
+      authorId: user.id,
+      version: nextVersion,
+      update: true,
+    });
 
     return json({
-      status: existing.status,
+      status: "pending",
       transformId: existing.id,
       version: nextVersion,
       nearDuplicate,
@@ -467,20 +471,8 @@ Deno.serve(async (req: Request) => {
   }
 
   // =========================================================================
-  // NEW transform path: route first-timer vs returning author.
+  // NEW transform path: every new transform requires admin review.
   // =========================================================================
-  const { count: priorLiveCount, error: priorErr } = await admin
-    .from("transforms")
-    .select("id", { count: "exact", head: true })
-    .eq("owner_id", user.id)
-    .eq("status", "live");
-  if (priorErr) {
-    return json({ status: "rejected", reason: "author lookup failed" }, 500);
-  }
-
-  const isReturningAuthor = (priorLiveCount ?? 0) > 0;
-  const newStatus: "pending" | "live" = isReturningAuthor ? "live" : "pending";
-
   const { data: inserted, error: insErr } = await admin
     .from("transforms")
     .insert({
@@ -492,7 +484,7 @@ Deno.serve(async (req: Request) => {
       icon: manifest.icon ?? "textformat",
       category: manifest.category ?? "cleanup",
       latest_version: 1,
-      status: newStatus,
+      status: "pending",
       body_hash: bodyHash,
     })
     .select("id")
@@ -513,8 +505,8 @@ Deno.serve(async (req: Request) => {
     return json({ status: "rejected", reason: "failed to write version 1" }, 500);
   }
 
-  // Notify owner: pending (first-timer) OR returning-author auto-publish.
-  await notifyOwner(isReturningAuthor ? "returning_live" : "pending", {
+  // Notify admin that a new transform is awaiting review.
+  await notifyOwner("pending", {
     transformId: inserted.id,
     slug: manifest.slug,
     name: manifest.name,
@@ -524,7 +516,7 @@ Deno.serve(async (req: Request) => {
   });
 
   return json({
-    status: newStatus,
+    status: "pending",
     transformId: inserted.id,
     version: 1,
     nearDuplicate,
