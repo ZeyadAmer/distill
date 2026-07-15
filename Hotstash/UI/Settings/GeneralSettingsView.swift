@@ -51,6 +51,10 @@ struct GeneralSettingsView: View {
                 Text("Startup")
             }
 
+            // MARK: Menu bar stats
+
+            MenuBarStatsSettingsSection()
+
             // MARK: Keyboard shortcut
 
             Section {

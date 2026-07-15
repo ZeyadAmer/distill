@@ -14,6 +14,7 @@ final class MenuBarManager: NSObject {
 
     private let statusItem: NSStatusItem
     private var trialExpiredBadgeVisible = false
+    private var statsTimer: Timer?
 
     // MARK: Init
 
@@ -23,6 +24,8 @@ final class MenuBarManager: NSObject {
         configureButton()
         observePurchaseState()
         updateBadge()
+        observeStatsPreference()
+        startStatsTimerIfNeeded()
     }
 
     // MARK: - Public accessors
@@ -35,6 +38,7 @@ final class MenuBarManager: NSObject {
     private func configureButton() {
         guard let button = statusItem.button else { return }
         button.image = makeStatusIcon()
+        button.imagePosition = .imageTrailing
         button.action = #selector(handleButtonClick(_:))
         button.sendAction(on: [.leftMouseUp, .rightMouseUp])
         button.target = self
@@ -150,5 +154,49 @@ final class MenuBarManager: NSObject {
         // while the trial is expired; nil restores system behavior.
         statusItem.button?.contentTintColor = showWarning ? .systemOrange : nil
         statusItem.button?.toolTip = showWarning ? "Hotstash — trial expired" : "Hotstash"
+    }
+
+    // MARK: - Menu bar stats
+
+    private func observeStatsPreference() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleStatsPreferenceChanged),
+            name: .menuBarStatsPreferenceChanged,
+            object: nil
+        )
+    }
+
+    @objc private func handleStatsPreferenceChanged() {
+        startStatsTimerIfNeeded()
+    }
+
+    private func startStatsTimerIfNeeded() {
+        statsTimer?.invalidate()
+        statsTimer = nil
+
+        guard !MenuBarStatsPreference.selected.isEmpty else {
+            statusItem.button?.title = ""
+            return
+        }
+
+        updateStatsTitle()
+        statsTimer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] _ in
+            Task { @MainActor in self?.updateStatsTitle() }
+        }
+    }
+
+    private func updateStatsTitle() {
+        let kinds = MenuBarStatsPreference.selected
+        guard !kinds.isEmpty else {
+            statusItem.button?.title = ""
+            return
+        }
+        let text = kinds
+            .map { SystemStatsMonitor.shared.formattedValue(for: $0) }
+            .joined(separator: "  ")
+        // Trailing space — imageTrailing butts the icon straight against the
+        // title otherwise, with no layout knob to add a gap.
+        statusItem.button?.title = text + " "
     }
 }
