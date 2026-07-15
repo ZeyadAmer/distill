@@ -79,6 +79,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         showSignInPromptIfNeeded()
         // App Store update discovery is handled passively by the clipboard
         // panel's "Update available" strip (see ClipboardPanelVC + UpdateChecker).
+        // Developer-triggered update notices (Supabase app_update_notice) are
+        // shown on launch — these are opt-in per row, so no nag unless enabled.
+        Task { await UpdateChecker.presentRemoteNoticeIfNeeded() }
     }
 
     /// Invites the user to sign in to the marketplace on first launch and after
