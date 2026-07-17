@@ -90,28 +90,38 @@ final class HotkeyRecorderControl: NSControl {
     // MARK: - Drawing
 
     override func draw(_ dirtyRect: NSRect) {
-        let text  = isRecording ? "Press shortcut…" : displayString
-        let bg    = isRecording
-            ? NSColor.controlAccentColor.withAlphaComponent(0.12)
-            : NSColor.controlBackgroundColor
-        let border: NSColor = isRecording ? .controlAccentColor : .separatorColor
-        let fg: NSColor     = isRecording ? .controlAccentColor : .labelColor
+        // Nothing to draw into during teardown/transition snapshots — bail before
+        // touching CoreText, which throws if dynamic colors resolve without context.
+        guard bounds.width > 0, bounds.height > 0, NSGraphicsContext.current != nil else { return }
 
-        let path = NSBezierPath(roundedRect: bounds.insetBy(dx: 0.5, dy: 0.5), xRadius: 6, yRadius: 6)
-        bg.setFill(); path.fill()
-        border.setStroke(); path.stroke()
+        // Resolve dynamic system colors against this view's appearance. Without an
+        // explicit drawing appearance (as happens mid-TabView transition), CoreText
+        // can insert a nil into its attribute dictionary and abort. See crash logs
+        // for HotkeyRecorderControl.draw (SIGABRT in TAttributes::ApplyFont).
+        effectiveAppearance.performAsCurrentDrawingAppearance {
+            let text  = isRecording ? "Press shortcut…" : displayString
+            let bg    = isRecording
+                ? NSColor.controlAccentColor.withAlphaComponent(0.12)
+                : NSColor.controlBackgroundColor
+            let border: NSColor = isRecording ? .controlAccentColor : .separatorColor
+            let fg: NSColor     = isRecording ? .controlAccentColor : .labelColor
 
-        let attrs: [NSAttributedString.Key: Any] = [
-            .font:            NSFont.monospacedSystemFont(ofSize: 13, weight: .medium),
-            .foregroundColor: fg,
-        ]
-        let attributed = NSAttributedString(string: text, attributes: attrs)
-        let sz = attributed.size()
-        let origin = NSPoint(
-            x: (bounds.width  - sz.width)  / 2,
-            y: (bounds.height - sz.height) / 2
-        )
-        attributed.draw(at: origin)
+            let path = NSBezierPath(roundedRect: bounds.insetBy(dx: 0.5, dy: 0.5), xRadius: 6, yRadius: 6)
+            bg.setFill(); path.fill()
+            border.setStroke(); path.stroke()
+
+            let attrs: [NSAttributedString.Key: Any] = [
+                .font:            NSFont.monospacedSystemFont(ofSize: 13, weight: .medium),
+                .foregroundColor: fg,
+            ]
+            let attributed = NSAttributedString(string: text, attributes: attrs)
+            let sz = attributed.size()
+            let origin = NSPoint(
+                x: (bounds.width  - sz.width)  / 2,
+                y: (bounds.height - sz.height) / 2
+            )
+            attributed.draw(at: origin)
+        }
     }
 
     override var intrinsicContentSize: NSSize { NSSize(width: 110, height: 26) }
