@@ -160,6 +160,10 @@ struct TransformManifest: Codable, Equatable, Identifiable {
     let kind: TransformKind
     let name: String
     let description: String
+    /// Optional worked example shown on the transform's detail page. Populated by
+    /// the author or carried over from the AI generator's example.
+    let exampleInput: String?
+    let exampleOutput: String?
     let icon: String
     let category: String
     let authorId: String?
@@ -176,6 +180,8 @@ struct TransformManifest: Codable, Equatable, Identifiable {
         kind: TransformKind,
         name: String,
         description: String,
+        exampleInput: String? = nil,
+        exampleOutput: String? = nil,
         icon: String,
         category: String,
         authorId: String? = nil,
@@ -191,6 +197,8 @@ struct TransformManifest: Codable, Equatable, Identifiable {
         self.kind = kind
         self.name = name
         self.description = description
+        self.exampleInput = exampleInput
+        self.exampleOutput = exampleOutput
         self.icon = icon
         self.category = category
         self.authorId = authorId

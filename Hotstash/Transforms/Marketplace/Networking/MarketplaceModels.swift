@@ -64,17 +64,23 @@ struct TransformDetail: Identifiable, Codable, Equatable {
     let ratingCount: Int
     let isFeatured: Bool
     let description: String
+    let exampleInput: String?
+    let exampleOutput: String?
     let version: Int
     let body: TransformBody
 
     init(id: UUID, slug: String, name: String, authorName: String?, kind: TransformKind,
          category: String, icon: String = "textformat", installCount: Int, ratingAvg: Double,
-         ratingCount: Int, isFeatured: Bool, description: String, version: Int, body: TransformBody) {
+         ratingCount: Int, isFeatured: Bool, description: String,
+         exampleInput: String? = nil, exampleOutput: String? = nil,
+         version: Int, body: TransformBody) {
         self.id = id; self.slug = slug; self.name = name; self.authorName = authorName
         self.kind = kind; self.category = category; self.icon = icon
         self.installCount = installCount; self.ratingAvg = ratingAvg
         self.ratingCount = ratingCount; self.isFeatured = isFeatured
-        self.description = description; self.version = version; self.body = body
+        self.description = description
+        self.exampleInput = exampleInput; self.exampleOutput = exampleOutput
+        self.version = version; self.body = body
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -90,6 +96,8 @@ struct TransformDetail: Identifiable, Codable, Equatable {
         case ratingCount = "rating_count"
         case isFeatured = "is_featured"
         case description
+        case exampleInput = "example_input"
+        case exampleOutput = "example_output"
         case version
         case body
     }
@@ -101,6 +109,7 @@ struct TransformDetail: Identifiable, Codable, Equatable {
             id: id, slug: slug, name: self.name, authorName: name, kind: kind,
             category: category, icon: icon, installCount: installCount, ratingAvg: ratingAvg,
             ratingCount: ratingCount, isFeatured: isFeatured, description: description,
+            exampleInput: exampleInput, exampleOutput: exampleOutput,
             version: version, body: body
         )
     }
@@ -114,6 +123,8 @@ struct TransformDetail: Identifiable, Codable, Equatable {
             kind: kind,
             name: name,
             description: description,
+            exampleInput: exampleInput,
+            exampleOutput: exampleOutput,
             icon: icon,
             category: category,
             authorName: authorName,

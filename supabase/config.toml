@@ -70,3 +70,7 @@ verify_jwt = false
 # Does its own auth (device id + Pro entitlement). No Supabase user JWT needed.
 [functions.generate-transform]
 verify_jwt = false
+
+# One-off admin backfill. Gated by BACKFILL_TOKEN header, no end-user JWT.
+[functions.backfill-examples]
+verify_jwt = false

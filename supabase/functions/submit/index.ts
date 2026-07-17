@@ -117,9 +117,19 @@ interface Manifest {
   kind?: "text" | "image";
   name?: string;
   description?: string;
+  exampleInput?: string;
+  exampleOutput?: string;
   icon?: string;
   category?: string;
   body?: ManifestBody;
+}
+
+// Trims an optional example field, returning null when empty/absent so the
+// column stores NULL rather than "".
+function exampleValue(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed.slice(0, MAX_DESC_LEN) : null;
 }
 
 interface ValidationResult {
@@ -404,6 +414,8 @@ Deno.serve(async (req: Request) => {
           kind,
           name: manifest.name,
           description: manifest.description ?? "",
+          example_input: exampleValue(manifest.exampleInput),
+          example_output: exampleValue(manifest.exampleOutput),
           icon: manifest.icon ?? "textformat",
           category: manifest.category ?? "cleanup",
         })
@@ -441,6 +453,8 @@ Deno.serve(async (req: Request) => {
         kind,
         name: manifest.name,
         description: manifest.description ?? "",
+        example_input: exampleValue(manifest.exampleInput),
+        example_output: exampleValue(manifest.exampleOutput),
         icon: manifest.icon ?? "textformat",
         category: manifest.category ?? "cleanup",
         latest_version: nextVersion,
@@ -481,6 +495,8 @@ Deno.serve(async (req: Request) => {
       kind,
       name: manifest.name,
       description: manifest.description ?? "",
+      example_input: exampleValue(manifest.exampleInput),
+      example_output: exampleValue(manifest.exampleOutput),
       icon: manifest.icon ?? "textformat",
       category: manifest.category ?? "cleanup",
       latest_version: 1,

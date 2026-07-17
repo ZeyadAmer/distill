@@ -82,6 +82,7 @@ struct TransformDetailView: View {
                     if let description = detail?.description, !description.isEmpty {
                         Text(description).font(.body)
                     }
+                    exampleSection
                     bodyPreview
                     reviewsSection
                     if accessToken != nil {
@@ -105,6 +106,35 @@ struct TransformDetailView: View {
             }
         }
         .font(.caption)
+    }
+
+    /// Worked example (input → output), shown only when the transform carries one.
+    @ViewBuilder
+    private var exampleSection: some View {
+        if let input = detail?.exampleInput, let output = detail?.exampleOutput,
+           !input.isEmpty, !output.isEmpty {
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Example").font(.headline)
+                exampleBox("Input", input)
+                Image(systemName: "arrow.down")
+                    .font(.caption).foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                exampleBox("Output", output)
+            }
+        }
+    }
+
+    private func exampleBox(_ label: String, _ text: String) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(label).font(.caption2).foregroundStyle(.secondary)
+            Text(text)
+                .font(.system(.caption, design: .monospaced))
+                .textSelection(.enabled)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(8)
+                .background(Color(nsColor: .textBackgroundColor))
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+        }
     }
 
     @ViewBuilder

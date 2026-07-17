@@ -17,6 +17,8 @@ struct TransformBuilderView: View {
     // Metadata
     @State private var name = ""
     @State private var description = ""
+    @State private var exampleInput = ""
+    @State private var exampleOutput = ""
     @State private var category = TransformCategory.cleanup.rawValue
     @State private var icon = "wand.and.stars"
     @State private var iconMode: IconMode = .symbol
@@ -191,7 +193,7 @@ struct TransformBuilderView: View {
                     description: desc, exampleInput: input, expectedOutput: expected,
                     deviceID: DeviceTracker.installID, entitlement: entitlement
                 )
-                applyGenerated(outcome, exampleInput: input)
+                applyGenerated(outcome, generatedExampleInput: input)
             } catch {
                 aiStatus = .error((error as? LocalizedError)?.errorDescription ?? "Generation failed.")
             }
@@ -200,7 +202,7 @@ struct TransformBuilderView: View {
 
     /// Fills the editor from a generated transform. Metadata only fills fields the
     /// user hasn't already typed into; the JS always replaces the editor content.
-    private func applyGenerated(_ outcome: AITransformGenerator.Outcome, exampleInput: String) {
+    private func applyGenerated(_ outcome: AITransformGenerator.Outcome, generatedExampleInput: String) {
         let generated: AIGeneratedTransform
         let verified: Bool
         switch outcome {
@@ -223,8 +225,17 @@ struct TransformBuilderView: View {
             iconMode = Self.iconMode(for: suggested)
         }
 
+        // Carry the AI example over as the transform's worked example, unless the
+        // author already filled them in.
+        if exampleInput.trimmingCharacters(in: .whitespaces).isEmpty {
+            exampleInput = aiExampleInput
+        }
+        if exampleOutput.trimmingCharacters(in: .whitespaces).isEmpty {
+            exampleOutput = aiExpectedOutput
+        }
+
         // Prefill the live-test with the example and run it so the result is visible.
-        sampleInput = exampleInput
+        sampleInput = generatedExampleInput
         runTextTest()
         aiStatus = verified ? .verified : .unverified
     }
@@ -238,6 +249,14 @@ struct TransformBuilderView: View {
             }
             labeledField("Description") {
                 TextField("Short description", text: $description).textFieldStyle(.roundedBorder)
+            }
+            HStack(spacing: 8) {
+                labeledField("Example input (optional)") {
+                    TextField("Hello World", text: $exampleInput).textFieldStyle(.roundedBorder)
+                }
+                labeledField("Example output (optional)") {
+                    TextField("hello-world", text: $exampleOutput).textFieldStyle(.roundedBorder)
+                }
             }
             labeledField("Category") {
                 Picker("", selection: $category) {
@@ -384,6 +403,12 @@ struct TransformBuilderView: View {
         steps.removeAll { $0.id == step.id }
     }
 
+    /// Trims a field, returning nil when it holds only whitespace.
+    private func blankToNil(_ value: String) -> String? {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+
     // MARK: Icon helpers
 
     /// The mode implied by a stored icon string.
@@ -446,6 +471,8 @@ struct TransformBuilderView: View {
         guard let manifest = editing else { return }
         name = manifest.name
         description = manifest.description
+        exampleInput = manifest.exampleInput ?? ""
+        exampleOutput = manifest.exampleOutput ?? ""
         category = manifest.category
         icon = manifest.icon
         iconMode = Self.iconMode(for: manifest.icon)
@@ -472,6 +499,8 @@ struct TransformBuilderView: View {
             kind: kind,
             name: trimmedName,
             description: description,
+            exampleInput: blankToNil(exampleInput),
+            exampleOutput: blankToNil(exampleOutput),
             icon: icon.isEmpty ? "wand.and.stars" : icon,
             category: category,
             authorName: editing?.authorName,

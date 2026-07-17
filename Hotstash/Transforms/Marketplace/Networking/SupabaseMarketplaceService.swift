@@ -48,7 +48,7 @@ struct SupabaseMarketplaceService: MarketplaceService {
     func detail(slug: String) async throws -> TransformDetail {
         // Fetch the row + its newest version body in a single embedded query.
         let q = "transforms?slug=eq.\(escape(slug))&status=eq.live"
-            + "&select=id,slug,name,description,kind,category,icon,owner_id,latest_version,install_count,rating_avg,rating_count,is_featured,transform_versions(version,body)"
+            + "&select=id,slug,name,description,example_input,example_output,kind,category,icon,owner_id,latest_version,install_count,rating_avg,rating_count,is_featured,transform_versions(version,body)"
             + "&transform_versions.order=version.desc&transform_versions.limit=1"
         let rows: [DetailRow] = try await get(q)
         guard let row = rows.first, var detail = row.toDetail() else { throw MarketplaceError.decoding }
@@ -297,6 +297,8 @@ private struct DetailRow: Decodable {
     let slug: String
     let name: String
     let description: String
+    let example_input: String?
+    let example_output: String?
     let kind: TransformKind
     let category: String
     let icon: String
@@ -319,7 +321,8 @@ private struct DetailRow: Decodable {
             id: id, slug: slug, name: name, authorName: nil, kind: kind,
             category: category, icon: icon, installCount: install_count, ratingAvg: rating_avg,
             ratingCount: rating_count, isFeatured: is_featured,
-            description: description, version: latest_version, body: body
+            description: description, exampleInput: example_input, exampleOutput: example_output,
+            version: latest_version, body: body
         )
     }
 }
