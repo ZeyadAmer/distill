@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 // MARK: - HistoryLimitOption
@@ -183,6 +184,16 @@ struct GeneralSettingsView: View {
                 Text("History")
             }
 
+            // MARK: Import
+
+            Section {
+                Button("Import from Raycast\u{2026}") { importFromRaycast() }
+            } header: {
+                Text("Import")
+            } footer: {
+                Text("In Raycast, run \u{201C}Export Settings & Data\u{201D} and set a passphrase, then pick that .rayconfig file here.")
+            }
+
         }
         .formStyle(.grouped)
         .padding(.vertical, 8)
@@ -190,6 +201,57 @@ struct GeneralSettingsView: View {
     }
 
     // MARK: - Helpers
+
+    // MARK: - Raycast import
+
+    private func importFromRaycast() {
+        let panel = NSOpenPanel()
+        panel.title = "Choose Raycast Export"
+        panel.allowedContentTypes = []
+        panel.allowedFileTypes = ["rayconfig"]
+        panel.allowsMultipleSelection = false
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+
+        guard let passphrase = promptForPassphrase(), !passphrase.isEmpty else { return }
+
+        do {
+            let count = try RaycastImporter.importClipboard(from: url, passphrase: passphrase)
+            showImportResult(
+                title: count > 0 ? "Import Complete" : "Nothing to Import",
+                message: count > 0
+                    ? "Added \(count) item\(count == 1 ? "" : "s") from Raycast."
+                    : "No new clipboard items were found (they may already be in your history)."
+            )
+            NotificationCenter.default.post(name: .clipboardDidUpdate, object: nil)
+        } catch {
+            showImportResult(
+                title: "Import Failed",
+                message: error.localizedDescription,
+                style: .warning
+            )
+        }
+    }
+
+    private func promptForPassphrase() -> String? {
+        let alert = NSAlert()
+        alert.messageText = "Enter Raycast Export Passphrase"
+        alert.informativeText = "The passphrase you set when exporting from Raycast."
+        alert.addButton(withTitle: "Import")
+        alert.addButton(withTitle: "Cancel")
+        let field = NSSecureTextField(frame: NSRect(x: 0, y: 0, width: 240, height: 24))
+        alert.accessoryView = field
+        alert.window.initialFirstResponder = field
+        return alert.runModal() == .alertFirstButtonReturn ? field.stringValue : nil
+    }
+
+    private func showImportResult(title: String, message: String, style: NSAlert.Style = .informational) {
+        let alert = NSAlert()
+        alert.alertStyle = style
+        alert.messageText = title
+        alert.informativeText = message
+        alert.addButton(withTitle: "OK")
+        alert.runModal()
+    }
 
     private func applyLimit() {
         let store = ClipboardStore.shared

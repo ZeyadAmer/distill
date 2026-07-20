@@ -13,11 +13,19 @@ extension ModelContainer {
         do {
             return try ModelContainer(for: ClipboardItem.self, StoredTransform.self, Folder.self, configurations: config)
         } catch {
-            // A failed store is unrecoverable for a clipboard app; fall back to
-            // a local-only store so the app still launches without sync.
+            // CloudKit store failed — fall back to a local-only store so the app
+            // still launches without sync.
             let local = ModelConfiguration("Hotstash", cloudKitDatabase: .none)
+            if let container = try? ModelContainer(for: ClipboardItem.self, StoredTransform.self, Folder.self, configurations: local) {
+                return container
+            }
+            // Local store also unopenable (disk full / corrupt store after a bad
+            // migration). Force-trying here would crash on every launch forever,
+            // locking the user out. Fall back to an in-memory store: the app
+            // launches and works for this session instead of crash-looping.
+            let memory = ModelConfiguration(isStoredInMemoryOnly: true)
             // swiftlint:disable:next force_try
-            return try! ModelContainer(for: ClipboardItem.self, StoredTransform.self, Folder.self, configurations: local)
+            return try! ModelContainer(for: ClipboardItem.self, StoredTransform.self, Folder.self, configurations: memory)
         }
     }()
 

@@ -121,10 +121,10 @@ struct TransformBuilderView: View {
                     .textFieldStyle(.roundedBorder)
                 HStack(spacing: 8) {
                     labeledField("Example input") {
-                        TextField("Hello World", text: $aiExampleInput).textFieldStyle(.roundedBorder)
+                        TextField("Hello World", text: $aiExampleInput, axis: .vertical).textFieldStyle(.roundedBorder)
                     }
                     labeledField("Expected output") {
-                        TextField("hello-world", text: $aiExpectedOutput).textFieldStyle(.roundedBorder)
+                        TextField("hello-world", text: $aiExpectedOutput, axis: .vertical).textFieldStyle(.roundedBorder)
                     }
                 }
 
@@ -252,10 +252,10 @@ struct TransformBuilderView: View {
             }
             HStack(spacing: 8) {
                 labeledField("Example input (optional)") {
-                    TextField("Hello World", text: $exampleInput).textFieldStyle(.roundedBorder)
+                    TextField("Hello World", text: $exampleInput, axis: .vertical).textFieldStyle(.roundedBorder)
                 }
                 labeledField("Example output (optional)") {
-                    TextField("hello-world", text: $exampleOutput).textFieldStyle(.roundedBorder)
+                    TextField("hello-world", text: $exampleOutput, axis: .vertical).textFieldStyle(.roundedBorder)
                 }
             }
             labeledField("Category") {
@@ -510,7 +510,12 @@ struct TransformBuilderView: View {
 
     private func save() {
         let manifest = buildManifest()
-        MarketplaceLibrary.shared.upsert(manifest: manifest, origin: "local")
+        do {
+            try MarketplaceLibrary.shared.upsert(manifest: manifest, origin: "local")
+        } catch {
+            saveMessage = "Couldn't save: \(error.localizedDescription)"
+            return
+        }
         saveMessage = "Saved."
         onSaved?()
         dismiss()

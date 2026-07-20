@@ -252,7 +252,12 @@ struct TransformDetailView: View {
             }
         } else {
             Button("Install") {
-                Task { await viewModel.install(item) }
+                Task {
+                    await viewModel.install(item)
+                    if let failure = viewModel.actionMessage {
+                        actionMessage = failure
+                    }
+                }
             }
             .buttonStyle(.borderedProminent)
         }

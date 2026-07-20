@@ -28,6 +28,7 @@ enum QuickTransformRunner {
         let targetApp = NSWorkspace.shared.frontmostApplication
 
         let output = transform.apply(to: text)
+        ClipboardStore.shared.recordTransformedText(output)
         PasteEngine.hotstashedCopy(output)
         AutoPasteService.paste(restoringFocusTo: targetApp)
     }

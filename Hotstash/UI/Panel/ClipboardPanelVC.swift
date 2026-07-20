@@ -1082,11 +1082,15 @@ final class ClipboardPanelVC: NSViewController {
         }
 
         if item.contentType == .image, let data = item.imageData, let transform {
-            PasteEngine.hotstashedPasteImage(transform.applyToImageData(data) ?? data)
+            let result = transform.applyToImageData(data) ?? data
+            ClipboardStore.shared.recordTransformedImage(result)
+            PasteEngine.hotstashedPasteImage(result)
             return
         }
         if let transform {
-            PasteEngine.hotstashedPaste(transform.apply(to: item.content))
+            let result = transform.apply(to: item.content)
+            ClipboardStore.shared.recordTransformedText(result)
+            PasteEngine.hotstashedPaste(result)
             return
         }
         PasteEngine.hotstashedPaste(item: item, plainTextOnly: plainTextOnly)
@@ -1106,11 +1110,13 @@ final class ClipboardPanelVC: NSViewController {
             let finalData = transforms.reduce(data) { current, transform in
                 transform.applyToImageData(current) ?? current
             }
+            ClipboardStore.shared.recordTransformedImage(finalData)
             PasteEngine.hotstashedPasteImage(finalData)
             return
         }
 
         let result = transforms.reduce(item.content) { $1.apply(to: $0) }
+        ClipboardStore.shared.recordTransformedText(result)
         PasteEngine.hotstashedPaste(result)
     }
 

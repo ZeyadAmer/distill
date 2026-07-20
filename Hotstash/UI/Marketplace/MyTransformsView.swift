@@ -143,7 +143,13 @@ struct MyTransformsView: View {
         guard accessToken != nil, let token = await AuthManager.shared.validToken() else {
             published = []; return
         }
-        published = (try? await service.myTransforms(accessToken: token)) ?? []
+        do {
+            published = try await service.myTransforms(accessToken: token)
+        } catch {
+            // Keep last-known list: a transient failure must not render as
+            // "you have published nothing" and invite a duplicate publish.
+            statusMessage = "Couldn't refresh published transforms: \(error.localizedDescription)"
+        }
     }
 
     private func draftRow(_ row: StoredTransform) -> some View {
@@ -221,7 +227,7 @@ struct MyTransformsView: View {
         do {
             let data = try Data(contentsOf: url)
             let manifest = try MarketplaceLibrary.shared.importManifest(from: data)
-            MarketplaceLibrary.shared.upsert(manifest: manifest, origin: "local")
+            try MarketplaceLibrary.shared.upsert(manifest: manifest, origin: "local")
             statusMessage = "Imported \(manifest.name)."
             reload()
         } catch {

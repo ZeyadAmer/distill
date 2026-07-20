@@ -314,6 +314,7 @@ final class TransformPickerVC: NSViewController {
 
     private func addTransformRow(_ transform: any Transform, isHighlighted: Bool) {
         let row = TransformRowView(transform: transform, isHighlighted: isHighlighted)
+        row.sampleText = (sourceItem?.contentType == .image) ? nil : sourceItem?.content
         row.translatesAutoresizingMaskIntoConstraints = false
         row.onTap = { [weak self] in
             self?.handleRowTap(transform)
@@ -409,6 +410,9 @@ private final class TransformRowView: NSView {
 
     var onTap: (() -> Void)?
 
+    /// Source text the hover preview runs the transform against; nil disables it.
+    var sampleText: String?
+
     // MARK: Subviews
 
     private let iconView: NSImageView = {
@@ -448,12 +452,15 @@ private final class TransformRowView: NSView {
 
     // MARK: State
 
+    private let transform: any Transform
     private var isHovering = false
     private var isStackSelected = false
+    private var didComputePreview = false
 
     // MARK: Init
 
     init(transform: any Transform, isHighlighted: Bool) {
+        self.transform = transform
         super.init(frame: .zero)
         heightAnchor.constraint(equalToConstant: 32).isActive = true
         buildLayout(transform: transform, isHighlighted: isHighlighted)
@@ -529,7 +536,23 @@ private final class TransformRowView: NSView {
 
     override func mouseEntered(with event: NSEvent) {
         isHovering = true
+        computePreviewIfNeeded()
         updateHoverState()
+    }
+
+    /// Runs the transform on a truncated sample of the source text the first
+    /// time the row is hovered, and exposes the result as the row's tooltip.
+    private func computePreviewIfNeeded() {
+        guard !didComputePreview else { return }
+        didComputePreview = true
+
+        guard let sample = sampleText?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !sample.isEmpty else { return }
+        // ponytail: 300-char cap keeps JS/regex transforms instant on huge clips.
+        let input = String(sample.prefix(300))
+        let output = transform.apply(to: input)
+        guard !output.isEmpty else { return }
+        toolTip = String(output.prefix(300))
     }
 
     override func mouseExited(with event: NSEvent) {

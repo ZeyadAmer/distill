@@ -8,6 +8,7 @@ struct TransformView: View {
     @State private var selectedTransform: (any Transform)?
     @State private var copiedResult     = false
     @State private var searchText       = ""
+    @State private var didAutoLoad      = false
     @FocusState private var inputFocused: Bool
 
     private var filteredTransforms: [any Transform] {
@@ -25,7 +26,14 @@ struct TransformView: View {
                 transformList
             }
             .navigationTitle("Transform")
-            .onAppear { loadFromClipboard() }
+            .onAppear {
+                // Auto-load the clipboard once, and only if the user hasn't
+                // already typed something. Re-running on every tab revisit was
+                // silently wiping in-progress input.
+                guard !didAutoLoad, inputText.isEmpty else { return }
+                didAutoLoad = true
+                loadFromClipboard()
+            }
         }
     }
 

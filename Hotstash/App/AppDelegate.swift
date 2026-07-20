@@ -73,6 +73,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Anonymous active-user ping (no login, no PII).
         DeviceTracker.recordOpen()
 
+        // Forward any crash from the previous run to Supabase (via MetricKit).
+        CrashReporter.shared.start()
+
         // Show first-launch onboarding or version What's New.
         showOnboardingIfNeeded()
         showWhatsNewIfNeeded()

@@ -106,16 +106,25 @@ final class PurchaseManager: ObservableObject {
 
     // MARK: - Restore
 
+    enum RestoreResult {
+        case restored
+        case nothingToRestore
+        case failed(String)
+    }
+
     /// Syncs with the App Store to restore any prior purchases.
-    func restorePurchases() async {
+    /// Returns a result the UI can surface — never fails silently.
+    @discardableResult
+    func restorePurchases() async -> RestoreResult {
         isLoading = true
         defer { isLoading = false }
 
         do {
             try await AppStore.sync()
             await loadPurchaseState()
+            return isPurchased ? .restored : .nothingToRestore
         } catch {
-            print("[PurchaseManager] Restore failed: \(error.localizedDescription)")
+            return .failed(error.localizedDescription)
         }
     }
 

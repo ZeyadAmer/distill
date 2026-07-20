@@ -2,7 +2,7 @@ import Foundation
 
 // MARK: - TrialManager
 
-/// Tracks the 14-day free trial period.
+/// Tracks the 30-day free trial period (see `trialDurationDays`).
 ///
 /// `firstLaunchDate` is written to UserDefaults once on the first call to `start()`.
 /// StoreKit purchase state is the authoritative unlock signal; trial state is

@@ -48,15 +48,32 @@ struct RuffFormatTransform: Transform {
             return nil
         }
 
+        // Drain stdout/stderr concurrently BEFORE waiting: ruff's formatted
+        // output easily exceeds the ~64KB pipe buffer, and if nobody reads it
+        // ruff blocks on write while we block in waitUntilExit — a deadlock
+        // that froze the calling main thread.
+        var outputData = Data()
+        let drain = DispatchGroup()
+        drain.enter()
+        DispatchQueue.global(qos: .userInitiated).async {
+            outputData = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
+            drain.leave()
+        }
+        drain.enter()
+        DispatchQueue.global(qos: .userInitiated).async {
+            _ = stderrPipe.fileHandleForReading.readDataToEndOfFile()
+            drain.leave()
+        }
+
         if let data = input.data(using: .utf8) {
             stdinPipe.fileHandleForWriting.write(data)
         }
         stdinPipe.fileHandleForWriting.closeFile()
 
         process.waitUntilExit()
+        drain.wait()
 
         guard process.terminationStatus == 0 else { return nil }
-        let outputData = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
         return String(data: outputData, encoding: .utf8)
     }
 }

@@ -8,6 +8,8 @@ struct AboutSettingsView: View {
 
     @State private var purchaseError: String?
     @State private var showingPurchaseError = false
+    @State private var restoreMessage: String?
+    @State private var showingRestoreMessage = false
 
     var body: some View {
         ScrollView {
@@ -26,6 +28,11 @@ struct AboutSettingsView: View {
             Button("OK", role: .cancel) {}
         } message: { error in
             Text(error)
+        }
+        .alert("Restore Purchase", isPresented: $showingRestoreMessage, presenting: restoreMessage) { _ in
+            Button("OK", role: .cancel) {}
+        } message: { message in
+            Text(message)
         }
     }
 
@@ -102,7 +109,17 @@ struct AboutSettingsView: View {
                 .padding(.horizontal, 24)
 
                 Button("Restore Purchase") {
-                    Task { await purchaseManager.restorePurchases() }
+                    Task {
+                        switch await purchaseManager.restorePurchases() {
+                        case .restored:
+                            restoreMessage = "Your purchase has been restored."
+                        case .nothingToRestore:
+                            restoreMessage = "No previous purchase was found for this Apple ID."
+                        case .failed(let message):
+                            restoreMessage = "Restore failed: \(message)"
+                        }
+                        showingRestoreMessage = true
+                    }
                 }
                 .buttonStyle(.borderless)
                 .foregroundStyle(.secondary)

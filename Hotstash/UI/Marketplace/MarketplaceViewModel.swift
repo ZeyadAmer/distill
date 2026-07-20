@@ -18,7 +18,11 @@ final class MarketplaceViewModel: ObservableObject {
     @Published var selectedCategory: String?
     @Published var sort: MarketplaceSort = .mostInstalled
     @Published var isLoading: Bool = false
+    /// Fatal load failure — replaces the whole storefront with an error state.
     @Published var errorMessage: String?
+    /// Non-fatal failure from a background action (install/lookup). Surfaced as
+    /// a transient message; must NOT blank out an already-loaded list.
+    @Published var actionMessage: String?
     @Published var installedSlugs: Set<String> = []
 
     // MARK: Dependencies
@@ -72,10 +76,10 @@ final class MarketplaceViewModel: ObservableObject {
     /// Install `item`: fetch detail, persist its manifest, record the install,
     /// and mark it installed locally.
     func install(_ item: TransformListItem) async {
-        errorMessage = nil
+        actionMessage = nil
         do {
             let detail = try await service.detail(slug: item.slug)
-            MarketplaceLibrary.shared.upsert(
+            try MarketplaceLibrary.shared.upsert(
                 manifest: detail.toManifest(),
                 origin: "installed",
                 installedVersion: detail.version
@@ -83,7 +87,9 @@ final class MarketplaceViewModel: ObservableObject {
             try? await service.recordInstall(transformID: item.id)
             installedSlugs.insert(item.slug)
         } catch {
-            errorMessage = Self.describe(error)
+            // Set actionMessage, not errorMessage: a failed install must not
+            // replace the whole browse list with an error screen.
+            actionMessage = Self.describe(error)
         }
     }
 
@@ -109,7 +115,7 @@ final class MarketplaceViewModel: ObservableObject {
                 ratingCount: detail.ratingCount, isFeatured: detail.isFeatured
             )
         } catch {
-            errorMessage = Self.describe(error)
+            actionMessage = Self.describe(error)
             return nil
         }
     }

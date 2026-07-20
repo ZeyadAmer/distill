@@ -6,5 +6,6 @@ import WidgetKit
 struct HotstashControlsBundle: WidgetBundle {
     var body: some Widget {
         OpenHistoryControl()
+        SaveClipboardControl()
     }
 }

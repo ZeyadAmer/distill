@@ -97,6 +97,15 @@ private struct ShareTransformView: View {
     @State private var selectedID: String?
     @State private var copied           = false
     @State private var searchText       = ""
+    @State private var finished         = false
+
+    /// completeRequest must be called at most once per NSExtensionContext.
+    /// Guard every path (Cancel, Copy & Close, the delayed close) through here.
+    private func finish() {
+        guard !finished else { return }
+        finished = true
+        onDone()
+    }
 
     private var filteredTransforms: [any Transform] {
         guard !searchText.isEmpty else { return IOSTransformSettings.enabledOrdered() }
@@ -157,7 +166,8 @@ private struct ShareTransformView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { onDone() }
+                    Button("Cancel") { finish() }
+                        .disabled(finished)
                 }
             }
         }
@@ -198,10 +208,11 @@ private struct ShareTransformView: View {
     }
 
     private func copyAndSave() {
+        guard !copied else { return }
         UIPasteboard.general.string = resultText
         saveToSharedHistory(resultText)
         withAnimation { copied = true }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { onDone() }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { finish() }
     }
 
     /// Inserts the item into the shared SwiftData store (the main app exports

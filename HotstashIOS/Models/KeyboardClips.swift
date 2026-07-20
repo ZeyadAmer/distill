@@ -87,6 +87,15 @@ enum KeyboardCapture {
     static func captureIfNew() -> Bool {
         let pasteboard = UIPasteboard.general
         let count = pasteboard.changeCount
+
+        // First run (key unset): seed the baseline instead of capturing, so
+        // whatever happened to be on the pasteboard before the keyboard was
+        // ever opened — possibly a password or OTP from another app — is NOT
+        // silently swept into permanent, cross-device history.
+        guard SharedDefaults.store.object(forKey: changeCountKey) != nil else {
+            SharedDefaults.store.set(count, forKey: changeCountKey)
+            return false
+        }
         guard count != SharedDefaults.store.integer(forKey: changeCountKey) else { return false }
         SharedDefaults.store.set(count, forKey: changeCountKey)
 

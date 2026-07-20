@@ -1,4 +1,5 @@
 import Foundation
+import OSLog
 import SwiftUI
 
 // MARK: - QuickTransformSlot
@@ -80,8 +81,14 @@ final class QuickTransformStore: ObservableObject {
     }
 
     private func persist() {
-        if let data = try? JSONEncoder().encode(slots) {
+        do {
+            let data = try JSONEncoder().encode(slots)
             UserDefaults.standard.set(data, forKey: defaultsKey)
+        } catch {
+            // Encoding a small [QuickTransformSlot] shouldn't fail, but if it
+            // does the config silently reverts on next launch — at least log it.
+            Logger(subsystem: "com.zeyadamer.hotstash", category: "QuickTransformStore")
+                .error("Failed to persist quick-transform slots: \(error, privacy: .public)")
         }
     }
 }

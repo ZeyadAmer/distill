@@ -1,5 +1,19 @@
 import Foundation
 
+/// Sorts the content lines of `input`, preserving a single trailing newline.
+/// A trailing "\n" would otherwise split into an empty last element that sorts
+/// ahead of every real line, producing a spurious leading blank line.
+private func sortedLines(
+    _ input: String,
+    by areInIncreasingOrder: (String, String) -> Bool
+) -> String {
+    let hadTrailingNewline = input.hasSuffix("\n")
+    let body = hadTrailingNewline ? String(input.dropLast()) : input
+    let sorted = body.components(separatedBy: "\n").sorted(by: areInIncreasingOrder)
+    let joined = sorted.joined(separator: "\n")
+    return hadTrailingNewline ? joined + "\n" : joined
+}
+
 // MARK: - SortAZTransform
 
 struct SortAZTransform: Transform {
@@ -11,12 +25,9 @@ struct SortAZTransform: Transform {
     let applicableTo: [ContentType] = [.list]
 
     /// Splits the input into lines and sorts them ascending (case-insensitive,
-    /// locale-aware). Empty trailing newlines are preserved as empty strings
-    /// at the end so the round-trip is lossless where possible.
+    /// locale-aware). A trailing newline is preserved.
     func apply(to input: String) -> String {
-        let lines = input.components(separatedBy: "\n")
-        let sorted = lines.sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
-        return sorted.joined(separator: "\n")
+        sortedLines(input) { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
     }
 }
 
@@ -31,10 +42,8 @@ struct SortZATransform: Transform {
     let applicableTo: [ContentType] = [.list]
 
     /// Splits the input into lines and sorts them descending (case-insensitive,
-    /// locale-aware).
+    /// locale-aware). A trailing newline is preserved.
     func apply(to input: String) -> String {
-        let lines = input.components(separatedBy: "\n")
-        let sorted = lines.sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedDescending }
-        return sorted.joined(separator: "\n")
+        sortedLines(input) { $0.localizedCaseInsensitiveCompare($1) == .orderedDescending }
     }
 }

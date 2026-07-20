@@ -26,8 +26,18 @@ enum ClipboardMigration {
         guard !defaults.bool(forKey: Keys.didMigrate) else { return 0 }
 
         var migrated = 0
-        if let data = defaults.data(forKey: Keys.legacyItems),
-           let legacy = try? JSONDecoder().decode([LegacyClipboardItem].self, from: data) {
+        if let data = defaults.data(forKey: Keys.legacyItems) {
+            let legacy: [LegacyClipboardItem]
+            do {
+                legacy = try JSONDecoder().decode([LegacyClipboardItem].self, from: data)
+            } catch {
+                // Corrupt legacy blob: decoding is deterministic, so retrying is
+                // pointless — mark migrated to stop looping, but keep the blob
+                // in defaults so the data stays recoverable for support.
+                logger.error("Clipboard migration decode failed, keeping legacy blob: \(error, privacy: .public)")
+                defaults.set(true, forKey: Keys.didMigrate)
+                return 0
+            }
             // Preserve legacy pinned order by the sequence pins appear in the decoded array.
             var pinnedOrder = 0
             for old in legacy {

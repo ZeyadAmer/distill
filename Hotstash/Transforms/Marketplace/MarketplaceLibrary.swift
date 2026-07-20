@@ -86,8 +86,11 @@ final class MarketplaceLibrary {
         origin: String,
         installedVersion: Int = 0,
         isPublished: Bool = false
-    ) -> StoredTransform {
-        let json = (try? TransformManifestCodec.encode(manifest)) ?? Data()
+    ) throws -> StoredTransform {
+        // Propagate encode failures instead of persisting an empty blob: an
+        // empty manifestJSON decodes back to nil, silently deleting the row
+        // (and any good data it overwrote) while the caller shows "Saved".
+        let json = try TransformManifestCodec.encode(manifest)
         let now = Date.now
 
         if let existing = stored(slug: manifest.slug) {
@@ -129,7 +132,9 @@ final class MarketplaceLibrary {
             let newManifest = detail.toManifest()
             let nameChanged = newManifest.name != row.manifest?.name
             guard detail.version != row.installedVersion || nameChanged else { continue }
-            upsert(manifest: newManifest, origin: "installed", installedVersion: detail.version)
+            // Best-effort refresh: a single row that fails to encode is skipped,
+            // leaving the previous good copy intact (never fatal).
+            guard (try? upsert(manifest: newManifest, origin: "installed", installedVersion: detail.version)) != nil else { continue }
             changed = true
         }
         return changed

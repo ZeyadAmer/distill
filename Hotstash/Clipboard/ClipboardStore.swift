@@ -189,6 +189,48 @@ final class ClipboardStore {
         enforceHistoryLimit()
     }
 
+    /// Bulk-inserts imported items (e.g. from another clipboard manager),
+    /// skipping any whose content already exists in history or is duplicated
+    /// within the batch. Returns the number actually inserted. One save.
+    func importItems(_ items: [ClipboardItem]) -> Int {
+        var seen = Set(self.items.map(\.content))
+        var inserted = 0
+        for item in items where !item.content.isEmpty && !seen.contains(item.content) {
+            seen.insert(item.content)
+            context.insert(item)
+            inserted += 1
+        }
+        guard inserted > 0 else { return 0 }
+        save()
+        enforceImageBudget()
+        enforceHistoryLimit()
+        NotificationCenter.default.post(name: .clipboardDidUpdate, object: nil)
+        return inserted
+    }
+
+    /// Records transform output in history as if the user had copied it.
+    /// Mirrors the monitor's de-dup: bumps an existing row instead of duplicating.
+    func recordTransformedText(_ content: String) {
+        guard !content.isEmpty else { return }
+        if let top = recentItems(limit: 1).first, top.content == content {
+            return
+        }
+        if let dup = existingUnpinned(content: content) {
+            moveToTop(id: dup.id)
+        } else if existingPinned(content: content) == nil {
+            let item = ClipboardItem(content: content, contentType: ContentDetector.detect(content))
+            add(item: item)
+            ItemEnricher.shared.enrich(item)
+        }
+        NotificationCenter.default.post(name: .clipboardDidUpdate, object: nil)
+    }
+
+    /// Image-transform counterpart of `recordTransformedText`.
+    func recordTransformedImage(_ data: Data) {
+        add(item: ClipboardItem(content: "[Image]", contentType: .image, imageData: data))
+        NotificationCenter.default.post(name: .clipboardDidUpdate, object: nil)
+    }
+
     func pin(id: UUID) {
         guard let item = item(id: id), !item.isPinned else { return }
         item.isPinned = true
