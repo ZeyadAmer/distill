@@ -371,6 +371,9 @@ final class ClipboardPanelVC: NSViewController {
         searchField.becomeFirstResponder()
         updateTrialBanner()
         Task { await refreshUpdateBanner() }
+        // Warm the search index after the panel paints so the first
+        // keystroke never pays the rebuild.
+        DispatchQueue.main.async { ClipboardStore.shared.warmSearchIndex() }
     }
 
     /// Asks `UpdateChecker` whether a newer App Store version exists and shows
@@ -602,9 +605,9 @@ final class ClipboardPanelVC: NSViewController {
             : nil
 
         if !trimmed.isEmpty {
-            // Search spans full history; narrow to the current tab context.
-            // Items whose assigned name matches rank first (name-first search).
-            let results = Self.rankByRelevance(store.search(query: trimmed), query: trimmed)
+            // Search spans full history (pre-ranked, name-first by the store's
+            // search index); narrow to the current tab context.
+            let results = store.search(query: trimmed)
             if let folder = activeFolder {
                 filteredItems = results.filter { $0.folderID == folder.id }
             } else if currentTab == 1 {
@@ -1228,31 +1231,6 @@ final class ClipboardPanelVC: NSViewController {
     /// Re-orders search hits so items whose user-assigned name matches rank
     /// first (exact › prefix › contains), then content matches, weighted by
     /// how often an item is used; ties fall back to recency.
-    static func rankByRelevance(_ items: [ClipboardItem], query: String) -> [ClipboardItem] {
-        items.sorted { a, b in
-            let sa = relevanceScore(a, query: query)
-            let sb = relevanceScore(b, query: query)
-            if sa != sb { return sa > sb }
-            return a.timestamp > b.timestamp
-        }
-    }
-
-    private static func relevanceScore(_ item: ClipboardItem, query: String) -> Int {
-        let q = query.lowercased()
-        var score = 0
-        let label = item.label.lowercased()
-        if !label.isEmpty {
-            if label == q { score += 10_000 }
-            else if label.hasPrefix(q) { score += 5_000 }
-            else if label.contains(q) { score += 2_000 }
-        }
-        let content = item.content.lowercased()
-        if content.hasPrefix(q) { score += 800 }
-        else if content.contains(q) { score += 300 }
-        score += min(item.useCount, 50) * 5
-        return score
-    }
-
     private func separatorView() -> NSView {
         let box = NSBox()
         box.boxType   = .separator

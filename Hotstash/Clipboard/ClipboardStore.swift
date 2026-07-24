@@ -87,22 +87,39 @@ final class ClipboardStore {
 
     // MARK: Search
 
-    /// Case-insensitive substring match across the full history (capped for UI).
-    /// Matches item content, OCR text inside images, and fetched link titles.
+    /// In-memory index backing `search(query:)`. Invalidated by `save()`.
+    private let searchIndex = SearchIndex()
+
+    /// Maximum results returned to the UI.
+    static let maxSearchResults = 500
+
+    /// Case/diacritic-insensitive substring match across the full history,
+    /// ranked by relevance (label > content prefix > content > OCR/link title,
+    /// with use count and recency as tiebreakers). Served from `SearchIndex`
+    /// rather than a SQLite scan so it stays fast on unbounded histories.
     func search(query: String) -> [ClipboardItem] {
         let trimmed = query.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { return [] }
-        var descriptor = FetchDescriptor<ClipboardItem>(
-            predicate: #Predicate {
-                $0.content.localizedStandardContains(trimmed)
-                || $0.ocrText.localizedStandardContains(trimmed)
-                || $0.linkTitle.localizedStandardContains(trimmed)
-                || $0.label.localizedStandardContains(trimmed)
-            },
-            sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
-        )
-        descriptor.fetchLimit = 500
-        return fetch(descriptor)
+        searchIndex.rebuildIfNeeded(from: self.items)
+        let ids = searchIndex.search(query: trimmed, limit: Self.maxSearchResults)
+        guard !ids.isEmpty else { return [] }
+        let matches = fetch(FetchDescriptor<ClipboardItem>(
+            predicate: #Predicate { ids.contains($0.id) }
+        ))
+        // CloudKit sync can leave duplicate rows with the same `id` (the model
+        // has no unique constraint) — keep the first and never trap on dupes.
+        let byID = Dictionary(matches.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        var seen = Set<UUID>()
+        return ids.compactMap { seen.insert($0).inserted ? byID[$0] : nil }
+    }
+
+    /// Rebuilds the search index. Call when the panel opens, before the user
+    /// starts typing, so the first keystroke is instant. Always rebuilds
+    /// (not just when dirty) because CloudKit remote merges land in the
+    /// context without going through `save()`.
+    func warmSearchIndex() {
+        searchIndex.invalidate()
+        searchIndex.rebuildIfNeeded(from: self.items)
     }
 
     /// Returns the existing non-pinned item not in a folder with exactly this content, if any.
@@ -371,5 +388,6 @@ final class ClipboardStore {
         } catch {
             logger.error("SwiftData save failed: \(error, privacy: .public)")
         }
+        searchIndex.invalidate()
     }
 }

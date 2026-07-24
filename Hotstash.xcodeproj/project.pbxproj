@@ -72,6 +72,7 @@
 		49617B8702E014D200568A3E /* Supabase.plist in Resources */ = {isa = PBXBuildFile; fileRef = CC8FB1830314EEBFD6E62E5A /* Supabase.plist */; };
 		4978E9C73C881F9EFA69EA30 /* WhitespaceTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC8FD990DF3BF88CE1E8B306 /* WhitespaceTransforms.swift */; };
 		49CB8CA419F5BD520AF6E9AD /* TransformManifestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70D7A178D07506F1EDAB47E3 /* TransformManifestTests.swift */; };
+		4A9BBB46BDEC5CBB52F6AE96 /* SearchIndex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8806CDF9903E10D9AA887FC2 /* SearchIndex.swift */; };
 		4B20BCC116F5F014FBE130DD /* MarketplaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE46F6B9B3D57DDE5909BCA0 /* MarketplaceView.swift */; };
 		4C03CF55D098F47123370763 /* HotstashControlsBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B298A4D51C077F952C4FAB9 /* HotstashControlsBundle.swift */; };
 		4CE8E045E1BBB1CC901354B3 /* UpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FAE3B7D5B105A8A54961BEC /* UpdateChecker.swift */; };
@@ -347,6 +348,7 @@
 		7FAE3B7D5B105A8A54961BEC /* UpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateChecker.swift; sourceTree = "<group>"; };
 		83A92FB48CB294E715B02806 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		86BB9B94B395BE9C2266BF2F /* GeneralSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneralSettingsView.swift; sourceTree = "<group>"; };
+		8806CDF9903E10D9AA887FC2 /* SearchIndex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchIndex.swift; sourceTree = "<group>"; };
 		883C0E0540370662D042B67A /* ClipboardStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardStoreTests.swift; sourceTree = "<group>"; };
 		8997F13FBBC06569F5CBA8D6 /* HotstashShare.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = HotstashShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		8A684417BC90E6000818DB0F /* KeyboardClips.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardClips.swift; sourceTree = "<group>"; };
@@ -554,6 +556,7 @@
 				E29145C879BF70B5B8B5E77B /* LinkCleaner.swift */,
 				B995C407D9121B04B8DE1694 /* ModelContainer+Hotstash.swift */,
 				9C044902B402883D54238F78 /* RaycastImport.swift */,
+				8806CDF9903E10D9AA887FC2 /* SearchIndex.swift */,
 			);
 			path = Clipboard;
 			sourceTree = "<group>";
@@ -1247,6 +1250,7 @@
 				73E1C9D77971408461847BD3 /* RaycastImport.swift in Sources */,
 				BC78DA493C9EA6DED50BB165 /* ReviewPrompter.swift in Sources */,
 				7C6D292F710C4E4AB77B22E1 /* ReviewQueueView.swift in Sources */,
+				4A9BBB46BDEC5CBB52F6AE96 /* SearchIndex.swift in Sources */,
 				464AB6DC1E4AA9F3EF0229F4 /* SettingsView.swift in Sources */,
 				639937388E0DA8F8A87D17B5 /* SettingsWindowController.swift in Sources */,
 				0400481371EF272DDE674A70 /* SignInPromptWindowController.swift in Sources */,

@@ -54,6 +54,39 @@ struct ClipboardStoreTests {
         #expect(store.search(query: "O").count == 2)
     }
 
+    @Test func searchRanksLabelMatchesFirst() throws {
+        let store = try makeStore()
+        let byContent = ClipboardItem(content: "deploy the app", contentType: .plainText,
+                                      timestamp: Date(timeIntervalSince1970: 2))
+        let byLabel = ClipboardItem(content: "xyz", contentType: .plainText,
+                                    timestamp: Date(timeIntervalSince1970: 1))
+        store.add(item: byContent); store.add(item: byLabel)
+        store.setLabel(id: byLabel.id, label: "deploy")
+        #expect(store.search(query: "deploy").map(\.id) == [byLabel.id, byContent.id])
+    }
+
+    @Test func searchReflectsChangesAfterIndexBuilt() throws {
+        let store = try makeStore()
+        store.add(item: ClipboardItem(content: "alpha", contentType: .plainText))
+        #expect(store.search(query: "beta").isEmpty)  // builds the index
+        store.add(item: ClipboardItem(content: "beta", contentType: .plainText))
+        #expect(store.search(query: "beta").count == 1)
+    }
+
+    @Test func searchToleratesDuplicateIDsFromCloudKitSync() throws {
+        let store = try makeStore()
+        // CloudKit merges can produce two rows with the same id — the model
+        // has no unique constraint. Search must not trap and must return
+        // the item once.
+        let sharedID = UUID()
+        store.add(item: ClipboardItem(id: sharedID, content: "duplicated row", contentType: .plainText))
+        store.add(item: ClipboardItem(id: sharedID, content: "duplicated row", contentType: .plainText))
+        #expect(store.items.count == 2)  // both rows really exist
+        let results = store.search(query: "duplicated")
+        #expect(results.count == 1)
+        #expect(results.first?.id == sharedID)
+    }
+
     @Test func existingUnpinnedFindsExactMatch() throws {
         let store = try makeStore()
         store.add(item: ClipboardItem(content: "needle", contentType: .plainText))
