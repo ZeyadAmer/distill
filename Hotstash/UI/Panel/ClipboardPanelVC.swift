@@ -1193,6 +1193,8 @@ final class ClipboardPanelVC: NSViewController {
             moveSelection(by: -1)
         case 48: // Tab
             toggleTab()
+        case 53: // Escape — close panel like the X button
+            handleClose()
         default:
             super.keyDown(with: event)
         }
@@ -1466,6 +1468,9 @@ extension ClipboardPanelVC: NSSearchFieldDelegate {
         case #selector(NSResponder.insertTab(_:)),
              #selector(NSResponder.insertBacktab(_:)):
             toggleTab()
+            return true
+        case #selector(NSResponder.cancelOperation(_:)): // Escape — close panel like the X button
+            handleClose()
             return true
         default:
             return false
