@@ -104,7 +104,13 @@ final class HotkeyRecorderControl: NSControl {
                 ? NSColor.controlAccentColor.withAlphaComponent(0.12)
                 : NSColor.controlBackgroundColor
             let border: NSColor = isRecording ? .controlAccentColor : .separatorColor
-            let fg: NSColor     = isRecording ? .controlAccentColor : .labelColor
+            // Flatten the foreground to a concrete colorspace before it enters the
+            // attributed string. A catalog/dynamic NSColor can hand CoreText a nil
+            // CGColor and abort in TAttributes::ApplyFont even with the appearance set;
+            // .setFill/.setStroke below tolerate dynamic colors, size()/draw() do not.
+            let dynamicFg: NSColor = isRecording ? .controlAccentColor : .labelColor
+            let fg: NSColor = dynamicFg.usingColorSpace(.sRGB)
+                ?? (isRecording ? .systemBlue : .textColor.usingColorSpace(.sRGB) ?? .black)
 
             let path = NSBezierPath(roundedRect: bounds.insetBy(dx: 0.5, dy: 0.5), xRadius: 6, yRadius: 6)
             bg.setFill(); path.fill()
