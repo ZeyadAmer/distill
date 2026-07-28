@@ -1,4 +1,5 @@
 import AppKit
+import CoreText
 import SwiftUI
 
 // MARK: - HotkeyRecorderView
@@ -90,43 +91,58 @@ final class HotkeyRecorderControl: NSControl {
     // MARK: - Drawing
 
     override func draw(_ dirtyRect: NSRect) {
-        // Nothing to draw into during teardown/transition snapshots — bail before
-        // touching CoreText, which throws if dynamic colors resolve without context.
-        guard bounds.width > 0, bounds.height > 0, NSGraphicsContext.current != nil else { return }
+        // Nothing to draw into during teardown/transition snapshots.
+        guard bounds.width > 0, bounds.height > 0,
+              let ctx = NSGraphicsContext.current?.cgContext else { return }
 
-        // Resolve dynamic system colors against this view's appearance. Without an
-        // explicit drawing appearance (as happens mid-TabView transition), CoreText
-        // can insert a nil into its attribute dictionary and abort. See crash logs
-        // for HotkeyRecorderControl.draw (SIGABRT in TAttributes::ApplyFont).
+        // Resolve dynamic system colors against this view's appearance so the
+        // recording tint and label colors match the surrounding UI.
         effectiveAppearance.performAsCurrentDrawingAppearance {
             let text  = isRecording ? "Press shortcut…" : displayString
             let bg    = isRecording
                 ? NSColor.controlAccentColor.withAlphaComponent(0.12)
                 : NSColor.controlBackgroundColor
             let border: NSColor = isRecording ? .controlAccentColor : .separatorColor
-            // Flatten the foreground to a concrete colorspace before it enters the
-            // attributed string. A catalog/dynamic NSColor can hand CoreText a nil
-            // CGColor and abort in TAttributes::ApplyFont even with the appearance set;
-            // .setFill/.setStroke below tolerate dynamic colors, size()/draw() do not.
-            let dynamicFg: NSColor = isRecording ? .controlAccentColor : .labelColor
-            let fg: NSColor = dynamicFg.usingColorSpace(.sRGB)
-                ?? (isRecording ? .systemBlue : .textColor.usingColorSpace(.sRGB) ?? .black)
+            let fg: NSColor     = isRecording ? .controlAccentColor : .labelColor
 
             let path = NSBezierPath(roundedRect: bounds.insetBy(dx: 0.5, dy: 0.5), xRadius: 6, yRadius: 6)
             bg.setFill(); path.fill()
             border.setStroke(); path.stroke()
 
-            let attrs: [NSAttributedString.Key: Any] = [
-                .font:            NSFont.monospacedSystemFont(ofSize: 13, weight: .medium),
-                .foregroundColor: fg,
+            // Draw the text with CoreText directly. Going through
+            // NSAttributedString.size()/draw(at:) crashed repeatedly in
+            // CoreText's NSFont/NSColor conversion (TAttributes::ApplyFont →
+            // "attempt to insert nil object") on macOS 26. Handing CoreText a
+            // ready CTFont (toll-free bridged NSFont) and a concrete CGColor
+            // bypasses that conversion entirely — identical rendering.
+            let font = NSFont.monospacedSystemFont(ofSize: 13, weight: .medium)
+            let cgColor = fg.usingColorSpace(.sRGB)?.cgColor
+                ?? fg.cgColor
+
+            let attrs: [CFString: Any] = [
+                kCTFontAttributeName: font,
+                kCTForegroundColorAttributeName: cgColor,
             ]
-            let attributed = NSAttributedString(string: text, attributes: attrs)
-            let sz = attributed.size()
-            let origin = NSPoint(
-                x: (bounds.width  - sz.width)  / 2,
-                y: (bounds.height - sz.height) / 2
-            )
-            attributed.draw(at: origin)
+            guard let attributed = CFAttributedStringCreate(
+                kCFAllocatorDefault, text as CFString, attrs as CFDictionary
+            ) else { return }
+
+            let line = CTLineCreateWithAttributedString(attributed)
+            var ascent: CGFloat = 0, descent: CGFloat = 0, leading: CGFloat = 0
+            let width = CGFloat(CTLineGetTypographicBounds(line, &ascent, &descent, &leading))
+
+            // The view is flipped; CoreText draws in an unflipped space, so
+            // flip locally around the text baseline.
+            let x = (bounds.width - width) / 2
+            let baselineY = (bounds.height + ascent - descent) / 2
+
+            ctx.saveGState()
+            ctx.textMatrix = .identity
+            ctx.translateBy(x: x, y: baselineY)
+            ctx.scaleBy(x: 1, y: -1)
+            ctx.textPosition = .zero
+            CTLineDraw(line, ctx)
+            ctx.restoreGState()
         }
     }
 
