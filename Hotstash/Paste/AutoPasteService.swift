@@ -13,10 +13,6 @@ import ApplicationServices
 @MainActor
 enum AutoPasteService {
 
-    private enum Keys {
-        static let didRequestPermission = "didRequestAccessibilityPermission"
-    }
-
     /// Physical key code for the "V" key on a US layout (kVK_ANSI_V).
     private static let vKeyCode: CGKeyCode = 9
 
@@ -30,17 +26,17 @@ enum AutoPasteService {
 
     // MARK: - Permission
 
-    /// Whether the process is currently trusted for Accessibility.
+    /// Whether the process is currently trusted for Accessibility. Silent check —
+    /// never prompts, never adds the app to the Accessibility list.
     static var isTrusted: Bool { AXIsProcessTrusted() }
 
-    /// Prompts for Accessibility permission (system dialog), once. Subsequent
-    /// calls re-check trust without prompting again.
+    /// Prompts for Accessibility permission (system dialog), once. Gated behind
+    /// the `directPasteEnabled` remote flag so the prompt never appears unless
+    /// the server has turned the feature on. Returns current trust otherwise.
     @discardableResult
     static func requestPermissionIfNeeded() -> Bool {
+        guard RemoteFlags.directPasteEnabled else { return isTrusted }
         if isTrusted { return true }
-        let alreadyAsked = UserDefaults.standard.bool(forKey: Keys.didRequestPermission)
-        guard !alreadyAsked else { return false }
-        UserDefaults.standard.set(true, forKey: Keys.didRequestPermission)
         let key = kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String
         return AXIsProcessTrustedWithOptions([key: true] as CFDictionary)
     }
@@ -55,9 +51,13 @@ enum AutoPasteService {
 
     /// Reactivates `app` (when supplied) and synthesizes ⌘V into it.
     ///
-    /// When Accessibility is not yet granted, this requests it once and returns
-    /// without pasting (the content remains on the pasteboard for a manual ⌘V).
+    /// When Accessibility is not granted, this prompts once (only if the remote
+    /// flag is on) and returns — the content is already on the pasteboard for a
+    /// manual ⌘V. With the flag off it never prompts.
     static func paste(restoringFocusTo app: NSRunningApplication?) {
+        // Master switch: with the flag off the feature is fully dormant — no
+        // paste, no prompt — even for users who granted access in an older build.
+        guard RemoteFlags.directPasteEnabled else { return }
         guard isTrusted else {
             requestPermissionIfNeeded()
             return

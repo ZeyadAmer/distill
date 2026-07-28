@@ -680,7 +680,11 @@ final class ClipboardPanelVC: NSViewController {
         pasteButton.isEnabled      = hasSelection
         transformButton.isEnabled  = hasSelection && !isRestricted
         multiPasteButton.isEnabled = !isRestricted
-        stackButton.isEnabled      = !isRestricted
+        // Paste Stack relies on an Accessibility event tap; hide it entirely
+        // until the server enables direct paste so its permission alert never
+        // surfaces while the flag is off.
+        stackButton.isHidden       = !RemoteFlags.directPasteEnabled
+        stackButton.isEnabled      = !isRestricted && RemoteFlags.directPasteEnabled
         pinButton.isEnabled       = hasSelection
         deleteButton.isEnabled    = hasSelection
         clearAllButton.isEnabled  = currentTab == 0 && ClipboardStore.shared.recentCount > 0

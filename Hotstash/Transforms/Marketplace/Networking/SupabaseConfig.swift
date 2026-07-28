@@ -120,3 +120,70 @@ enum DeviceTracker {
         }
     }
 }
+
+// MARK: - RemoteFlags
+
+/// Server-controlled feature flags, read from a single `app_config` row in
+/// Supabase so behaviour can change without shipping a new build.
+///
+/// The value is cached in `UserDefaults` and **fails closed**: until a fetch
+/// succeeds and returns `true`, `directPasteEnabled` stays `false`. A blocked or
+/// failed network call therefore never turns the feature on.
+enum RemoteFlags {
+
+    private static let directPasteKey = "com.zeyadamer.hotstash.remote.directPasteEnabled"
+    private static let onboardingKey  = "com.zeyadamer.hotstash.remote.onboardingEnabled"
+
+    /// Whether direct paste (and its Accessibility prompt) is allowed to run.
+    /// Reads the cached value; call `refresh()` on launch to update it.
+    static var directPasteEnabled: Bool {
+        UserDefaults.standard.bool(forKey: directPasteKey) // absent == false
+    }
+
+    /// Whether the first-run guided tour (and its About replay button) is shown.
+    static var onboardingEnabled: Bool {
+        UserDefaults.standard.bool(forKey: onboardingKey) // absent == false
+    }
+
+    /// Fire-and-forget fetch of the flags row. Best-effort and silent — on any
+    /// failure the last cached value is kept.
+    static func refresh() {
+        Task.detached { await fetchAndCache() }
+    }
+
+    /// Awaitable fetch with a timeout, for decisions that cannot wait for a
+    /// background refresh (e.g. showing the tour on the very first launch,
+    /// when nothing is cached yet). On timeout/failure the cached values stand.
+    static func refreshAwaiting(timeout: TimeInterval = 3) async {
+        let fetch = Task { await fetchAndCache() }
+        let watchdog = Task {
+            try? await Task.sleep(nanoseconds: UInt64(timeout * 1_000_000_000))
+            fetch.cancel()
+        }
+        await fetch.value
+        watchdog.cancel()
+    }
+
+    private static func fetchAndCache() async {
+        guard let config = SupabaseConfig.current,
+              let url = URL(string: config.url.absoluteString
+                            + "/rest/v1/app_config?select=direct_paste_enabled,onboarding_enabled&limit=1")
+        else { return }
+
+        var req = URLRequest(url: url)
+        req.setValue(config.anonKey, forHTTPHeaderField: "apikey")
+        req.setValue("Bearer \(config.anonKey)", forHTTPHeaderField: "Authorization")
+
+        guard let (data, response) = try? await URLSession.shared.data(for: req),
+              let http = response as? HTTPURLResponse, http.statusCode == 200,
+              let rows = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]],
+              let row = rows.first
+        else { return }
+        if let dp = row["direct_paste_enabled"] as? Bool {
+            UserDefaults.standard.set(dp, forKey: directPasteKey)
+        }
+        if let ob = row["onboarding_enabled"] as? Bool {
+            UserDefaults.standard.set(ob, forKey: onboardingKey)
+        }
+    }
+}

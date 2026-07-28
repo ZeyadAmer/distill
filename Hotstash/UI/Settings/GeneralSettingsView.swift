@@ -85,25 +85,29 @@ struct GeneralSettingsView: View {
 
             // MARK: Direct paste
 
-            Section {
-                LabeledContent("Paste into focused app") {
-                    if accessibilityTrusted {
-                        Label("Enabled", systemImage: "checkmark.circle.fill")
-                            .foregroundStyle(.green)
-                            .labelStyle(.titleAndIcon)
-                    } else {
-                        Button("Enable\u{2026}") {
-                            _ = AutoPasteService.requestPermissionIfNeeded()
-                            AutoPasteService.openAccessibilitySettings()
+            // Hidden entirely until the server turns the feature on, so the
+            // Accessibility flow never surfaces while the flag is off.
+            if RemoteFlags.directPasteEnabled {
+                Section {
+                    LabeledContent("Paste into focused app") {
+                        if accessibilityTrusted {
+                            Label("Enabled", systemImage: "checkmark.circle.fill")
+                                .foregroundStyle(.green)
+                                .labelStyle(.titleAndIcon)
+                        } else {
+                            Button("Enable\u{2026}") {
+                                _ = AutoPasteService.requestPermissionIfNeeded()
+                                AutoPasteService.openAccessibilitySettings()
+                            }
                         }
                     }
+                } header: {
+                    Text("Direct Paste")
+                } footer: {
+                    Text("When enabled, pressing Return or double-clicking an item pastes it straight into the app you were using. This needs Accessibility permission in System Settings → Privacy & Security.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
-            } header: {
-                Text("Direct Paste")
-            } footer: {
-                Text("When enabled, pressing Return or double-clicking an item pastes it straight into the app you were using. This needs Accessibility permission in System Settings → Privacy & Security.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
             }
 
             // MARK: Pasting
