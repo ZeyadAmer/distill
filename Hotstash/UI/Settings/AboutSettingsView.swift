@@ -330,6 +330,16 @@ struct AboutSettingsView: View {
         VStack(spacing: 14) {
             Divider().padding(.horizontal, 24)
 
+            // Hidden while the onboarding remote flag is off (e.g. during review).
+            if RemoteFlags.onboardingEnabled {
+                Button {
+                    OnboardingWindowController.present()
+                } label: {
+                    Label("Show Tutorial", systemImage: "graduationcap")
+                }
+                .controlSize(.regular)
+            }
+
             HStack(spacing: 6) {
                 Image(systemName: "lock.shield.fill")
                     .foregroundStyle(.green)

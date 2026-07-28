@@ -43,14 +43,19 @@ struct WhatsNewView: View {
 
     private let items: [ChangeItem] = [
         ChangeItem(
-            icon: "sparkles",
-            title: "Generate transforms with AI",
-            detail: "Describe what you want and give one example — Hotstash writes the transform for you, checks it against your example, and keeps fixing it until it matches. No JavaScript required. (Pro)"
+            icon: "graduationcap.fill",
+            title: "Interactive guided tour",
+            detail: "A spotlight tour walks you through search, folders, transforms, Multi-Paste, the Paste Stack, and the Marketplace. Replay it anytime from Settings → About → “Show Tutorial.”"
         ),
         ChangeItem(
-            icon: "chart.bar.fill",
-            title: "System stats in the menu bar",
-            detail: "Keep an eye on your Mac right from the menu bar. Show live CPU, memory, and free disk space next to the Hotstash icon — pick exactly what you want in Settings."
+            icon: "bolt.fill",
+            title: "Faster search",
+            detail: "Search now runs on an in-memory index, so filtering your whole history is instant — even with thousands of items."
+        ),
+        ChangeItem(
+            icon: "checkmark.shield.fill",
+            title: "Stability improvements",
+            detail: "Fixed rare crashes in the hotkey recorder and settings, and the clipboard panel now closes with Escape."
         ),
     ]
 

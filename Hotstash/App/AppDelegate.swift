@@ -6,7 +6,6 @@ import Carbon
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
 
-    private var onboardingWindowController: OnboardingWindowController?
     private var whatsNewWindowController: WhatsNewWindowController?
     private var signInPromptWindowController: SignInPromptWindowController?
 
@@ -73,12 +72,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Anonymous active-user ping (no login, no PII).
         DeviceTracker.recordOpen()
 
+        // Pull server feature flags (e.g. direct-paste gating).
+        RemoteFlags.refresh()
+
         // Forward any crash from the previous run to Supabase (via MetricKit).
         CrashReporter.shared.start()
 
-        // Show first-launch onboarding or version What's New.
-        showOnboardingIfNeeded()
-        showWhatsNewIfNeeded()
+        // Show first-launch guided tour or version What's New.
+        showTourOrWhatsNew()
         showSignInPromptIfNeeded()
         // App Store update discovery is handled passively by the clipboard
         // panel's "Update available" strip (see ClipboardPanelVC + UpdateChecker).
@@ -110,6 +111,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func handleHotkeyNotification() {
         Task { @MainActor in
+            // During the guided tour the hotkey step consumes the press —
+            // don't toggle the panel on top of the tutorial window.
+            if OnboardingWindowController.isTourVisible { return }
             ClipboardPanel.shared.toggle()
         }
     }
@@ -150,19 +154,31 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     // MARK: - Onboarding
 
-    private func showOnboardingIfNeeded() {
-        let hasCompleted = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
-        guard !hasCompleted else { return }
-
-        let wc = OnboardingWindowController()
-        onboardingWindowController = wc
-        wc.showWindow(nil)
-        wc.window?.makeKeyAndOrderFront(nil)
-        NSApp.activate(ignoringOtherApps: true)
+    /// Shows the guided tour when the remote flag allows and it hasn't been
+    /// seen; otherwise falls back to the per-version What's New window. The
+    /// flag fetch is awaited (with a timeout) because on the very first launch
+    /// nothing is cached yet — without waiting, the tour could never fire.
+    private func showTourOrWhatsNew() {
+        let tourSeen = UserDefaults.standard.bool(forKey: OnboardingWindowController.completedKey)
+        if tourSeen {
+            showWhatsNewIfNeeded()
+            return
+        }
+        Task { @MainActor in
+            await RemoteFlags.refreshAwaiting(timeout: 3)
+            if RemoteFlags.onboardingEnabled {
+                OnboardingWindowController.present()
+            } else {
+                self.showWhatsNewIfNeeded()
+            }
+        }
     }
 
     private func showWhatsNewIfNeeded() {
-        guard UserDefaults.standard.bool(forKey: "hasCompletedOnboarding") else { return }
+        // Not on the very first launch — only for users updating an existing install.
+        let isExistingUser = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
+            || UserDefaults.standard.bool(forKey: OnboardingWindowController.completedKey)
+        guard isExistingUser else { return }
 
         let current = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
         let lastSeen = UserDefaults.standard.string(forKey: "lastSeenVersion") ?? ""
