@@ -1,41 +1,48 @@
 import AppKit
 import ApplicationServices
 
-// MARK: - AutoPasteService
+// MARK: - AssistivePasteService
 
-/// Synthesizes a ⌘V keystroke into the previously-focused application so an item
-/// can be pasted directly, without the user pressing ⌘V themselves.
+/// **Assistive Paste** — an accessibility accommodation for people who have
+/// difficulty performing the ⌘V keyboard shortcut (e.g. motor or dexterity
+/// impairments). When the user turns it on, Hotstash inserts the selected item
+/// directly instead of requiring them to press ⌘V.
 ///
-/// This requires macOS **Accessibility** permission (System Settings → Privacy &
-/// Security → Accessibility). When permission is missing the service silently
-/// degrades to copy-only behaviour: the content is already on the pasteboard, so
-/// the user can still paste manually.
+/// This is the app's **only** use of the macOS Accessibility API, and it exists
+/// solely to increase accessibility. It is **off by default** and opt-in from
+/// Settings → Accessibility. When disabled — the default — the item is simply
+/// placed on the pasteboard and the user pastes with ⌘V; no Accessibility
+/// permission is requested or used.
 @MainActor
 enum AutoPasteService {
 
+    /// UserDefaults key for the opt-in accommodation toggle.
+    private static let enabledKey = "assistivePasteEnabled"
+
     /// Physical key code for the "V" key on a US layout (kVK_ANSI_V).
     private static let vKeyCode: CGKeyCode = 9
-
-    /// When the last synthetic ⌘V was posted. PasteStackManager uses this to
-    /// ignore the app's own keystrokes in its event tap.
-    private(set) static var lastSyntheticPaste: Date = .distantPast
 
     /// Delay before posting ⌘V when we first reactivate another app — gives the
     /// window server time to move key focus back to the target app.
     private static let focusRestoreDelay: TimeInterval = 0.12
 
-    // MARK: - Permission
+    // MARK: - Opt-in state
+
+    /// Whether the user has turned on the Assistive Paste accommodation.
+    /// Off by default — the app never inserts keystrokes unless a user opts in.
+    static var isEnabled: Bool {
+        get { UserDefaults.standard.bool(forKey: enabledKey) }
+        set { UserDefaults.standard.set(newValue, forKey: enabledKey) }
+    }
 
     /// Whether the process is currently trusted for Accessibility. Silent check —
-    /// never prompts, never adds the app to the Accessibility list.
+    /// never prompts.
     static var isTrusted: Bool { AXIsProcessTrusted() }
 
-    /// Prompts for Accessibility permission (system dialog), once. Gated behind
-    /// the `directPasteEnabled` remote flag so the prompt never appears unless
-    /// the server has turned the feature on. Returns current trust otherwise.
+    /// Prompts for Accessibility permission (system dialog). Called only when the
+    /// user explicitly enables the accommodation from Settings → Accessibility.
     @discardableResult
-    static func requestPermissionIfNeeded() -> Bool {
-        guard RemoteFlags.directPasteEnabled else { return isTrusted }
+    static func requestPermission() -> Bool {
         if isTrusted { return true }
         let key = kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String
         return AXIsProcessTrustedWithOptions([key: true] as CFDictionary)
@@ -49,19 +56,12 @@ enum AutoPasteService {
 
     // MARK: - Paste
 
-    /// Reactivates `app` (when supplied) and synthesizes ⌘V into it.
-    ///
-    /// When Accessibility is not granted, this prompts once (only if the remote
-    /// flag is on) and returns — the content is already on the pasteboard for a
-    /// manual ⌘V. With the flag off it never prompts.
+    /// Reactivates `app` (when supplied) and inserts the pasteboard item for the
+    /// user. No-op unless the user has opted into Assistive Paste and granted
+    /// Accessibility — otherwise the content stays on the pasteboard for a
+    /// manual ⌘V.
     static func paste(restoringFocusTo app: NSRunningApplication?) {
-        // Master switch: with the flag off the feature is fully dormant — no
-        // paste, no prompt — even for users who granted access in an older build.
-        guard RemoteFlags.directPasteEnabled else { return }
-        guard isTrusted else {
-            requestPermissionIfNeeded()
-            return
-        }
+        guard isEnabled, isTrusted else { return }
 
         let needsFocusRestore = app != nil
             && app?.processIdentifier != ProcessInfo.processInfo.processIdentifier
@@ -79,7 +79,6 @@ enum AutoPasteService {
     // MARK: - Private
 
     private static func postCommandV() {
-        lastSyntheticPaste = .now
         let source = CGEventSource(stateID: .combinedSessionState)
         let down = CGEvent(keyboardEventSource: source, virtualKey: vKeyCode, keyDown: true)
         let up   = CGEvent(keyboardEventSource: source, virtualKey: vKeyCode, keyDown: false)

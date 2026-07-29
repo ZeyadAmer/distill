@@ -305,8 +305,8 @@ struct AboutSettingsView: View {
                   detail: "Select an item and click \"Transform\" to reshape it (case, JSON, encoding, cleanup, and more). Hold ⌘ while clicking transforms to stack several and apply them in sequence."),
         HowToStep(title: "Clean Link",
                   detail: "Right-click a link → \"Copy Clean Link\" to strip tracking parameters (utm, fbclid, etc.) and resolve share redirects to the real destination."),
-        HowToStep(title: "Multi-Paste & Paste Stack",
-                  detail: "Open Multi-Paste (⌘⇧L) to paste several items at once, or ⌘-click multiple rows and use the Paste Stack so each ⌘V pastes the next item."),
+        HowToStep(title: "Multi-Paste",
+                  detail: "Open Multi-Paste (⌘⇧L) to paste several items at once."),
     ]
 
     private var howToUseSection: some View {

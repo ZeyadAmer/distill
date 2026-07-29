@@ -680,11 +680,10 @@ final class ClipboardPanelVC: NSViewController {
         pasteButton.isEnabled      = hasSelection
         transformButton.isEnabled  = hasSelection && !isRestricted
         multiPasteButton.isEnabled = !isRestricted
-        // Paste Stack relies on an Accessibility event tap; hide it entirely
-        // until the server enables direct paste so its permission alert never
-        // surfaces while the flag is off.
-        stackButton.isHidden       = !RemoteFlags.directPasteEnabled
-        stackButton.isEnabled      = !isRestricted && RemoteFlags.directPasteEnabled
+        // Paste Stack was retired (its keystroke event tap is not a permitted
+        // Accessibility use on the App Store). The button stays hidden.
+        stackButton.isHidden       = true
+        stackButton.isEnabled      = false
         pinButton.isEnabled       = hasSelection
         deleteButton.isEnabled    = hasSelection
         clearAllButton.isEnabled  = currentTab == 0 && ClipboardStore.shared.recentCount > 0
@@ -1135,26 +1134,10 @@ final class ClipboardPanelVC: NSViewController {
         }
     }
 
-    /// Starts a paste stack from the current multi-selection (⌘-click items).
-    @objc private func handlePasteStack() {
-        let items = selectedItems
-        guard items.count >= 2 else {
-            NSSound.beep()
-            return
-        }
-        guard PasteStackManager.shared.start(items: items) else {
-            let alert = NSAlert()
-            alert.messageText = "Accessibility Permission Needed"
-            alert.informativeText = "Paste Stack watches for your ⌘V presses so it can stage the next item. Grant Hotstash Accessibility access in System Settings, then try again."
-            alert.addButton(withTitle: "Open System Settings")
-            alert.addButton(withTitle: "Cancel")
-            if runModalKeepingPanel(alert) == .alertFirstButtonReturn {
-                AutoPasteService.openAccessibilitySettings()
-            }
-            return
-        }
-        ClipboardPanel.shared.dismiss()
-    }
+    /// Paste Stack has been retired (its keystroke event tap is not a permitted
+    /// Accessibility use on the App Store). The button is hidden; this is kept
+    /// as an inert no-op so the wired action still resolves.
+    @objc private func handlePasteStack() {}
 
     // MARK: - Position paste (⌘1–⌘9)
 

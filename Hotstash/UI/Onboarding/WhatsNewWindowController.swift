@@ -45,7 +45,7 @@ struct WhatsNewView: View {
         ChangeItem(
             icon: "graduationcap.fill",
             title: "Interactive guided tour",
-            detail: "A spotlight tour walks you through search, folders, transforms, Multi-Paste, the Paste Stack, and the Marketplace. Replay it anytime from Settings → About → “Show Tutorial.”"
+            detail: "A spotlight tour walks you through search, folders, transforms, Multi-Paste, and the Marketplace. Replay it anytime from Settings → About → “Show Tutorial.”"
         ),
         ChangeItem(
             icon: "bolt.fill",

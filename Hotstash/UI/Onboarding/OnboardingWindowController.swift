@@ -97,9 +97,7 @@ private struct TourStep {
 }
 
 private let tourSteps: [TourStep] = {
-    let copyBody = RemoteFlags.directPasteEnabled
-        ? "Press Return to copy the selected item — or have it pasted straight into the app you came from when Direct Paste is on."
-        : "Press Return to put the selected item on your clipboard, then ⌘V pastes it right where you were."
+    let copyBody = "Press Return to put the selected item on your clipboard, then ⌘V pastes it right where you were."
     return [
         TourStep(stage: .hero(.welcome)),
         TourStep(stage: .hero(.hotkey)),
@@ -119,8 +117,8 @@ private let tourSteps: [TourStep] = {
                  title: "Transform anything",
                  body: "Change case, format JSON, clean links, strip formatting, resize images — 30+ one-click transforms."),
         TourStep(stage: .panel(target: "multistack"), badge: "Power",
-                 title: "Multi-Paste & Paste Stack",
-                 body: "Paste several items at once (⌘⇧L), or ⌘-click rows to build a stack — then every ⌘V pastes the next one."),
+                 title: "Multi-Paste",
+                 body: "Need several items at once? Open Multi-Paste (⌘⇧L), pick what you want, and drop them together."),
         TourStep(stage: .settings(target: "markettab"), badge: "Extend",
                  title: "Transforms Marketplace",
                  body: "Install community and AI-generated transforms from Settings → Marketplace — or publish your own."),
@@ -575,14 +573,11 @@ private struct PanelReplicaView: View {
                 .background(Capsule().fill(Color.primary.opacity(0.07)))
                 .tourTarget("transform")
 
-            HStack(spacing: 8) {
-                Image(systemName: "rectangle.stack")
-                Image(systemName: "square.stack.3d.up")
-            }
-            .font(.system(size: 13))
-            .foregroundStyle(.secondary)
-            .padding(.horizontal, 4).padding(.vertical, 5)
-            .tourTarget("multistack")
+            Image(systemName: "rectangle.stack")
+                .font(.system(size: 13))
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 4).padding(.vertical, 5)
+                .tourTarget("multistack")
 
             Spacer()
 

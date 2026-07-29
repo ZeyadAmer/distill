@@ -127,18 +127,11 @@ enum DeviceTracker {
 /// Supabase so behaviour can change without shipping a new build.
 ///
 /// The value is cached in `UserDefaults` and **fails closed**: until a fetch
-/// succeeds and returns `true`, `directPasteEnabled` stays `false`. A blocked or
-/// failed network call therefore never turns the feature on.
+/// succeeds and returns `true`, the flag stays `false`. A blocked or failed
+/// network call therefore never turns the feature on.
 enum RemoteFlags {
 
-    private static let directPasteKey = "com.zeyadamer.hotstash.remote.directPasteEnabled"
-    private static let onboardingKey  = "com.zeyadamer.hotstash.remote.onboardingEnabled"
-
-    /// Whether direct paste (and its Accessibility prompt) is allowed to run.
-    /// Reads the cached value; call `refresh()` on launch to update it.
-    static var directPasteEnabled: Bool {
-        UserDefaults.standard.bool(forKey: directPasteKey) // absent == false
-    }
+    private static let onboardingKey = "com.zeyadamer.hotstash.remote.onboardingEnabled"
 
     /// Whether the first-run guided tour (and its About replay button) is shown.
     static var onboardingEnabled: Bool {
@@ -167,7 +160,7 @@ enum RemoteFlags {
     private static func fetchAndCache() async {
         guard let config = SupabaseConfig.current,
               let url = URL(string: config.url.absoluteString
-                            + "/rest/v1/app_config?select=direct_paste_enabled,onboarding_enabled&limit=1")
+                            + "/rest/v1/app_config?select=onboarding_enabled&limit=1")
         else { return }
 
         var req = URLRequest(url: url)
@@ -179,9 +172,6 @@ enum RemoteFlags {
               let rows = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]],
               let row = rows.first
         else { return }
-        if let dp = row["direct_paste_enabled"] as? Bool {
-            UserDefaults.standard.set(dp, forKey: directPasteKey)
-        }
         if let ob = row["onboarding_enabled"] as? Bool {
             UserDefaults.standard.set(ob, forKey: onboardingKey)
         }

@@ -21,6 +21,7 @@ struct GeneralSettingsView: View {
     @State private var panelPosition: PanelPosition = PanelPosition.current
     @State private var showingClearConfirmation = false
     @State private var accessibilityTrusted: Bool = AutoPasteService.isTrusted
+    @State private var assistivePasteEnabled: Bool = AutoPasteService.isEnabled
     @State private var alwaysPlainText: Bool = UserDefaults.standard.bool(forKey: "alwaysPastePlainText")
 
     @State private var historyLimitOption: HistoryLimitOption = {
@@ -83,31 +84,34 @@ struct GeneralSettingsView: View {
 
             QuickTransformsSettingsView()
 
-            // MARK: Direct paste
+            // MARK: Accessibility — Assistive Paste
 
-            // Hidden entirely until the server turns the feature on, so the
-            // Accessibility flow never surfaces while the flag is off.
-            if RemoteFlags.directPasteEnabled {
-                Section {
-                    LabeledContent("Paste into focused app") {
-                        if accessibilityTrusted {
-                            Label("Enabled", systemImage: "checkmark.circle.fill")
-                                .foregroundStyle(.green)
-                                .labelStyle(.titleAndIcon)
-                        } else {
-                            Button("Enable\u{2026}") {
-                                _ = AutoPasteService.requestPermissionIfNeeded()
-                                AutoPasteService.openAccessibilitySettings()
-                            }
+            Section {
+                Toggle("Assistive Paste", isOn: $assistivePasteEnabled)
+                    .onChange(of: assistivePasteEnabled) { enabled in
+                        AutoPasteService.isEnabled = enabled
+                        if enabled { accessibilityTrusted = AutoPasteService.requestPermission() }
+                    }
+
+                if assistivePasteEnabled && !accessibilityTrusted {
+                    LabeledContent("Accessibility access") {
+                        Button("Open System Settings\u{2026}") {
+                            AutoPasteService.openAccessibilitySettings()
                         }
                     }
-                } header: {
-                    Text("Direct Paste")
-                } footer: {
-                    Text("When enabled, pressing Return or double-clicking an item pastes it straight into the app you were using. This needs Accessibility permission in System Settings → Privacy & Security.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                } else if assistivePasteEnabled {
+                    LabeledContent("Accessibility access") {
+                        Label("Granted", systemImage: "checkmark.circle.fill")
+                            .foregroundStyle(.green)
+                            .labelStyle(.titleAndIcon)
+                    }
                 }
+            } header: {
+                Text("Accessibility")
+            } footer: {
+                Text("Assistive Paste is for people who have difficulty pressing keyboard shortcuts. When on, choosing an item inserts it into the app you were using, so you don't have to press ⌘V yourself. It's off by default and needs Accessibility access in System Settings → Privacy & Security. With it off, items are copied to the clipboard and you paste with ⌘V as usual.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
 
             // MARK: Pasting
