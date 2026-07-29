@@ -25,6 +25,9 @@ final class SettingsWindowController: NSWindowController {
         )
         window.title = "Hotstash Settings"
         window.isReleasedWhenClosed = false
+        // Follow the user to whatever Space/display they're on instead of
+        // staying pinned to the Space it first opened on.
+        window.collectionBehavior = [.moveToActiveSpace]
 
         let hostingView = NSHostingView(rootView: SettingsRootView())
         window.contentView = hostingView
@@ -41,11 +44,28 @@ final class SettingsWindowController: NSWindowController {
 
     // MARK: - Public API
 
-    /// Makes the settings window key, orders it front, and activates the app.
+    /// Brings the settings window to the front on the user's current Space and
+    /// display, centering it on the screen under the cursor.
     func show() {
         showWindow(nil)
-        window?.center()
+        centerOnActiveScreen()
         window?.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
+    }
+
+    /// Centers the window on the screen containing the cursor (falls back to the
+    /// main screen), so reopening lands it where the user is looking.
+    private func centerOnActiveScreen() {
+        guard let window else { return }
+        let mouse = NSEvent.mouseLocation
+        let screen = NSScreen.screens.first { NSMouseInRect(mouse, $0.frame, false) }
+            ?? NSScreen.main
+        guard let visible = screen?.visibleFrame else { window.center(); return }
+        let size = window.frame.size
+        let origin = NSPoint(
+            x: visible.midX - size.width / 2,
+            y: visible.midY - size.height / 2
+        )
+        window.setFrameOrigin(origin)
     }
 }
