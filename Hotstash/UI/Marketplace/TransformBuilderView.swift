@@ -121,10 +121,10 @@ struct TransformBuilderView: View {
                     .textFieldStyle(.roundedBorder)
                 HStack(spacing: 8) {
                     labeledField("Example input") {
-                        TextField("Hello World", text: $aiExampleInput, axis: .vertical).textFieldStyle(.roundedBorder)
+                        multilineField("Hello World", text: $aiExampleInput)
                     }
                     labeledField("Expected output") {
-                        TextField("hello-world", text: $aiExpectedOutput, axis: .vertical).textFieldStyle(.roundedBorder)
+                        multilineField("hello-world", text: $aiExpectedOutput)
                     }
                 }
 
@@ -252,10 +252,10 @@ struct TransformBuilderView: View {
             }
             HStack(spacing: 8) {
                 labeledField("Example input (optional)") {
-                    TextField("Hello World", text: $exampleInput, axis: .vertical).textFieldStyle(.roundedBorder)
+                    multilineField("Hello World", text: $exampleInput)
                 }
                 labeledField("Example output (optional)") {
-                    TextField("hello-world", text: $exampleOutput, axis: .vertical).textFieldStyle(.roundedBorder)
+                    multilineField("hello-world", text: $exampleOutput)
                 }
             }
             labeledField("Category") {
@@ -397,6 +397,25 @@ struct TransformBuilderView: View {
             Text(label).font(.caption).foregroundStyle(.secondary)
             content()
         }
+    }
+
+    /// Multiline text field. Uses TextEditor (not a vertical-axis TextField) so
+    /// Return inserts a newline instead of submitting — examples are multiline.
+    @ViewBuilder
+    private func multilineField(_ placeholder: String, text: Binding<String>) -> some View {
+        ZStack(alignment: .topLeading) {
+            if text.wrappedValue.isEmpty {
+                Text(placeholder)
+                    .foregroundStyle(.tertiary)
+                    .padding(.horizontal, 5).padding(.vertical, 8)
+                    .allowsHitTesting(false)
+            }
+            TextEditor(text: text)
+                .scrollContentBackground(.hidden)
+                .frame(minHeight: 54)
+        }
+        .font(.body)
+        .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.secondary.opacity(0.3), lineWidth: 1))
     }
 
     private func remove(_ step: EditableStep) {

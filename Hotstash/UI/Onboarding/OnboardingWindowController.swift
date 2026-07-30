@@ -96,9 +96,12 @@ private struct TourStep {
     var body = ""
 }
 
-private let tourSteps: [TourStep] = {
+/// Builds the tour steps. The Paste Stack step is gated behind
+/// `RemoteFlags.pasteStackStepEnabled` so it can ship dormant and be revealed
+/// OTA (flip `app_config.paste_stack_step_enabled`) without a new build.
+private func makeTourSteps() -> [TourStep] {
     let copyBody = "Press Return to put the selected item on your clipboard, then ⌘V pastes it right where you were."
-    return [
+    var steps: [TourStep] = [
         TourStep(stage: .hero(.welcome)),
         TourStep(stage: .hero(.hotkey)),
         TourStep(stage: .panel(target: "search"), badge: "Find",
@@ -119,12 +122,20 @@ private let tourSteps: [TourStep] = {
         TourStep(stage: .panel(target: "multistack"), badge: "Power",
                  title: "Multi-Paste",
                  body: "Need several items at once? Open Multi-Paste (⌘⇧L), pick what you want, and drop them together."),
+    ]
+    if RemoteFlags.pasteStackStepEnabled {
+        steps.append(TourStep(stage: .panel(target: "pastestack"), badge: "Stack",
+                              title: "Paste Stack",
+                              body: "⌘-click several items to stack them — then every ⌘V pastes the next one in order, perfect for filling forms."))
+    }
+    steps.append(contentsOf: [
         TourStep(stage: .settings(target: "markettab"), badge: "Extend",
                  title: "Transforms Marketplace",
                  body: "Install community and AI-generated transforms from Settings → Marketplace — or publish your own."),
         TourStep(stage: .hero(.ready)),
-    ]
-}()
+    ])
+    return steps
+}
 
 // MARK: - TourView
 
@@ -133,8 +144,11 @@ private struct TourView: View {
     @State private var index = 0
     @State private var hotkeyCaught = false
 
-    private var step: TourStep { tourSteps[index] }
-    private var isLast: Bool { index == tourSteps.count - 1 }
+    /// Captured once so a mid-tour flag flip can't reshape the array underfoot.
+    private let steps: [TourStep] = makeTourSteps()
+
+    private var step: TourStep { steps[index] }
+    private var isLast: Bool { index == steps.count - 1 }
 
     private var reduceMotion: Bool {
         NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
@@ -192,7 +206,7 @@ private struct TourView: View {
             Spacer()
 
             HStack(spacing: 6) {
-                ForEach(tourSteps.indices, id: \.self) { i in
+                ForEach(steps.indices, id: \.self) { i in
                     Capsule()
                         .fill(i == index ? Color.accentColor : Color.secondary.opacity(0.3))
                         .frame(width: i == index ? 18 : 6, height: 6)
@@ -216,7 +230,7 @@ private struct TourView: View {
     }
 
     private func advance() {
-        guard index < tourSteps.count - 1 else { return }
+        guard index < steps.count - 1 else { return }
         index += 1
     }
 
@@ -578,6 +592,12 @@ private struct PanelReplicaView: View {
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 4).padding(.vertical, 5)
                 .tourTarget("multistack")
+
+            Image(systemName: "square.stack.3d.up")
+                .font(.system(size: 13))
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 4).padding(.vertical, 5)
+                .tourTarget("pastestack")
 
             Spacer()
 

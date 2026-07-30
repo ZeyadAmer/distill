@@ -132,10 +132,17 @@ enum DeviceTracker {
 enum RemoteFlags {
 
     private static let onboardingKey = "com.zeyadamer.hotstash.remote.onboardingEnabled"
+    private static let pasteStackStepKey = "com.zeyadamer.hotstash.remote.pasteStackStepEnabled"
 
     /// Whether the first-run guided tour (and its About replay button) is shown.
     static var onboardingEnabled: Bool {
         UserDefaults.standard.bool(forKey: onboardingKey) // absent == false
+    }
+
+    /// Whether the tour's Paste Stack step is shown. Ships off; flip the
+    /// `paste_stack_step_enabled` column in `app_config` to reveal it OTA.
+    static var pasteStackStepEnabled: Bool {
+        UserDefaults.standard.bool(forKey: pasteStackStepKey) // absent == false
     }
 
     /// Fire-and-forget fetch of the flags row. Best-effort and silent — on any
@@ -160,7 +167,7 @@ enum RemoteFlags {
     private static func fetchAndCache() async {
         guard let config = SupabaseConfig.current,
               let url = URL(string: config.url.absoluteString
-                            + "/rest/v1/app_config?select=onboarding_enabled&limit=1")
+                            + "/rest/v1/app_config?select=onboarding_enabled,paste_stack_step_enabled&limit=1")
         else { return }
 
         var req = URLRequest(url: url)
@@ -174,6 +181,9 @@ enum RemoteFlags {
         else { return }
         if let ob = row["onboarding_enabled"] as? Bool {
             UserDefaults.standard.set(ob, forKey: onboardingKey)
+        }
+        if let ps = row["paste_stack_step_enabled"] as? Bool {
+            UserDefaults.standard.set(ps, forKey: pasteStackStepKey)
         }
     }
 }
