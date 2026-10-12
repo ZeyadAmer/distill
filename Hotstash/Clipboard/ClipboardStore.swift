@@ -211,9 +211,15 @@ final class ClipboardStore {
     /// within the batch. Returns the number actually inserted. One save.
     func importItems(_ items: [ClipboardItem]) -> Int {
         var seen = Set(self.items.map(\.content))
+        // Images all share the "[Image]" placeholder content, so de-dup them by bytes instead.
+        var seenImages = Set(self.items.compactMap(\.imageData))
         var inserted = 0
-        for item in items where !item.content.isEmpty && !seen.contains(item.content) {
-            seen.insert(item.content)
+        for item in items where !item.content.isEmpty {
+            if let image = item.imageData {
+                guard seenImages.insert(image).inserted else { continue }
+            } else {
+                guard seen.insert(item.content).inserted else { continue }
+            }
             context.insert(item)
             inserted += 1
         }

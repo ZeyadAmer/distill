@@ -195,11 +195,12 @@ struct GeneralSettingsView: View {
             // MARK: Import
 
             Section {
+                Button("Import from Maccy\u{2026}") { importFromMaccy() }
                 Button("Import from Raycast\u{2026}") { importFromRaycast() }
             } header: {
                 Text("Import")
             } footer: {
-                Text("In Raycast, run \u{201C}Export Settings & Data\u{201D} and set a passphrase, then pick that .rayconfig file here.")
+                Text("Maccy: quit Maccy, then choose its folder. Raycast: run \u{201C}Export Settings & Data\u{201D} with a passphrase, then pick that .rayconfig file.")
             }
 
         }
@@ -209,6 +210,32 @@ struct GeneralSettingsView: View {
     }
 
     // MARK: - Helpers
+
+    // MARK: - Maccy import
+
+    private func importFromMaccy() {
+        let panel = NSOpenPanel()
+        panel.title = "Choose Maccy Folder"
+        panel.message = "Select the \u{201C}Maccy\u{201D} folder (or Storage.sqlite inside it)."
+        panel.prompt = "Import"
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = true
+        panel.allowsMultipleSelection = false
+        panel.directoryURL = MaccyImporter.defaultFolder
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+
+        do {
+            let count = try MaccyImporter.importClipboard(from: url)
+            showImportResult(
+                title: count > 0 ? "Import Complete" : "Nothing to Import",
+                message: count > 0
+                    ? "Added \(count) item\(count == 1 ? "" : "s") from Maccy."
+                    : "No new clipboard items were found (they may already be in your history)."
+            )
+        } catch {
+            showImportResult(title: "Import Failed", message: error.localizedDescription, style: .warning)
+        }
+    }
 
     // MARK: - Raycast import
 
