@@ -96,6 +96,7 @@ final class PasteStackManager {
         } else {
             NSSound(named: "Pop")?.play()
             stop()
+            ReviewPrompter.shared.recordDelight()
         }
     }
 

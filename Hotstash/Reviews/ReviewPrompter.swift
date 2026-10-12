@@ -32,7 +32,17 @@ final class ReviewPrompter {
         defaults.set(count, forKey: Self.pasteCountKey)
 
         guard count >= Self.minimumPastes else { return }
+        requestIfEligible()
+    }
 
+    /// Call at a standout success moment (a finished Paste Stack). Skips the
+    /// paste-count gate; the install-age and once-per-version gates still apply.
+    func recordDelight() {
+        requestIfEligible()
+    }
+
+    private func requestIfEligible() {
+        let defaults = UserDefaults.standard
         let firstLaunch = defaults.object(forKey: Self.firstLaunchKey) as? Date ?? .now
         let daysInstalled = Calendar.current
             .dateComponents([.day], from: firstLaunch, to: .now).day ?? 0
