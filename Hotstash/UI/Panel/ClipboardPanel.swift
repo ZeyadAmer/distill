@@ -27,6 +27,8 @@ final class ClipboardPanel: NSPanel {
     // MARK: Internal state
 
     private var outsideClickMonitor: Any?
+    /// Bumped on every show(); lets a stale hide() animation skip its orderOut.
+    private var showGeneration = 0
     private var localKeyMonitor: Any?
     private let contentVC = ClipboardPanelVC()
 
@@ -161,6 +163,7 @@ final class ClipboardPanel: NSPanel {
 
     /// Positions and fades in the panel according to the stored position preference.
     func show() {
+        showGeneration += 1
         // Capture the app currently in front BEFORE we activate, so paste can
         // restore focus to it and inject ⌘V there.
         previousApp = NSWorkspace.shared.frontmostApplication
@@ -187,12 +190,17 @@ final class ClipboardPanel: NSPanel {
     /// Hides only this panel. Multi-paste panel is unaffected.
     /// Called automatically after paste, or when toggling via menubar icon.
     func hide() {
+        let generation = showGeneration
         NSAnimationContext.runAnimationGroup({ ctx in
             ctx.duration = 0.14
             ctx.timingFunction = CAMediaTimingFunction(name: .easeIn)
             animator().alphaValue = 0
         }, completionHandler: { [weak self] in
-            self?.orderOut(nil)
+            // A show() during the fade wins — e.g. the menu bar icon click,
+            // whose mouse-down the outside-click monitor sees as "outside"
+            // (status items are hosted out of process) and dismisses.
+            guard let self, self.showGeneration == generation else { return }
+            self.orderOut(nil)
         })
     }
 
