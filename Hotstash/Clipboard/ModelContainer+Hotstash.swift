@@ -6,10 +6,13 @@ extension ModelContainer {
     /// Production container: local SwiftData store mirrored to the user's
     /// private CloudKit database for cross-Mac sync and backup.
     static let hotstashShared: ModelContainer = {
-        let config = ModelConfiguration(
-            "Hotstash",
-            cloudKitDatabase: .private("iCloud.com.zeyadamer.hotstash")
-        )
+        var cloud = ModelConfiguration.CloudKitDatabase.private("iCloud.com.zeyadamer.hotstash")
+        #if DEBUG
+        // Unsigned local builds have no iCloud entitlement and CloudKit traps
+        // (not throws) on setup. Launch with `-debug.localStore YES` to run them.
+        if UserDefaults.standard.bool(forKey: "debug.localStore") { cloud = .none }
+        #endif
+        let config = ModelConfiguration("Hotstash", cloudKitDatabase: cloud)
         do {
             return try ModelContainer(for: ClipboardItem.self, StoredTransform.self, Folder.self, configurations: config)
         } catch {
