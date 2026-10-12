@@ -10,3 +10,7 @@ build/
 # Supabase CLI local link/cache
 supabase/.temp/
 .env
+
+# App Store Connect API key (env/AuthKey_<KEY_ID>.p8) — never committed
+env/
+*.p8

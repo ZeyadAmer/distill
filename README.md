@@ -10,6 +10,8 @@ A fast, lightweight clipboard history manager for macOS. Lives in your menu bar 
 - **Paste Stack** — ⌘-click several items, then every ⌘V pastes the next one in sequence
 - **Search everything** — including text inside copied screenshots (OCR) and page titles of copied links
 - **Pin items** — keep important clips at the top permanently
+- **Folders** — group reusable clips into tabs beside Recents and Pinned
+- **Import** — bring your history from Maccy or Raycast
 - **Transform** — uppercase, lowercase, trim, JSON formatting, and a community marketplace of transforms
 - **Multi-paste** — combine multiple recent items and copy them joined inline or on new lines
 - **Excluded apps** — never record copies from apps you choose (password managers are skipped automatically)
