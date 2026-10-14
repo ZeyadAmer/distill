@@ -878,6 +878,13 @@ final class ClipboardPanelVC: NSViewController {
         }
     }
 
+    /// Opens the page the clip was copied from, scrolled to the copied text.
+    @objc private func handleOpenSource() {
+        guard let item = contextItem, let page = SourceLinks.page(for: item.id) else { return }
+        ClipboardPanel.shared.dismiss()
+        NSWorkspace.shared.open(SourceLinks.textFragmentURL(page: page, text: item.content))
+    }
+
     /// Assigns the context item to the folder carried in `representedObject`.
     @objc private func handleMoveToFolder(_ sender: NSMenuItem) {
         guard let item = contextItem,
@@ -1401,6 +1408,12 @@ extension ClipboardPanelVC: NSMenuDelegate {
             let clean = NSMenuItem(title: "Copy Clean Link", action: #selector(handleCopyCleanLink), keyEquivalent: "")
             clean.target = self
             menu.addItem(clean)
+        }
+
+        if SourceLinks.page(for: item.id) != nil {
+            let source = NSMenuItem(title: "Open Source", action: #selector(handleOpenSource), keyEquivalent: "")
+            source.target = self
+            menu.addItem(source)
         }
 
         menu.addItem(.separator())

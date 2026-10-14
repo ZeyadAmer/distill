@@ -370,6 +370,21 @@ final class ClipboardStore {
         if !toDelete.isEmpty { save() }
     }
 
+    /// Deletes one-time codes and links (`OneTimeClips`) older than their
+    /// lifetime. Pinned, named, and filed items are kept. Only scans recent
+    /// history, since one-time clips are always young.
+    func removeExpiredOneTimeItems() {
+        guard OneTimeClips.isEnabled else { return }
+        let cutoff = Date.now.addingTimeInterval(-OneTimeClips.lifetime)
+        let expired = recentItems(limit: 300).filter {
+            $0.label.isEmpty && $0.timestamp <= cutoff && OneTimeClips.isOneTime($0.content)
+        }
+        guard !expired.isEmpty else { return }
+        expired.forEach { context.delete($0) }
+        save()
+        NotificationCenter.default.post(name: .clipboardDidUpdate, object: nil)
+    }
+
     // MARK: Private helpers
 
     private func item(id: UUID) -> ClipboardItem? {

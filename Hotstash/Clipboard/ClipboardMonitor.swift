@@ -137,6 +137,10 @@ final class ClipboardMonitor {
         )
         store.add(item: item)
         ItemEnricher.shared.enrich(item)
+        SourceLinks.capture(from: pasteboard, itemID: item.id)
+        if OneTimeClips.isEnabled, OneTimeClips.isOneTime(content) {
+            OneTimeClips.scheduleExpiry()
+        }
         NotificationCenter.default.post(name: .clipboardDidUpdate, object: nil)
     }
 

@@ -29,6 +29,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Migrate legacy UserDefaults history into SwiftData, then boot the pipeline.
         ClipboardMigration.runIfNeeded(context: ClipboardStore.shared.modelContextForMigration)
         ClipboardMonitor.shared.start()
+        ClipboardStore.shared.removeExpiredOneTimeItems()
 
         // Set up the status bar item and panel.
         _ = MenuBarManager.shared

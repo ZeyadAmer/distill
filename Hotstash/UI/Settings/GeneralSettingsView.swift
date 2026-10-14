@@ -23,6 +23,8 @@ struct GeneralSettingsView: View {
     @State private var accessibilityTrusted: Bool = AutoPasteService.isTrusted
     @State private var assistivePasteEnabled: Bool = AutoPasteService.isEnabled
     @State private var alwaysPlainText: Bool = UserDefaults.standard.bool(forKey: "alwaysPastePlainText")
+    @AppStorage("pasteStackMatchesFields") private var pasteStackMatchesFields = true
+    @AppStorage(OneTimeClips.defaultsKey) private var expireOneTimeClips = true
 
     @State private var historyLimitOption: HistoryLimitOption = {
         switch UserDefaults.standard.integer(forKey: "historyLimit") {
@@ -125,6 +127,30 @@ struct GeneralSettingsView: View {
                 Text("Pasting")
             } footer: {
                 Text("Off: items paste with their original formatting; hold ⇧ and press Return to paste one item as plain text. On: formatting is always stripped.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            // MARK: Paste Stack
+
+            Section {
+                Toggle("Match form fields", isOn: $pasteStackMatchesFields)
+            } header: {
+                Text("Paste Stack")
+            } footer: {
+                Text("When you click into a form field, Paste Stack stages the item that fits it first: an item whose name appears in the field's label, or an email, phone number, or link for fields that ask for one. Other items keep their order.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            // MARK: One-time clips
+
+            Section {
+                Toggle("Forget one-time codes and links", isOn: $expireOneTimeClips)
+            } header: {
+                Text("One-time clips")
+            } footer: {
+                Text("Verification codes and single-use sign-in or download links are removed from history 10 minutes after you copy them. Pinned, named, and foldered items are always kept.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
