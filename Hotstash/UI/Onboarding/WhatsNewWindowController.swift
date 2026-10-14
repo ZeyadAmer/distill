@@ -43,19 +43,24 @@ struct WhatsNewView: View {
 
     private let items: [ChangeItem] = [
         ChangeItem(
-            icon: "graduationcap.fill",
-            title: "Interactive guided tour",
-            detail: "A spotlight tour walks you through search, folders, transforms, Multi-Paste, and the Marketplace. Replay it anytime from Settings → About → “Show Tutorial.”"
+            icon: "text.cursor",
+            title: "Paste Stack fills forms for you",
+            detail: "Click into an Email, Phone, or website field, or one whose label matches an item's name, and Paste Stack has the right item ready. Copy something new mid-stack and it pastes next, then the stack picks up where you left off."
         ),
         ChangeItem(
-            icon: "bolt.fill",
-            title: "Faster search",
-            detail: "Search now runs on an in-memory index, so filtering your whole history is instant — even with thousands of items."
+            icon: "arrow.uturn.backward.circle",
+            title: "Open Source",
+            detail: "Right-click a clip you copied from Safari, Chrome, Edge, Brave, or Arc and choose Open Source to jump back to that page, scrolled to the exact passage."
         ),
         ChangeItem(
-            icon: "checkmark.shield.fill",
-            title: "Stability improvements",
-            detail: "Fixed rare crashes in the hotkey recorder and settings, and the clipboard panel now closes with Escape."
+            icon: "timer",
+            title: "One-time codes clean themselves up",
+            detail: "Verification codes and single-use sign-in links leave your history 10 minutes after you copy them. Pinned, named, and foldered items are always kept. Turn it off in Settings → General."
+        ),
+        ChangeItem(
+            icon: "square.stack.3d.up",
+            title: "Paste Selected Items",
+            detail: "⌘-click items in your history, then join and paste them in one go, inline or one per line. Press Esc to cancel a running Paste Stack."
         ),
     ]
 

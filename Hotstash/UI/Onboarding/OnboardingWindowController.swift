@@ -126,8 +126,11 @@ private func makeTourSteps() -> [TourStep] {
     if RemoteFlags.pasteStackStepEnabled {
         steps.append(TourStep(stage: .panel(target: "pastestack"), badge: "Stack",
                               title: "Paste Stack",
-                              body: "⌘-click several items to stack them — then every ⌘V pastes the next one in order, perfect for filling forms."))
+                              body: "⌘-click several items to stack them — then every ⌘V pastes the next one. Click into an Email or Phone field and the matching item is ready first."))
     }
+    steps.append(TourStep(stage: .panel(target: "item"), badge: "Trace",
+                          title: "Open Source",
+                          body: "Copied something from a web page? Right-click it and choose Open Source to jump back to the page, right at that passage."))
     steps.append(contentsOf: [
         TourStep(stage: .settings(target: "markettab"), badge: "Extend",
                  title: "Transforms Marketplace",
