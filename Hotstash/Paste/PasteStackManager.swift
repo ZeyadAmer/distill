@@ -11,6 +11,7 @@ import OSLog
 /// the system advances the stack, so N plain ⌘V presses paste N items in
 /// order. A listen-only CGEvent tap detects the ⌘V keystrokes — this uses the
 /// same Accessibility permission the app already holds for direct paste.
+/// A bare Esc anywhere cancels the stack.
 @MainActor
 final class PasteStackManager {
 
@@ -126,7 +127,13 @@ final class PasteStackManager {
                 case .tapDisabledByTimeout, .tapDisabledByUserInput:
                     Task { @MainActor in PasteStackManager.shared.reenableTap() }
                 case .keyDown:
-                    if event.getIntegerValueField(.keyboardEventKeycode) == Int64(kVK_ANSI_V),
+                    if event.getIntegerValueField(.keyboardEventKeycode) == Int64(kVK_Escape),
+                       event.flags.intersection([.maskCommand, .maskAlternate, .maskShift, .maskControl]).isEmpty {
+                        Task { @MainActor in
+                            guard PasteStackManager.shared.isActive else { return }
+                            PasteStackManager.shared.stop()
+                        }
+                    } else if event.getIntegerValueField(.keyboardEventKeycode) == Int64(kVK_ANSI_V),
                        event.getIntegerValueField(.keyboardEventAutorepeat) == 0,
                        event.flags.contains(.maskCommand),
                        !event.flags.contains(.maskAlternate),

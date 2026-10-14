@@ -923,7 +923,7 @@ final class ClipboardPanelVC: NSViewController {
         if MultiPastePanel.shared.isVisible {
             MultiPastePanel.shared.hide()
         } else {
-            MultiPastePanel.shared.show()
+            MultiPastePanel.shared.show(selected: selectedItems)
         }
     }
 

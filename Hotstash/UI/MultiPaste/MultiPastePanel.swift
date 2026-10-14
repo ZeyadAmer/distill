@@ -9,12 +9,10 @@ final class MultiPastePanel: NSPanel {
 
     static let shared = MultiPastePanel()
 
-    private let contentVC: NSViewController
+    private let contentVC: NSHostingController<AnyView>
 
     private init() {
-        let vc = NSHostingController(rootView: MultiPasteView(onDismiss: {
-            MultiPastePanel.shared.hide()
-        }))
+        let vc = NSHostingController(rootView: AnyView(EmptyView()))
         contentVC = vc
 
         super.init(
@@ -65,7 +63,13 @@ final class MultiPastePanel: NSPanel {
 
     // MARK: - Show / Hide
 
-    func show() {
+    /// `selected` = items multi-selected in the panel; offered as an alternative to "last N".
+    func show(selected: [ClipboardItem] = []) {
+        // Fresh identity per show so @State picks up the new selection's defaults.
+        contentVC.rootView = AnyView(
+            MultiPasteView(selected: selected, onDismiss: { MultiPastePanel.shared.hide() })
+                .id(UUID())
+        )
         positionNearCursor()
         alphaValue = 0
         makeKeyAndOrderFront(nil)
@@ -107,10 +111,21 @@ final class MultiPastePanel: NSPanel {
 
 private struct MultiPasteView: View {
 
+    let selected: [ClipboardItem]
     let onDismiss: () -> Void
 
     @State private var count: Int = 3
     @State private var joinStyle: JoinStyle = .newLine
+    @State private var source: Source
+
+    enum Source { case last, selected }
+
+    init(selected: [ClipboardItem], onDismiss: @escaping () -> Void) {
+        // Images have no text to join; drop them up front.
+        self.selected = selected.filter { $0.contentType != .image }
+        self.onDismiss = onDismiss
+        _source = State(initialValue: self.selected.count >= 2 ? .selected : .last)
+    }
 
     enum JoinStyle: String, CaseIterable {
         case inline  = "Inline"
@@ -123,22 +138,34 @@ private struct MultiPasteView: View {
 
     var body: some View {
         VStack(spacing: 12) {
-            Text("Paste Last Items")
+            Text(source == .selected ? "Paste Selected Items" : "Paste Last Items")
                 .font(.headline)
 
             HStack(spacing: 8) {
-                Text("Count:")
-                    .foregroundStyle(.secondary)
+                if selected.count >= 2 {
+                    Picker("", selection: $source) {
+                        Text("Last").tag(Source.last)
+                        Text("Selected (\(selected.count))").tag(Source.selected)
+                    }
+                    .pickerStyle(.segmented)
+                    .labelsHidden()
+                } else {
+                    Text("Count:")
+                        .foregroundStyle(.secondary)
+                }
 
                 TextField("", value: $count, format: .number)
                     .frame(width: 48)
                     .multilineTextAlignment(.center)
                     .textFieldStyle(.roundedBorder)
                     .onSubmit { count = min(max(count, 1), 20) }
+                    .disabled(source == .selected)
 
                 Stepper("", value: $count, in: 1...20)
                     .labelsHidden()
+                    .disabled(source == .selected)
             }
+
 
             Picker("", selection: $joinStyle) {
                 ForEach(JoinStyle.allCases, id: \.self) { style in
@@ -151,7 +178,7 @@ private struct MultiPasteView: View {
                 Button("Cancel") { onDismiss() }
                     .keyboardShortcut(.cancelAction)
 
-                Button("Copy") { paste() }
+                Button("Paste") { paste() }
                     .keyboardShortcut(.defaultAction)
                     .buttonStyle(.borderedProminent)
             }
@@ -164,9 +191,12 @@ private struct MultiPasteView: View {
         onDismiss()
 
         Task { @MainActor in
-            let items = ClipboardStore.shared.recentItems(limit: 200)
-                .prefix(count)
-                .map { $0.content }
+            let items = source == .selected
+                ? selected.map(\.content)
+                : ClipboardStore.shared.recentItems(limit: 200)
+                    .filter { $0.contentType != .image }
+                    .prefix(count)
+                    .map(\.content)
             guard !items.isEmpty else { return }
             let joined = items.joined(separator: joinStyle.separator)
             PasteEngine.hotstashedPaste(joined)
